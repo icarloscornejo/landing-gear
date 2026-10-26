@@ -24,17 +24,70 @@ import { resolveCvTemplate } from "@/lib/core/cv-template.mjs";
 import { acquireTrackerWrite, releaseTrackerWrite } from "@/lib/core/run-registry";
 import { createRunFinalizer } from "@/lib/run-finalizer.mjs";
 import { readJsonObject } from "@/lib/json-body";
+import { HAIKU_KINDS, parseNeedsChrome, parseTriageLine, resolveWorkerInput, triageLabel } from "@/lib/lifecycle.mjs";
+import { listJdFiles, readJdSources } from "@/lib/jd-captures";
+import { setInboxLabel, setInboxSkip } from "@/lib/inbox-skip.mjs";
+import { safeRunId, startDetachedRun } from "@/lib/live-runs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 800; // a real oferta evaluation / pdf-mode CV tailoring + render is heavy and multi-step
+export const maxDuration = 1800; // RUN_MAX_DURATION_S: a Haiku max-effort evaluation runs 11+ minutes
+
+
+/** Hosts listed in data/needs-real-chrome.txt (bot walls; never script-fetched). */
+function readNeedsChromeHosts(): string[] {
+  try {
+    return parseNeedsChrome(fs.readFileSync(path.join(careerOpsRoot(), "data", "needs-real-chrome.txt"), "utf8"));
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") return [];
+    throw err;
+  }
+}
+
+/** pipeline.triage_threshold from config/profile.yml; modes/triage.md defaults to 3.5. */
+function readTriageThreshold(): number {
+  try {
+    const yml = fs.readFileSync(path.join(careerOpsRoot(), "config", "profile.yml"), "utf8");
+    const value = Number(/^\s*triage_threshold:\s*([\d.]+)/m.exec(yml)?.[1]);
+    return Number.isFinite(value) ? value : 3.5;
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") return 3.5;
+    throw err;
+  }
+}
+
+const PIPELINE_LOCK = () => path.join(careerOpsRoot(), "pipeline-lock.mjs");
+const PIPELINE_FILE = () => path.join(careerOpsRoot(), "data", "pipeline.md");
 
 export async function POST(req: Request) {
-  const body = await readJsonObject<{ kind?: string; input?: string; cliId?: string; brief?: unknown }>(req);
+  const body = await readJsonObject<{ kind?: string; input?: string; cliId?: string; brief?: unknown; detach?: boolean; runId?: string; title?: string; subtitle?: string; source?: string }>(req);
   if (!body) return new Response(JSON.stringify({ error: "bad json" }), { status: 400 });
   const { kind = "evaluate", input, cliId: requestedCliId, brief } = body;
   if (!input || !requestedCliId) {
     return new Response(JSON.stringify({ error: "input and cliId required" }), { status: 400 });
+  }
+  // Server-owned run (lib/live-runs.ts): answer with its id at once and let this
+  // process read the stream below to the end. Used by the web for triage and
+  // evaluate, and by chat sessions through my-tools/run-job.mjs.
+  if (body.detach === true) {
+    if (!HAIKU_KINDS.includes(kind)) {
+      return Response.json({ error: `'${kind}' cannot run detached; only ${HAIKU_KINDS.join(" and ")} can.` }, { status: 400 });
+    }
+    const id = safeRunId(body.runId) ?? `run-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const text = (value: unknown, max: number) => (typeof value === "string" ? value.slice(0, max) : "");
+    const runId = startDetachedRun(
+      {
+        id,
+        kind,
+        input,
+        title: text(body.title, 160) || `${kind === "triage" ? "Triage" : "Evaluate"} · ${input}`,
+        subtitle: text(body.subtitle, 160),
+        source: text(body.source, 20) || "web",
+        body: { kind, input, cliId: requestedCliId, brief },
+      },
+      (attemptBody) => POST(new Request(req.url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(attemptBody) })),
+    );
+    return Response.json({ ok: true, id: runId, joined: runId !== id });
   }
   const resolved = resolveCliOrFallback(requestedCliId);
   if (!resolved) {
@@ -48,6 +101,14 @@ export async function POST(req: Request) {
   const cliId = spec.id;
   const substitution = cliSubstitutionNotice(resolved);
   const capabilities = capabilitiesFor(kind);
+  // House rule 16: triage and evaluate run as `claude -p` on Haiku at max
+  // effort. Another CLI, or a silent fallback to one, would run another model.
+  if (HAIKU_KINDS.includes(kind) && (cliId !== "claude" || resolved.substitutedFrom)) {
+    return new Response(
+      JSON.stringify({ error: `'${kind}' runs only on Claude Code (Haiku, max effort). Pick Claude in Config, or install it.` }),
+      { status: 400, headers: { "Content-Type": "application/json" } },
+    );
+  }
   if (!isCliAllowedForCapabilities(cliId, capabilities)) {
     return new Response(
       JSON.stringify({ error: `CLI '${cliId}' cannot run write-capable worker '${kind}' without a verified permission adapter.` }),
@@ -61,7 +122,7 @@ export async function POST(req: Request) {
   // it to modes/oferta.md meant a configured market passed a check on a file the
   // run never opens, and would have missed a market dir with no evaluation mode.
   const lang = readLanguageConfig();
-  const needsScript: Record<string, string> = { evaluate: lang.evalModeFile, "fix-portal": "verify-portals.mjs", pdf: "generate-pdf.mjs", cover: "modes/cover.md" };
+  const needsScript: Record<string, string> = { evaluate: lang.evalModeFile, "fix-portal": "verify-portals.mjs", pdf: "generate-pdf.mjs", cover: "modes/cover.md", triage: "modes/triage.md" };
   const required = needsScript[kind];
   // CAREER_OPS_ROOT is runtime user data, not a build input. Tracing this
   // dynamic path would copy the whole web project into every server bundle.
@@ -90,11 +151,28 @@ export async function POST(req: Request) {
 
   // An A–F score is meaningless without a CV to score against — the CLI would
   // hallucinate a fit narrative and still emit a VERDICT. Require cv.md first.
-  if ((kind === "evaluate" || kind === "pdf" || kind === "cover") && !fs.existsSync(path.join(careerOpsRoot(), "cv.md"))) {
+  if ((kind === "evaluate" || kind === "pdf" || kind === "cover" || kind === "triage") && !fs.existsSync(path.join(careerOpsRoot(), "cv.md"))) {
     return new Response(
       JSON.stringify({ error: "Add your CV first so I can score this against you — drop it on the home page." }),
       { status: 400, headers: { "Content-Type": "application/json" } },
     );
+  }
+
+  // What the worker may read (house rules 13 and 18): LinkedIn and bot-walled
+  // hosts are never fetched by a script; a saved jds/ capture is used instead.
+  let jdPath: string | null = null;
+  let jdText = "";
+  if (HAIKU_KINDS.includes(kind)) {
+    const jdFiles = listJdFiles();
+    const target = resolveWorkerInput(input, { jdFiles, needsChromeHosts: readNeedsChromeHosts(), jdSources: readJdSources(jdFiles) });
+    if (!target.ok) {
+      return new Response(JSON.stringify({ error: target.error }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    jdPath = target.jdPath;
+    if (jdPath) jdText = fs.readFileSync(path.join(careerOpsRoot(), jdPath), "utf8");
   }
 
   const today = localISODate();
@@ -151,6 +229,8 @@ export async function POST(req: Request) {
     cvTemplate,
     reportFile: pdfPaths?.reportFile ?? (coverRequest?.ok ? coverRequest.reportFile : undefined),
     coverBrief: coverRequest?.ok ? coverRequest.brief : undefined,
+    jdPath,
+    triageThreshold: kind === "triage" ? readTriageThreshold() : undefined,
   });
 
   const isClaude = cliId === "claude";
@@ -218,12 +298,16 @@ export async function POST(req: Request) {
   // can stop every timer before the child's late handlers run. send() is also
   // try/catch'd so a late enqueue cannot throw uncaught (see #1155).
   let closed = false;
+  // House rule 16: Haiku triage/evaluate must finish and save even if the
+  // browser disconnects; they also have no kill timer (killMsForKind).
+  const mustFinish = HAIKU_KINDS.includes(kind);
   let killer: ReturnType<typeof setTimeout> | undefined;
   let heartbeat: ReturnType<typeof setInterval> | undefined;
   // pdf render and evaluate persist keep running after the agent child closes.
   // cancel() must not release the tracker guard until that work settles.
   let pdfRenderPromise: Promise<void> | null = null;
   let evaluatePersistPromise: Promise<void> | null = null;
+  let triageSavePromise: Promise<void> | null = null;
   // Cancellation only requests termination. Keep the guard until the child
   // actually closes and any render or persist work has finished.
   const finishRun = createRunFinalizer(child, () => {
@@ -279,10 +363,13 @@ export async function POST(req: Request) {
       // Set by the killer so the close handler can tell "we timed it out" apart
       // from "the CLI exited on its own" — different failures, different message.
       let killedByTimeout = false;
-      killer = setTimeout(() => {
-        killedByTimeout = true;
-        try { child.kill("SIGTERM"); } catch { /* ignore */ }
-      }, killMs);
+      // null = no time limit (Carlos's Haiku triage/evaluate must finish).
+      if (killMs !== null) {
+        killer = setTimeout(() => {
+          killedByTimeout = true;
+          try { child.kill("SIGTERM"); } catch { /* ignore */ }
+        }, killMs);
+      }
       const send = (obj: unknown) => {
         if (closed) return;
         try {
@@ -342,7 +429,10 @@ export async function POST(req: Request) {
       // and the PDF renders correctly server-side. Emit a throttled keepalive so
       // the stream never idles during the filtered phase. Unknown event types are
       // ignored by the client's switch, so this is safe for older tabs too.
+      // triage's verdict is its last TRIAGE line; keep the text to parse it on close.
+      let triageText = "";
       const sendAgentText = (text: string) => {
+        if (kind === "triage") triageText += text;
         const filter = cvFilter ?? reportFilter;
         const visible = filter ? filter.push(text) : text;
         if (visible) send({ type: "text", text: visible });
@@ -390,7 +480,9 @@ export async function POST(req: Request) {
       };
 
       child.stdout.on("data", (chunk: string) => {
-        if (closed) return;
+        // A must-finish run keeps reading after the client leaves: its report
+        // or TRIAGE line is still needed to save the result.
+        if (closed && !mustFinish) return;
         if (!spec.parseEvent) {
           emittedText = true;
           sendAgentText(chunk);
@@ -438,12 +530,20 @@ export async function POST(req: Request) {
             url: input,
             today,
             postedAt,
+            jdPath,
+            jdText,
           });
           if (!result.ok) {
             send({ type: "error", msg: result.error.slice(0, 200) });
             return;
           }
           sendWarnings(result.warnings);
+          // The posting is evaluated, so its pipeline row leaves the Inbox. A pasted
+          // URL with no row is fine; anything else is a warning, the report is saved.
+          const marked = await setInboxSkip(PIPELINE_FILE(), input, true, { lockModule: PIPELINE_LOCK() });
+          if (!marked.ok && marked.error !== "unmatched") {
+            sendWarnings([`The report is saved, but the pipeline row was not marked done (${marked.error}).`]);
+          }
           const reportN = Number(result.num);
           if (Number.isFinite(reportN)) {
             send({ type: "done", tokens: lastTokens, costUsd: lastCostUsd, reportN });
@@ -494,7 +594,9 @@ export async function POST(req: Request) {
         // A disconnected client must not start a new PDF render. Still finish
         // the run here: an enqueue failure closes the transport without calling
         // cancel(), and must not leave the tracker guard held forever.
-        if (closed) return close();
+        // A must-finish run (Carlos's Haiku triage/evaluate) still saves its
+        // result after the client left; send() is a no-op by then.
+        if (closed && !mustFinish) return close();
         // A timeout is the ROOT cause behind every "no report / not clean"
         // symptom the gates below test, so classify it FIRST, for any kind.
         // Otherwise a run we cut off at the time limit reads as "the CLI couldn't
@@ -583,7 +685,37 @@ export async function POST(req: Request) {
           } else if (envelope?.ok !== true) {
             send({ type: "error", msg: "Internal error: the evaluate run passed its gate with no report to save — please report this." });
           } else {
+            if (envelope.recovered) sendWarnings(["The agent forgot the report markers; the complete report was taken from its text."]);
             evaluatePersistPromise = persistEval(envelope.markdown);
+            return;
+          }
+          return close();
+        }
+
+        if (kind === "triage") {
+          const baseErr = noOutputError();
+          const verdict = parseTriageLine(triageText);
+          if (baseErr) {
+            send({ type: "error", msg: baseErr });
+          } else if (!cleanExit || sawError) {
+            send({ type: "error", msg: "This triage hit an error before finishing, so nothing was saved. Re-run it." });
+          } else if (!verdict) {
+            send({ type: "error", msg: "The triage ended without a TRIAGE: line, so nothing was saved. Re-run it." });
+          } else {
+            triageSavePromise = (async () => {
+              try {
+                const saved = await setInboxLabel(PIPELINE_FILE(), input, "triage", triageLabel(verdict), { lockModule: PIPELINE_LOCK() });
+                if (!saved.ok) {
+                  send({ type: "error", msg: `Triage ${verdict.verdict} ${verdict.score}, but the pipeline label was not saved (${saved.error}).` });
+                } else {
+                  send({ type: "done", tokens: lastTokens, costUsd: lastCostUsd });
+                }
+              } catch (e) {
+                send({ type: "error", msg: `Saving the triage label crashed: ${e instanceof Error ? e.message : String(e)}`.slice(0, 200) });
+              } finally {
+                close();
+              }
+            })();
             return;
           }
           return close();
@@ -612,9 +744,12 @@ export async function POST(req: Request) {
     cancel() {
       closed = true;
       if (heartbeat) clearInterval(heartbeat);
+      // A must-finish run keeps its CLI alive when the browser leaves (reload,
+      // closed tab): the close handler saves the result and then finishes the run.
+      if (mustFinish) return;
       if (killer) clearTimeout(killer);
       try { child.kill("SIGTERM"); } catch { /* ignore */ }
-      const followup = pdfRenderPromise ?? evaluatePersistPromise;
+      const followup = pdfRenderPromise ?? evaluatePersistPromise ?? triageSavePromise;
       if (followup) {
         // Render/mark or evaluate persist keeps running after this client
         // disconnects. Wait for it before releasing the guard, so a concurrent

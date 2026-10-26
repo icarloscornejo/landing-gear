@@ -43,6 +43,8 @@ export const REPORT_ENVELOPE_INSTRUCTION =
  * @typedef {Object} ReportEnvelope
  * @property {true} ok
  * @property {string} markdown - The evaluation report, byte-exact as emitted.
+ * @property {boolean} [recovered] - true when the markers were missing and the
+ *   report was taken from the unwrapped text (recoverUnwrappedReport).
  */
 
 /**
@@ -59,6 +61,10 @@ export function parseReportEnvelope(text) {
 
   const openers = [...normalized.matchAll(OPENER)];
   if (openers.length === 0) {
+    // Haiku sometimes writes the whole report but forgets the markers. Keep a
+    // complete report rather than lose a 10-minute run (Carlos's house rule 16).
+    const recovered = recoverUnwrappedReport(normalized);
+    if (recovered) return { ok: true, markdown: recovered, recovered: true };
     return { ok: false, error: "The agent emitted no <<report-md>> envelope, so there is no report to save." };
   }
   if (openers.length > 1) {
@@ -88,6 +94,26 @@ export function parseReportEnvelope(text) {
   }
 
   return { ok: true, markdown };
+}
+
+/**
+ * A report the agent wrote without the envelope markers: from the LAST
+ * `# Evaluation:` title to the end, minus the trailing VERDICT line. Only a
+ * report that carries a Machine Summary YAML fence counts; anything else is
+ * not a report and stays an error.
+ *
+ * @param {string} text normalized agent output
+ * @returns {string | null}
+ */
+export function recoverUnwrappedReport(text) {
+  const titles = [...String(text ?? "").matchAll(/^#\s+Evaluation:.*$/gm)];
+  if (titles.length === 0) return null;
+  const body = text
+    .slice(titles[titles.length - 1].index)
+    .replace(/\n+VERDICT:[^\n]*\s*$/, "")
+    .trimEnd();
+  if (!/##\s*Machine Summary\s*\n+```(?:yaml|yml)?\s*\n[\s\S]*?\n```/i.test(body)) return null;
+  return body;
 }
 
 /**

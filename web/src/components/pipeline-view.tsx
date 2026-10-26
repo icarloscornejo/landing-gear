@@ -1,15 +1,15 @@
 "use client";
 
-import { startTransition, useCallback, useEffect, useMemo, useOptimistic, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Search, ChevronsUpDown, X, Compass, ArrowRight, ExternalLink } from "lucide-react";
+import { Search, ChevronsUpDown, X, ExternalLink } from "lucide-react";
 import type { Application, InboxJob } from "@/lib/career-ops";
 import { Badge } from "@/components/ui/badge";
+import { isApproved } from "@/lib/home/awaiting.mjs";
 import { CompanyLogo } from "@/components/company-logo";
-import { CANONICAL_STATES, canonStatus, scoreNum, scoreTone } from "@/lib/format";
-import { StatusSelect } from "@/components/status-select";
-import { applicationKey, applySavedStatus, saveStatuses } from "@/lib/pipeline-status.mjs";
+import { scoreNum, scoreTone } from "@/lib/format";
+import { applicationKey } from "@/lib/pipeline-status.mjs";
 import { InboxTriage } from "@/components/inbox/inbox-triage";
 import { cn } from "@/lib/cn";
 import { companyPresentation, companySearchText } from "@/lib/company-presentation.mjs";
@@ -17,7 +17,7 @@ import { PipelineTableRowsSkeleton } from "@/components/page-loading-skeletons";
 import { startRouteProgress } from "@/components/route-progress";
 import { sortRows } from "@/lib/core/pipeline-sort.mjs";
 import { PageFrame } from "@/components/page-frame";
-import { PIPELINE_TABS, pipelineQuery, pipelineTab } from "@/lib/pipeline-navigation.mjs";
+import { HIDE_WHEN_EMPTY, INBOX_TABS, PIPELINE_TABS, TAB_LABELS, pipelineQuery, pipelineTab, trackerTabOf } from "@/lib/pipeline-navigation.mjs";
 import { COMPARE_MAX } from "@/lib/pipeline-compare.mjs";
 import { postingHref, postingLabel } from "@/lib/posting-url.mjs";
 
@@ -30,24 +30,21 @@ export function PipelineView({
   applications,
   inbox,
   inboxCount,
+  triagedCount,
 }: {
   applications: Application[];
   inbox: InboxJob[] | null;
   inboxCount: number;
+  triagedCount: number;
 }) {
   const params = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
   const [isPending, startNavigation] = useTransition();
   const [pendingTab, setPendingTab] = useState<Tab | null>(null);
-  // Starts AFTER the POST succeeds. React replays the confirmed save over
-  // intervening snapshots and discards it when the refresh transition settles.
-  const [visibleApplications, showSavedStatus] = useOptimistic(applications, applySavedStatus<Application>);
-  const [announcement, setAnnouncement] = useState("");
+  // Status is read-only here: it moves only through the detail page's buttons.
+  const visibleApplications = applications;
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
-  const [bulkStatus, setBulkStatus] = useState("");
-  const [bulkBusy, setBulkBusy] = useState(false);
-  const [bulkError, setBulkError] = useState("");
   const activeTab = useRef<HTMLButtonElement>(null);
 
   // The URL is the SINGLE source of truth for tab/min/sort/dir, so the home stat
@@ -55,10 +52,11 @@ export function PipelineView({
   // the table identically (no useState mirror → no desync).
   const tab: Tab = pipelineTab(params.get("tab"));
   const visibleTab = isPending && pendingTab ? pendingTab : tab;
+  const onInboxTab = (INBOX_TABS as readonly string[]).includes(visibleTab);
   const pMin = parseFloat(params.get("min") ?? "");
   const minFilter: number | null = Number.isFinite(pMin) ? pMin : null;
   const pSort = params.get("sort") ?? "";
-  const sortKey: SortKey = (SORT_KEYS as readonly string[]).includes(pSort) ? (pSort as SortKey) : "score";
+  const sortKey: SortKey = (SORT_KEYS as readonly string[]).includes(pSort) ? (pSort as SortKey) : "status";
   const sort = { key: sortKey, dir: (params.get("dir") === "1" ? 1 : -1) as 1 | -1 };
 
   // Search stays LOCAL for snappy typing; seeded from the URL and re-synced only
@@ -101,9 +99,9 @@ export function PipelineView({
   }, [isPending]);
 
   const filtered = useMemo(() => {
-    if (tab === "INBOX") return [];
+    if ((INBOX_TABS as readonly string[]).includes(tab)) return [];
     let rows = visibleApplications;
-    if (tab !== "ALL") rows = rows.filter((r) => canonStatus(r.status).includes(tab));
+    if (tab !== "ALL") rows = rows.filter((r) => trackerTabOf(r) === tab);
     if (minFilter != null) {
       rows = rows.filter((r) => {
         const n = scoreNum(r.score);
@@ -137,32 +135,18 @@ export function PipelineView({
     });
   }
 
-  async function applyBulkStatus() {
-    if (!bulkStatus || selectedRows.length === 0 || bulkBusy) return;
-    setBulkBusy(true);
-    setBulkError("");
-    const { saved, failed } = await saveStatuses(selectedRows, bulkStatus);
-    setBulkBusy(false);
-    setSelected(new Set(selectedRows.filter((r) => failed.some((f) => f.n === r.n)).map(applicationKey)));
-    if (failed.length > 0) {
-      setBulkError(`${failed.length} not saved: ${failed.map((f) => `#${f.n} (${f.error})`).join(", ")}`);
-    }
-    setAnnouncement(`${saved.length} application${saved.length === 1 ? "" : "s"} set to ${bulkStatus}.`);
-    startTransition(() => router.refresh());
-  }
-
   return (
     <PageFrame>
       <div className="flex items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-2xl tracking-tight text-landing">Pipeline</h1>
           <p className="mt-1 text-sm text-muted">
-            <span className="tabular-nums">{inboxCount}</span> in inbox ·{" "}
+            <span className="tabular-nums">{inboxCount}</span> discovered ·{" "}
             <span className="tabular-nums">{visibleApplications.length}</span> tracked
           </p>
         </div>
         {/* the tracker has its own search; the inbox brings its own facet filters */}
-        {visibleTab !== "INBOX" && (
+        {!onInboxTab && (
           <div className="relative w-64 max-w-[40vw]">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-faint" />
             <input
@@ -181,9 +165,12 @@ export function PipelineView({
           const count =
             t === "INBOX"
               ? inboxCount
-              : t === "ALL"
-                ? visibleApplications.length
-                : visibleApplications.filter((r) => canonStatus(r.status).includes(t)).length;
+              : t === "TRIAGED"
+                ? triagedCount
+                : t === "ALL"
+                  ? visibleApplications.length
+                  : visibleApplications.filter((r) => trackerTabOf(r) === t).length;
+          if (count === 0 && t !== visibleTab && (HIDE_WHEN_EMPTY as readonly string[]).includes(t)) return null;
           return (
             <button
               key={t}
@@ -200,15 +187,14 @@ export function PipelineView({
                   : "border-transparent text-muted hover:text-foreground",
               )}
             >
-              {t} <span className="text-faint tabular-nums">{count}</span>
+              {TAB_LABELS[t] ?? t} <span className="text-faint tabular-nums">{count}</span>
             </button>
           );
         })}
       </div>
 
-      <p role="status" className="sr-only">{announcement}</p>
 
-      {visibleTab !== "INBOX" && minFilter != null && (
+      {!onInboxTab && minFilter != null && (
         <div className="mt-3 flex items-center gap-2">
           <span className="text-xs text-faint">Filtered:</span>
           <button
@@ -223,29 +209,9 @@ export function PipelineView({
         </div>
       )}
 
-      {visibleTab !== "INBOX" && selectedRows.length > 0 && (
+      {!onInboxTab && selectedRows.length > 0 && (
         <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-border bg-surface/60 px-3 py-2 text-sm">
           <span className="tabular-nums">{selectedRows.length} selected</span>
-          <select
-            aria-label="Status for selected applications"
-            value={bulkStatus}
-            onChange={(e) => setBulkStatus(e.target.value)}
-            disabled={bulkBusy}
-            className="rounded-md border border-border bg-surface px-2 py-1 text-sm"
-          >
-            <option value="">Set status…</option>
-            {CANONICAL_STATES.map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
-          <button
-            type="button"
-            onClick={applyBulkStatus}
-            disabled={!bulkStatus || bulkBusy}
-            className="rounded-md border border-brand/40 bg-brand-soft px-2.5 py-1 text-xs font-medium text-brand disabled:opacity-50"
-          >
-            {bulkBusy ? "Saving…" : "Apply"}
-          </button>
           {selectedRows.length >= 2 && selectedRows.length <= COMPARE_MAX && (
             <Link
               href={`/pipeline/compare?n=${selectedRows.map((r) => r.n).join(",")}`}
@@ -257,11 +223,10 @@ export function PipelineView({
           <button type="button" onClick={() => setSelected(new Set())} className="text-xs text-muted hover:text-foreground">
             Clear
           </button>
-          {bulkError && <span role="alert" className="text-xs text-red-500">{bulkError}</span>}
         </div>
       )}
 
-      {visibleTab === "INBOX" ? (
+      {onInboxTab ? (
         /* ── Inbox: the triage surface (Abundance → Triage → Shortlist → Score) ── */
         <>
           {inbox === null ? (
@@ -275,8 +240,12 @@ export function PipelineView({
             </div>
           ) : (
             <>
-              <InboxTriage inbox={inbox} />
-              {inbox.length === 0 && <InboxEmpty tracked={visibleApplications.length} />}
+              {/* Keyed by tab so its filters and selection reset between Discovered and Triaged. */}
+              <InboxTriage key={tab} inbox={inbox} />
+              {inbox.length === 0 && tab === "INBOX" && <InboxEmpty tracked={visibleApplications.length} />}
+              {inbox.length === 0 && tab === "TRIAGED" && (
+                <p className="mt-4 text-center text-sm text-muted">Nothing triaged yet. Run Triage on a job under Discovered.</p>
+              )}
             </>
           )}
         </>
@@ -369,25 +338,7 @@ export function PipelineView({
                     <Badge tone={scoreTone(r.score)}>{r.score || "—"}</Badge>
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-muted">
-                    <StatusSelect
-                      n={r.n}
-                      current={r.status}
-                      inline
-                      applicationLabel={`${company.label} — ${r.role} (#${r.n})`}
-                      onSaved={(status, restoreFocus) => {
-                        // If this focused row leaves its tab, preserve a useful
-                        // focus target. Do not interrupt someone using search.
-                        const focusedRow = document.activeElement?.closest("tr");
-                        if (tab !== "ALL" && !canonStatus(status).includes(tab) && (restoreFocus || focusedRow?.dataset.applicationKey === key)) {
-                          activeTab.current?.focus();
-                        }
-                        setAnnouncement(`Application #${r.n} status saved as ${status}.`);
-                        startTransition(() => {
-                          showSavedStatus({ key, status });
-                          router.refresh();
-                        });
-                      }}
-                    />
+                    {isApproved(r) ? <Badge tone="good">Approved</Badge> : r.status}
                   </td>
                   <td className="hidden whitespace-nowrap px-4 py-3 text-faint tabular-nums lg:table-cell">{r.date}</td>
                   </tr>
@@ -420,11 +371,11 @@ function InboxEmpty({ tracked }: { tracked: number }) {
         <span className="size-2.5 rounded-full bg-foreground/15" aria-hidden="true" />
         <span className="size-2.5 rounded-full bg-foreground/15" aria-hidden="true" />
         <span className="size-2.5 rounded-full bg-foreground/15" aria-hidden="true" />
-        <span className="ml-3 font-mono text-xs tracking-wide text-muted">career-ops · inbox</span>
+        <span className="ml-3 font-mono text-xs tracking-wide text-muted">career-ops · discovered</span>
       </div>
       <div className="px-6 py-10 text-center">
         <p className="font-display text-lg">
-          Your <span className="text-brand">inbox</span> is empty.
+          Nothing <span className="text-brand">discovered</span> waiting for review.
         </p>
         {tracked > 0 && (
           <p className="mx-auto mt-2 max-w-sm text-sm text-muted">
@@ -435,15 +386,8 @@ function InboxEmpty({ tracked }: { tracked: number }) {
             {tracked === 1 ? "is" : "are"} under All.
           </p>
         )}
-        <p className="mx-auto mt-2 max-w-sm text-sm text-muted">Find roles that match your CV — free, no tokens spent.</p>
-        <Link
-          href="/explore?run=1"
-          className="mt-5 inline-flex items-center gap-2 rounded-full bg-brand px-5 py-2.5 text-sm font-medium text-brand-foreground shadow-sm transition-all duration-200 hover:bg-brand-200 hover:-translate-y-0.5 hover:shadow-md"
-        >
-          <Compass className="size-4" /> {tracked > 0 ? "Run a free scan" : "Run your first free scan"} <ArrowRight className="size-4" />
-        </Link>
         <p className="mx-auto mt-4 max-w-sm text-xs text-muted">
-          Prefer the terminal? Run <code className="rounded bg-surface-hover px-1 py-0.5 font-mono">career-ops scan</code>, or add job URLs to{" "}
+          Run <code className="rounded bg-surface-hover px-1 py-0.5 font-mono">career-ops scan</code>, or add job URLs to{" "}
           <code className="rounded bg-surface-hover px-1 py-0.5 font-mono">data/pipeline.md</code>.
         </p>
       </div>

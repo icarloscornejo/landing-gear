@@ -21,6 +21,7 @@
  */
 
 import { capabilitiesFor } from "./worker-capabilities.mjs";
+import { HAIKU_KINDS } from "./lifecycle.mjs";
 
 /**
  * Tools that can modify the user's files. `Bash` counts: `sh -c '> cv.md'` is a
@@ -169,6 +170,8 @@ export function claudeCliArgs({ kind, prompt }) {
     ...(capabilitiesFor(kind).writes ? [] : ["--strict-mcp-config"]),
     "--allowedTools", scope.allowed,
     "--disallowedTools", scope.disallowed,
+    // Carlos's house rule 16: triage and full evaluations run on Haiku at max effort.
+    ...(HAIKU_KINDS.includes(kind) ? ["--model", "haiku", "--effort", "max"] : []),
   ];
 }
 

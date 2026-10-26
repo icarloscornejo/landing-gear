@@ -265,13 +265,17 @@ test("persistEvaluation: writes report + TSV, reserves, merges, releases", async
 
     const reportPath = join(root, "reports", "035-acme-ai-2026-08-04.md");
     const tsvPath = join(root, "batch", "tracker-additions", "035-acme-ai.tsv");
-    assert.equal(readFileSync(reportPath, "utf8"), REPORT);
+    // House rule 15: the written copy has no em-dash (U+2014); metadata was read before.
+    const written = readFileSync(reportPath, "utf8");
+    assert.ok(!written.includes(String.fromCharCode(0x2014)));
+    assert.equal(written, REPORT.replace(new RegExp(`\\s*${String.fromCharCode(0x2014)}\\s*`, "g"), ", "));
     const { header, fields } = headedRows(readFileSync(tsvPath, "utf8"));
     const { map, missing } = resolveTsvColumns(header);
     assert.deepEqual(missing, []);
     assert.equal(fields[map.company], "Acme AI");
     assert.equal(fields[map.status], "Evaluated");
-    assert.equal(fields[map.notes], "; posted: 2026-08-01");
+    // House rule 7: web reports are unconfirmed, so they wait for Carlos's review.
+    assert.equal(fields[map.notes], "pending Carlos manual review; posted: 2026-08-01");
     assert.equal(fields[map.url], "https://acme.com/jobs/7");
 
     const scripts = calls.map((c) => basename(c.args[0]) + (c.args.includes("--release") ? " --release" : ""));

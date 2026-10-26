@@ -27,8 +27,11 @@ export const NODE_DEFS = [
   { id: "engaged", label: "Company engaged", rank: 2, tone: "info" },
   { id: "rejectedApply", label: "Rejected (no interview)", rank: 2, tone: "danger" },
   { id: "discarded", label: "Discarded", rank: 2, tone: "muted" },
-  { id: "screening", label: "Screening", rank: 3, tone: "info" },
-  { id: "assessment", label: "Assessment", rank: 3, tone: "info" },
+  // Status Responded: the company replied, nothing more is known yet.
+  { id: "screening", label: "Replied", rank: 3, tone: "info" },
+  // Status Assessment: online assessment or asynchronous screening (states.yml),
+  // the step after a reply.
+  { id: "assessment", label: "Screening", rank: 3, tone: "info" },
   { id: "interview", label: "Interview", rank: 3, tone: "success" },
   { id: "offer", label: "Offer", rank: 3, tone: "success" },
   { id: "hired", label: "Hired", rank: 3, tone: "success" },

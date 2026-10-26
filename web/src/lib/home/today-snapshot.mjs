@@ -1,4 +1,4 @@
-import { pickAwaitingDecision } from "./awaiting.mjs";
+import { pickApproved, pickAwaitingDecision } from "./awaiting.mjs";
 
 /**
  * Send only what Today renders across the server/client boundary. Completed
@@ -11,7 +11,8 @@ import { pickAwaitingDecision } from "./awaiting.mjs";
  */
 export function todaySnapshot({ applications, inbox }, scoreOf) {
   return {
-    applications: pickAwaitingDecision(applications, scoreOf, Infinity),
+    // Approved rows (house rule 12) have their own Today section, so they ship too.
+    applications: [...pickApproved(applications, scoreOf), ...pickAwaitingDecision(applications, scoreOf, Infinity)],
     inbox: inbox.map(({ url, done }) => ({ url, done })),
   };
 }

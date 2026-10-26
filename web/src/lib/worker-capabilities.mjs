@@ -68,7 +68,7 @@ export const CAPS = Object.freeze({
  * Lives here rather than in claude-invocation.mjs because it is a fact about the
  * run route's workers, not about Claude. Re-exported there for existing importers.
  */
-export const KNOWN_KINDS = Object.freeze(["pdf", "research", "evaluate", "fix-portal", "cover"]);
+export const KNOWN_KINDS = Object.freeze(["pdf", "research", "evaluate", "fix-portal", "cover", "triage"]);
 
 /**
  * What each run-route kind needs. Derived from what its prompt actually does
@@ -94,6 +94,9 @@ const KIND_CAPABILITIES = Object.freeze({
   evaluate: CAPS.networkReadOnly,
   "fix-portal": CAPS.workspaceWrite,
   cover: CAPS.networkReadOnly,
+  // triage reads the posting (or its jds/ capture) and returns one TRIAGE line;
+  // the backend writes the label.
+  triage: CAPS.networkReadOnly,
 });
 
 /**

@@ -194,3 +194,19 @@ test('scoreNum reports unusable cells as NaN, never as 0', { skip: skipTs }, () 
   assert.equal(scoreNum('7'), 7);
   assert.equal(scoreNum('4.2/5'), 4.2);
 });
+
+test('status sort follows the lifecycle, approved above evaluated, then score', async () => {
+  const { sortRows: sort } = await import('../../../src/lib/core/pipeline-sort.mjs');
+  const scoreOf = (cell) => Number.parseFloat(cell);
+  const rows = [
+    { n: '1', status: 'Discarded', score: '4.9/5' },
+    { n: '2', status: 'Evaluated', score: '3.0/5' },
+    { n: '3', status: 'Applied', score: '3.5/5' },
+    { n: '4', status: 'Evaluated', score: '4.2/5' },
+    { n: '5', status: 'Evaluated', score: '2.0/5', notes: 'APPROVED by Carlos: will apply (not applied yet)' },
+    { n: '6', status: 'Applied', score: '4.5/5' },
+    { n: '7', status: 'Interview', score: '3.1/5' },
+  ];
+  const order = sort(rows, { key: 'status', dir: -1 }, scoreOf).map((r) => r.n);
+  assert.deepEqual(order, ['7', '6', '3', '5', '4', '2', '1']);
+});

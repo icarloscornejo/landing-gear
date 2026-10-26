@@ -58,9 +58,10 @@ const CALL_SITES = [
     probe: 'run',
   },
   {
-    source: 'web/src/app/api/status/route.ts',
+    // /api/status, /api/approve and /api/apply-cv all spawn through this helper.
+    source: 'web/src/lib/set-status-run.ts',
     script: 'set-status.mjs',
-    // The route builds ['--row', row, canon, '--source', 'web', '--json'];
+    // /api/status builds ['--row', row, canon, '--source', 'web', '--json'];
     // row 1 and Responded are the fixture tracker's row and a canonical state.
     args: ['--row', '1', 'Responded', '--source', 'web', '--json'],
     probe: 'run',

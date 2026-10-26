@@ -437,10 +437,13 @@ export function newCompletedReportNum(beforeEntries, afterEntries) {
 // 285s evaluate floor killed real evaluations mid-run — ~25 Bash calls plus web
 // searches routinely run longer — and the kill then misreported as "didn't save
 // a report" (#3124).
-export const RUN_MAX_DURATION_S = 800;
+// Carlos runs evaluate and triage on Haiku at max effort (house rule 16): they
+// take as long as they take and must finish, so they get no kill timer (null).
+// This is a local server; maxDuration only bounds requests on hosted platforms.
+export const RUN_MAX_DURATION_S = 1800;
 export function killMsForKind(kind) {
+  if (kind === "evaluate" || kind === "triage") return null;
   if (kind === "pdf") return 600_000;
-  if (kind === "evaluate") return 740_000;
   return 780_000;
 }
 

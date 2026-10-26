@@ -45,3 +45,19 @@ test("pipelineTab falls back to INBOX and reads the first repeated value", () =>
     ["INBOX", "INBOX", "INBOX", "APPLIED", "INBOX", "INBOX"],
   );
 });
+
+test("tracker rows group into Carlos's lifecycle tabs", async () => {
+  const { trackerTabOf, inboxTabHas, PIPELINE_TABS } = await import("../../src/lib/pipeline-navigation.mjs");
+  const approved = "APPROVED by Carlos: will apply (not applied yet)";
+  assert.equal(trackerTabOf({ status: "Evaluated" }), "EVALUATED");
+  assert.equal(trackerTabOf({ status: "Evaluated", notes: approved }), "APPROVED");
+  assert.equal(trackerTabOf({ status: "Applied", notes: approved }), "APPLIED");
+  assert.equal(trackerTabOf({ status: "Assessment" }), "ASSESSMENT");
+  assert.equal(trackerTabOf({ status: "Hired" }), "OFFER");
+  for (const closed of ["Rejected", "Discarded", "SKIP"]) assert.equal(trackerTabOf({ status: closed }), "CLOSED");
+  assert.equal(inboxTabHas("INBOX", {}), true);
+  assert.equal(inboxTabHas("TRIAGED", { triage: "PASS 3.6/5" }), true);
+  assert.equal(inboxTabHas("INBOX", { triage: "PASS 3.6/5" }), false);
+  // Every tab a row can land in is a real tab.
+  for (const tab of ["EVALUATED", "APPROVED", "APPLIED", "ASSESSMENT", "OFFER", "CLOSED"]) assert.ok(PIPELINE_TABS.includes(tab), tab);
+});

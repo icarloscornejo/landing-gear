@@ -13,6 +13,7 @@
  */
 import path from "node:path";
 import { slugify } from "./pdf-paths.mjs";
+import { deriveJobId, evaluationNotes, jdSourceUrl, reportJobIdField, reportUrlField, stripEmDash } from "./lifecycle.mjs";
 
 const ISO_DATE_RE = /^20\d{2}-\d{2}-\d{2}$/;
 const YAML_FENCE = /##\s*Machine Summary\s*\n+```(?:yaml|yml)?\s*\n([\s\S]*?)\n```/i;
@@ -183,10 +184,10 @@ function spawnScript({ spawnFn, execPath, root, script, args = [], input = null 
  * the sentinel. Never throws: the caller routes `{ok:false}` through the same
  * honesty gate as every other evaluate failure.
  *
- * @param {{spawnFn: Function, execPath: string, root: string, markdown: string, url: string, today: string, postedAt?: string}} args
+ * @param {{spawnFn: Function, execPath: string, root: string, markdown: string, url: string, today: string, postedAt?: string, jdPath?: string|null, jdText?: string}} args
  * @returns {Promise<{ok: true, num: string, reportFile: string, warnings: string[]} | {ok: false, error: string}>}
  */
-export async function persistEvaluation({ spawnFn, execPath, root, markdown, url, today, postedAt }) {
+export async function persistEvaluation({ spawnFn, execPath, root, markdown, url, today, postedAt, jdPath = null, jdText = "" }) {
   if (!ISO_DATE_RE.test(String(today ?? ""))) {
     return { ok: false, error: `Invalid evaluation date "${today}" — expected YYYY-MM-DD.` };
   }
@@ -250,20 +251,32 @@ export async function persistEvaluation({ spawnFn, execPath, root, markdown, url
     return finish("Refusing to persist outside reports/ or batch/tracker-additions/.");
   }
 
-  const postingUrl = /^https?:\/\//i.test(String(url ?? "")) ? String(url) : "";
-  const notes = ISO_DATE_RE.test(String(postedAt ?? "")) ? `; posted: ${postedAt}` : "";
+  // The tracker URL: the report's own **URL:** when it is a clean http(s) URL
+  // (the employer page the worker found), else the input, else the jds
+  // capture's Source: line. Model text never reaches the TSV unvalidated.
+  const cleanHttp = (u) => (u && /^https?:\/\/\S+$/i.test(u) && !tsvUnsafe(u) && !u.includes("|") ? u : "");
+  const inputUrl = cleanHttp(String(url ?? ""));
+  const postingUrl = cleanHttp(reportUrlField(markdown)) || inputUrl || cleanHttp(jdSourceUrl(jdText));
+  const notes = evaluationNotes({
+    jobId: deriveJobId({ jdPath, urls: [inputUrl, postingUrl], modelId: reportJobIdField(markdown) }),
+    postedAt,
+    isPost: /^jds\/linkedin-post/.test(jdPath ?? ""),
+    finalUrl: postingUrl,
+  });
 
   const written = await spawnScript({
     spawnFn, execPath, root,
     script: "persist-evaluation-report.mjs",
     input: JSON.stringify({
-      markdown,
+      // Metadata was parsed from the original text; only the written copy is
+      // cleaned of em-dashes (house rule 15).
+      markdown: stripEmDash(markdown),
       num,
       today,
-      company: meta.company,
-      role: meta.role,
+      company: stripEmDash(meta.company),
+      role: stripEmDash(meta.role),
       score: meta.score,
-      via: meta.via,
+      via: meta.via ? stripEmDash(meta.via) : meta.via,
       url: postingUrl,
       notes,
       reportFile,

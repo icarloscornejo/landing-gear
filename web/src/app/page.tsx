@@ -1,11 +1,14 @@
 import { readApplications, readInbox, readReport, doctorState } from "@/lib/career-ops";
-import { pickAwaitingDecision } from "@/lib/home/awaiting.mjs";
+import { pickAwaitingDecision, pickApproved } from "@/lib/home/awaiting.mjs";
 import { cardReason } from "@/lib/machine-summary.mjs";
 import type { CardReason } from "@/lib/machine-summary.mjs";
 import { todaySnapshot } from "@/lib/home/today-snapshot.mjs";
+import { todayOverview } from "@/lib/home/today-overview.mjs";
+import { pendingInbox } from "@/lib/inbox-pending.mjs";
+import { linkedinScanState } from "@/lib/linkedin-scan";
+import { dailyScanStatus } from "@/lib/daily-scan";
 import { scoreNum, parseReport } from "@/lib/format";
 import { OnboardingBanner } from "@/components/onboarding-banner";
-import { OnboardingProgress } from "@/components/home/onboarding-progress";
 import { FirstRunHome } from "@/components/home/first-run-home";
 import { TodayDashboard } from "@/components/home/today-dashboard";
 
@@ -19,9 +22,10 @@ export default function Home() {
   if (phase === "first-run") return <FirstRunHome />;
 
   const { inbox, applications } = todaySnapshot(snapshot, scoreNum);
+  const overview = todayOverview(snapshot.applications, pendingInbox(snapshot.inbox));
   const reasons: Record<string, CardReason> = {};
   const legitimacy: Record<string, string> = {};
-  for (const app of pickAwaitingDecision(applications, scoreNum)) {
+  for (const app of [...pickApproved(applications, scoreNum), ...pickAwaitingDecision(applications, scoreNum)]) {
     const content = readReport(app.n)?.content ?? "";
     const reason = cardReason(content);
     if (reason) reasons[app.n] = reason;
@@ -34,12 +38,7 @@ export default function Home() {
   return (
     <>
       {onboardingNeeded && <OnboardingBanner />}
-      {/* The growing-profile panel stays until every prerequisite AND every
-          personalization section is theirs — it renders nothing once complete. */}
-      <div className="mx-auto max-w-5xl px-6 pt-6">
-        <OnboardingProgress />
-      </div>
-      <TodayDashboard applications={applications} reasons={reasons} legitimacy={legitimacy} inbox={inbox} inBetween={phase === "in-between"} />
+      <TodayDashboard applications={applications} reasons={reasons} legitimacy={legitimacy} inbox={inbox} inBetween={phase === "in-between"} overview={overview} linkedinScan={linkedinScanState()} dailyScan={dailyScanStatus()} />
     </>
   );
 }

@@ -2,13 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Undo2 } from "lucide-react";
+import { Search, Undo2 } from "lucide-react";
 import { useJobs } from "@/components/jobs/job-store";
 import type { InboxJob } from "@/lib/career-ops";
 import type { AtsSource } from "@/lib/explore";
-import { ATS_SOURCES } from "@/lib/explore";
-import { daysSince, seniorityFromTitle, sourceFromUrl, SENIORITY_ORDER, type Seniority } from "@/lib/inbox";
-import { FacetChips } from "./facet-chips";
+import { daysSince, sourceFromUrl } from "@/lib/inbox";
+import { splitTriageLabel } from "@/lib/lifecycle.mjs";
 import { TriageRow, type RowScore } from "./triage-row";
 import { ShortlistTray, type ShortItem } from "./shortlist-tray";
 import { cn } from "@/lib/cn";
@@ -18,7 +17,6 @@ import { createInboxSkipActions, queueInboxSkip } from "@/lib/inbox-skip-client.
 const SHORTLIST_KEY = "career-ops:shortlist";
 const HIDDEN_KEY = "career-ops:hidden";
 const CONFIG_KEY = "career-ops:config";
-const BATCH = 20;
 type UndoNotice = { label: string; fn: () => Promise<void>; busy?: boolean; error?: string };
 
 // The inbox as a TRIAGE surface: Abundance → Triage → Shortlist → Opt-in Score.
@@ -33,13 +31,8 @@ export function InboxTriage({ inbox }: { inbox: InboxJob[] }) {
   const undoRunning = useRef(new Set<UndoNotice["fn"]>());
   const restoreRunning = useRef(false);
 
-  // facets
-  const [within, setWithin] = useState<number | null>(null);
-  const [sources, setSources] = useState<Set<AtsSource>>(() => new Set());
-  const [seniorities, setSeniorities] = useState<Set<Seniority>>(() => new Set());
-  const [locQ, setLocQ] = useState("");
+  // company/role search, the only filter
   const [kw, setKw] = useState("");
-  const [showAll, setShowAll] = useState(false);
 
   // persisted triage state + ephemeral selection/undo
   const [shortlist, setShortlist] = useState<ShortItem[]>([]);
@@ -85,6 +78,12 @@ export function InboxTriage({ inbox }: { inbox: InboxJob[] }) {
       return next.length === h.length ? h : next;
     });
   }, [inbox]);
+  // A triage label or an evaluation's [x] mark was just written to pipeline.md.
+  useEffect(() => {
+    const onDone = () => router.refresh();
+    window.addEventListener("co-job-done", onDone);
+    return () => window.removeEventListener("co-job-done", onDone);
+  }, [router]);
   // auto-dismiss the undo toast
   useEffect(() => {
     if (!undo || undo.busy || undo.error) return;
@@ -99,11 +98,11 @@ export function InboxTriage({ inbox }: { inbox: InboxJob[] }) {
   // triages once (and Save/Skip/score, all keyed by URL, act on it coherently).
   const enriched = useMemo(() => {
     const seen = new Set<string>();
-    const out: { job: InboxJob; source: AtsSource | null; seniority: Seniority | null; age: number | null }[] = [];
+    const out: { job: InboxJob; source: AtsSource | null; age: number | null }[] = [];
     for (const job of inbox) {
       if (seen.has(job.url)) continue;
       seen.add(job.url);
-      out.push({ job, source: sourceFromUrl(job.url), seniority: seniorityFromTitle(job.role), age: daysSince(job.postedAt, now) });
+      out.push({ job, source: sourceFromUrl(job.url), age: daysSince(job.postedAt, now) });
     }
     return out;
   }, [inbox, now]);
@@ -123,43 +122,40 @@ export function InboxTriage({ inbox }: { inbox: InboxJob[] }) {
     return m;
   }, [jobs]);
 
-  // facet options — only surface what's actually present in the (non-hidden) data
-  const availSources = useMemo(() => {
-    const set = new Set<AtsSource>();
-    for (const e of enriched) if (e.source && !hidden.includes(e.job.url)) set.add(e.source);
-    return ATS_SOURCES.filter((s) => set.has(s));
-  }, [enriched, hidden]);
-  const availSeniorities = useMemo(() => {
-    const set = new Set<Seniority>();
-    for (const e of enriched) if (e.seniority && !hidden.includes(e.job.url)) set.add(e.seniority);
-    return SENIORITY_ORDER.filter((s) => set.has(s));
-  }, [enriched, hidden]);
-
   const filtered = useMemo(
     () =>
       enriched.filter((e) => {
         if (hidden.includes(e.job.url)) return false;
-        if (within != null && (e.age == null || e.age > within)) return false;
-        if (sources.size && (!e.source || !sources.has(e.source))) return false;
-        if (seniorities.size && (!e.seniority || !seniorities.has(e.seniority))) return false;
-        if (locQ.trim() && !(e.job.location || "").toLowerCase().includes(locQ.trim().toLowerCase())) return false;
         if (kw.trim() && !`${e.job.company} ${e.job.role}`.toLowerCase().includes(kw.trim().toLowerCase())) return false;
         return true;
       }),
-    [enriched, hidden, within, sources, seniorities, locQ, kw],
+    [enriched, hidden, kw],
   );
 
   // 🔴 SINGLE ORDER PLUG POINT — freshness only (newest first_seen first; unknown last).
   // A smarter ranker replaces ONLY this comparator; facets/triage/shortlist/score never
   // touch relevance. This is the whole firewall in one line.
-  const ordered = useMemo(() => [...filtered].sort((a, b) => (a.age ?? Infinity) - (b.age ?? Infinity)), [filtered]);
+  // Triaged rows rank by their triage score, best first; untriaged ones by freshness.
+  const triageScore = (job: InboxJob) => (job.triage ? splitTriageLabel(job.triage).score ?? -1 : -1);
+  const ordered = useMemo(
+    () => [...filtered].sort((a, b) => triageScore(b.job) - triageScore(a.job) || (a.age ?? Infinity) - (b.age ?? Infinity)),
+    [filtered],
+  );
 
-  const anyFacet = within != null || sources.size > 0 || seniorities.size > 0 || locQ.trim() !== "" || kw.trim() !== "";
-  const capped = !showAll && !anyFacet;
-  const visible = capped ? ordered.slice(0, BATCH) : ordered;
+  const visible = ordered;
   const hiddenCount = hidden.length;
 
   const isShortlisted = (url: string) => shortlist.some((s) => s.url === url);
+  // Rows with a triage worker still running (url -> job id for the live view);
+  // the label lands in pipeline.md when it ends.
+  const triagingJobs = new Map(jobs.filter((j) => j.kind === "triage" && j.status === "running" && j.input).map((j) => [j.input as string, j.id]));
+  // The latest failed triage/evaluate per row (jobs are newest first). Workers lists
+  // only running jobs, so without this a run that fails at once looks like nothing happened.
+  const failedJobs = new Map<string, { id: string; error: string }>();
+  for (const j of jobs) {
+    if ((j.kind !== "triage" && j.kind !== "evaluate") || !j.input || j.status !== "error" || failedJobs.has(j.input)) continue;
+    failedJobs.set(j.input, { id: j.id, error: j.steps.at(-1)?.label ?? "Run failed" });
+  }
 
   const persistSkip = async (url: string, done: boolean) => {
     await queueInboxSkip(skipChain.current, url, done);
@@ -245,41 +241,120 @@ export function InboxTriage({ inbox }: { inbox: InboxJob[] }) {
     setShortlist([]); // sent — the rows flip to Scoring… → badge via scoreByUrl
   };
 
+  // "Triage all" covers shown rows with no triage yet; "Evaluate all" every shown
+  // row. Rows with a run already going are left out; the server runs 6 at a time.
+  const [confirmBulk, setConfirmBulk] = useState<"triage" | "evaluate" | null>(null);
+  const runningFor = (kind: string, url: string) => jobs.some((j) => j.kind === kind && j.input === url && j.status === "running");
+  const bulkTargets = (kind: "triage" | "evaluate") =>
+    visible.filter((e) => (kind === "evaluate" || !e.job.triage) && !runningFor(kind, e.job.url) && !scoreByUrl.get(e.job.url)?.running);
+  // Zero-token pre-triage: closes plainly-out rows, marks the rest so it never reruns on them.
+  const pretriageCount = inbox.filter((job) => !job.done && !job.pretriaged && !job.triage).length;
+  const [pretriaging, setPretriaging] = useState(false);
+  const [pretriageResult, setPretriageResult] = useState<{ passed: number; dropped: { company: string; role: string; reason: string }[]; failed: string[] } | null>(null);
+  const runPretriage = async () => {
+    setPretriaging(true);
+    setWriteError("");
+    try {
+      const response = await fetch("/api/pretriage", { method: "POST" });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error ?? `HTTP ${response.status}`);
+      setPretriageResult(body);
+      router.refresh();
+    } catch (error) {
+      setWriteError(`Pre-triage failed: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setPretriaging(false);
+    }
+  };
+
+  const startBulk = (kind: "triage" | "evaluate") => {
+    const batchId = `${kind}-all-${Date.now()}`;
+    for (const e of bulkTargets(kind)) {
+      startJob({ title: `${kind === "triage" ? "Triage" : "Score"} · ${e.job.company}`, subtitle: e.job.role, kind, input: e.job.url, page: "/pipeline", batchId });
+    }
+    setConfirmBulk(null);
+  };
+
   return (
-    <div className={cn("mx-auto mt-4 max-w-3xl", shortlist.length > 0 && "pb-28 sm:pb-24")}>
+    <div className={cn("mt-4", shortlist.length > 0 && "pb-28 sm:pb-24")}>
       {writeError && <p role="alert" className="mb-3 text-sm text-red-600 dark:text-red-400">{writeError}</p>}
       {/* Keep recovery mounted when the last Skip refreshes to an empty inbox. */}
       <div hidden={inbox.length === 0}>
-      <FacetChips
-        within={within}
-        setWithin={setWithin}
-        sources={sources}
-        toggleSource={(s) => setSources((set) => { const n = new Set(set); n.has(s) ? n.delete(s) : n.add(s); return n; })}
-        seniorities={seniorities}
-        toggleSeniority={(s) => setSeniorities((set) => { const n = new Set(set); n.has(s) ? n.delete(s) : n.add(s); return n; })}
-        locQ={locQ}
-        setLocQ={setLocQ}
-        kw={kw}
-        setKw={setKw}
-        availSources={availSources}
-        availSeniorities={availSeniorities}
-        resultCount={filtered.length}
-        totalCount={enriched.length - hiddenCount}
-        anyActive={anyFacet}
-        onClear={() => { setWithin(null); setSources(new Set()); setSeniorities(new Set()); setLocQ(""); setKw(""); }}
-      />
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-faint" />
+          <input
+            value={kw}
+            onChange={(e) => setKw(e.target.value)}
+            placeholder="Filter by company or role…"
+            className="w-full rounded-lg border border-border bg-surface/60 py-2 pl-9 pr-3 text-sm outline-none transition-colors placeholder:text-faint focus:border-brand/50 focus-visible:ring-2 focus-visible:ring-brand/40 max-sm:min-h-[44px]"
+          />
+        </div>
+        <span className="shrink-0 text-xs text-muted">
+          <span className="tabular-nums text-foreground">{filtered.length}</span>
+          <span className="text-faint">/{enriched.length - hiddenCount}</span>
+        </span>
+      </div>
 
-      {/* batch header: fresh slice by default, or the full filtered set */}
-      <div className="mt-4 flex items-baseline justify-between gap-3">
-        <p className="text-sm font-medium text-foreground">
-          {capped ? "Fresh — worth a look" : anyFacet ? `${filtered.length} match${filtered.length === 1 ? "" : "es"}` : "All roles"}
-        </p>
+      <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
+        {pretriageCount > 0 && (
+          <button
+            type="button"
+            onClick={() => void runPretriage()}
+            disabled={pretriaging}
+            aria-busy={pretriaging}
+            title="Free check by title, location and tracker: closes what is plainly out, marks the rest as pre-triaged"
+            className="rounded-md border border-brand/40 bg-brand-soft px-2.5 py-1 text-xs font-medium text-brand-text transition-colors hover:bg-brand/15 disabled:opacity-50 max-sm:min-h-[44px]"
+          >
+            {pretriaging ? "Pre-triaging…" : `Pre-triage all (${pretriageCount})`}
+          </button>
+        )}
+        {(["triage", "evaluate"] as const).map((kind) => {
+          const targets = bulkTargets(kind);
+          if (targets.length === 0) return null;
+          const label = kind === "triage" ? "Triage" : "Evaluate";
+          return confirmBulk === kind ? (
+            <span key={kind} className="inline-flex flex-wrap items-center gap-2 text-xs">
+              <span className="text-muted">Start {targets.length} {kind === "triage" ? "triages" : "full evaluations"} (6 at a time)?</span>
+              <button type="button" onClick={() => startBulk(kind)} className="rounded-md bg-brand px-2.5 py-1 font-medium text-brand-foreground max-sm:min-h-[44px]">Start</button>
+              <button type="button" onClick={() => setConfirmBulk(null)} className="text-muted hover:text-foreground max-sm:min-h-[44px]">Cancel</button>
+            </span>
+          ) : (
+            <button
+              key={kind}
+              type="button"
+              onClick={() => setConfirmBulk(kind)}
+              className="rounded-md border border-border px-2.5 py-1 text-xs font-medium text-muted transition-colors hover:border-brand/40 hover:text-brand max-sm:min-h-[44px]"
+            >
+              {label} all ({targets.length})
+            </button>
+          );
+        })}
         {hiddenCount > 0 && (
           <button type="button" onClick={() => void restoreHidden()} disabled={restoring} aria-busy={restoring} className="text-xs text-faint transition-colors hover:text-foreground disabled:opacity-50 max-sm:min-h-[44px]">
             {hiddenCount} hidden · {restoring ? "restoring…" : "restore"}
           </button>
         )}
       </div>
+
+      {pretriageResult && (
+        <div className="mt-2 rounded-lg border border-border bg-surface/40 px-4 py-3 text-xs text-muted">
+          <div className="flex items-start justify-between gap-3">
+            <p>
+              <span className="font-medium text-foreground">Pre-triage:</span> {pretriageResult.passed} kept, {pretriageResult.dropped.length} closed
+              {pretriageResult.failed.length > 0 && <span className="text-red-600 dark:text-red-400">, {pretriageResult.failed.length} not written ({pretriageResult.failed.join("; ")})</span>}
+            </p>
+            <button type="button" onClick={() => setPretriageResult(null)} className="shrink-0 text-faint hover:text-foreground">Dismiss</button>
+          </div>
+          {pretriageResult.dropped.length > 0 && (
+            <ul className="mt-1.5 space-y-0.5">
+              {pretriageResult.dropped.map((drop, index) => (
+                <li key={index}><span className="text-foreground">{drop.company}</span>, {drop.role}: <span className="text-faint">{drop.reason}</span></li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
 
       {/* multi-select action bar */}
       {selected.size > 0 && (
@@ -295,7 +370,7 @@ export function InboxTriage({ inbox }: { inbox: InboxJob[] }) {
       )}
 
       {visible.length > 0 ? (
-        <ul className="mt-3 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface/40">
+        <ul className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           {visible.map((e) => (
             <TriageRow
               key={e.job.url}
@@ -308,25 +383,18 @@ export function InboxTriage({ inbox }: { inbox: InboxJob[] }) {
               onToggleSelect={() => toggleSelect(e.job.url)}
               onSave={() => save(e.job)}
               onSkip={() => skip(e.job)}
+              onTriage={() => startJob({ title: `Triage · ${e.job.company}`, subtitle: e.job.role, kind: "triage", input: e.job.url, page: "/pipeline" })}
+              onEvaluate={() => startJob({ title: `Score · ${e.job.company}`, subtitle: e.job.role, kind: "evaluate", input: e.job.url, page: "/pipeline" })}
+              triageJobId={triagingJobs.get(e.job.url) ?? null}
+              failedRun={failedJobs.get(e.job.url) ?? null}
             />
           ))}
         </ul>
       ) : (
         <div className="mt-3 rounded-2xl border border-dashed border-border bg-surface/30 px-6 py-10 text-center">
           <p className="font-display text-lg">No matches</p>
-          <p className="mx-auto mt-1 max-w-sm text-sm text-muted">Loosen the filters to see more of your inbox.</p>
+          <p className="mx-auto mt-1 max-w-sm text-sm text-muted">No company or role matches that search.</p>
         </div>
-      )}
-
-      {/* "See all N" — only when the fresh batch is capping a larger list */}
-      {capped && ordered.length > BATCH && (
-        <button
-          type="button"
-          onClick={() => setShowAll(true)}
-          className="mt-3 inline-flex w-full items-center justify-center gap-1 rounded-xl border border-border bg-surface/40 py-2.5 text-sm font-medium text-muted transition-colors hover:border-brand/40 hover:text-brand max-sm:min-h-[44px]"
-        >
-          See all {ordered.length} in inbox →
-        </button>
       )}
 
       {/* empty-shortlist guidance (only once there's nothing saved) */}

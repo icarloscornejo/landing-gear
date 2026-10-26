@@ -14,11 +14,12 @@ export { pillTone, TONE };
 // Collapsed "worker" pills in the sidebar — each the shared <WorkerCard> wrapped
 // in a Link to its detail. Same component the assistant chat renders inline.
 export function WorkerPills() {
-  const { jobs, removeJob, clearFinished } = useJobs();
+  const { jobs, removeJob } = useJobs();
   const pathname = usePathname();
-  if (jobs.length === 0) return null;
-  const running = jobs.filter((j) => j.status === "running").length;
-  const finished = jobs.length - running;
+  // Only runs still going; finished and failed ones live in History (/jobs).
+  const runningJobs = jobs.filter((j) => j.status === "running");
+  if (runningJobs.length === 0) return null;
+  const running = runningJobs.length;
 
   return (
     <div className="mt-4 border-t border-border pt-3">
@@ -28,14 +29,10 @@ export function WorkerPills() {
         <Link href="/jobs" className="ml-auto text-faint transition-colors hover:text-foreground" title="History" aria-label="Worker history">
           <History className="size-3.5" />
         </Link>
-        {finished > 0 && (
-          <button onClick={clearFinished} className="text-[10px] text-faint transition-colors hover:text-foreground" title="Clear finished">
-            clear
-          </button>
-        )}
       </div>
-      <ul className="space-y-1.5">
-        {jobs.slice(0, 6).map((j) => {
+      {/* Every worker, scrolling inside the sidebar: a bulk run starts more than fit. */}
+      <ul className="max-h-[50vh] space-y-1.5 overflow-y-auto overscroll-contain pr-1">
+        {runningJobs.map((j) => {
           const active = pathname === `/jobs/${j.id}`;
           return (
             <li key={j.id} className="group relative">

@@ -286,14 +286,15 @@ function ApplyExitBar() {
     router.refresh();
   }
 
-  async function markApplied() {
+  // House rule 6: Applied always records which CV was sent, via /api/apply-cv.
+  async function markApplied(cv: "a" | "b") {
     setMarking(true);
     setError("");
     try {
-      const res = await fetch("/api/status", {
+      const res = await fetch("/api/apply-cv", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ n: a.n, status: "Applied" }),
+        body: JSON.stringify({ n: a.n, cv }),
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
@@ -346,15 +347,25 @@ function ApplyExitBar() {
           <ArrowLeft className="size-4" /> Back
         </button>
         {a.n && (
-          <button
-            onClick={markApplied}
-            disabled={marking}
-            title={`Set tracker row #${a.n} to Applied and go back`}
-            className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-700 transition-colors hover:bg-emerald-500/20 disabled:opacity-50 dark:text-emerald-400 max-sm:min-h-[44px]"
-          >
-            {marking ? <Loader2 className="size-4 animate-spin" /> : <ClipboardCheck className="size-4" />}
-            {marking ? "Updating your tracker…" : "Mark applied"}
-          </button>
+          <>
+            <button
+              onClick={() => markApplied("a")}
+              disabled={marking}
+              title={`Set tracker row #${a.n} to Applied with CV A and go back`}
+              className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-700 transition-colors hover:bg-emerald-500/20 disabled:opacity-50 dark:text-emerald-400 max-sm:min-h-[44px]"
+            >
+              {marking ? <Loader2 className="size-4 animate-spin" /> : <ClipboardCheck className="size-4" />}
+              {marking ? "Updating your tracker…" : "Mark applied with CV A"}
+            </button>
+            <button
+              onClick={() => markApplied("b")}
+              disabled={marking}
+              title={`Set tracker row #${a.n} to Applied with CV B and go back`}
+              className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-sm font-medium text-muted transition-colors hover:text-foreground disabled:opacity-50 max-sm:min-h-[44px]"
+            >
+              with CV B
+            </button>
+          </>
         )}
         {a.n && <span className="text-xs text-muted">Click this once you have submitted the real form yourself.</span>}
       </div>

@@ -1,10 +1,20 @@
+import fs from "node:fs";
+import path from "node:path";
 import { notFound } from "next/navigation";
-import { readReport, findApplication, pdfReadyForReport, trackerCanDelete } from "@/lib/career-ops";
-import { resolveTailoredCover } from "@/lib/apply/cover";
+import { readReport, findApplication, careerOpsRoot } from "@/lib/career-ops";
 import { ReportView } from "@/components/report-view";
 import { pipelineQuery } from "@/lib/pipeline-navigation.mjs";
 
 export const dynamic = "force-dynamic";
+
+function readJdCapture(relPath: string): string | null {
+  try {
+    return fs.readFileSync(path.join(careerOpsRoot(), relPath), "utf8");
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") return null;
+    throw err;
+  }
+}
 
 export default async function ReportPage({ params, searchParams }: {
   params: Promise<{ id: string }>;
@@ -15,23 +25,17 @@ export default async function ReportPage({ params, searchParams }: {
   const app = findApplication(id);
   const report = readReport(id);
   if (!app && !report) notFound();
-  // Resolved here rather than in the component so the link is only rendered when
-  // THIS application's cover is actually on disk. `id` is passed as the
-  // application number, never as a company: a report with no tracker row has no
-  // identity to match on, and guessing one from the id would surface another
-  // offer's cover.
-  const coverReady = (await resolveTailoredCover(app?.company, id)) !== null;
+  // Triage-only rows have no report; show the JD capture their notes point at.
+  // Strict filename pattern so a note can never point the read outside jds/.
+  const jdPath = report ? undefined : app?.notes.match(/local:(jds\/[A-Za-z0-9._-]+\.md)/)?.[1];
+  const jd = jdPath && !jdPath.includes("..") ? readJdCapture(jdPath) : null;
   return (
     <ReportView
       id={id}
       app={app}
       report={report?.content ?? null}
-      file={report?.file ?? null}
-      canDelete={trackerCanDelete()}
-      pdfReadyFromIndex={await pdfReadyForReport(id)}
-      coverReady={coverReady}
+      jd={jd}
       backHref={`/pipeline${query ? `?${query}` : ""}`}
-      applyHref={`/pipeline/${encodeURIComponent(id)}/apply${query ? `?${query}` : ""}`}
     />
   );
 }

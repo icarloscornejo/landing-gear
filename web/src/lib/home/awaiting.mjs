@@ -55,11 +55,44 @@ export function pickAwaitingDecision(applications, scoreOf, limit = 6) {
     // rendered an EMPTY queue — the same silent-hiding failure this module
     // exists to fix. status-alias.mjs is the single alias table and its test
     // loads states.yml, so this cannot drift as a literal regex does.
-    .filter((a) => canonStatus(baseStatus(a.status)) === "EVALUATED")
+    .filter((a) => canonStatus(baseStatus(a.status)) === "EVALUATED" && !isApproved(a))
     // An unscored row ranks -1 and an undated row compares "" (least), and both
     // comparisons are descending, so either one lands at the end.
     .sort((a, b) => rank(b.score) - rank(a.score) || (b.date || "").localeCompare(a.date || ""))
     .slice(0, limit);
+}
+
+/** The note Carlos's house rule 12 writes when he approves a posting. */
+export const APPROVED_NOTE = "APPROVED by Carlos: will apply (not applied yet)";
+
+/**
+ * Approved = still Evaluated AND carrying the APPROVED note. The note stays on a
+ * row after it is applied, so the status check is what keeps applied rows out.
+ *
+ * @param {{status?: string, notes?: string}} app
+ * @returns {boolean}
+ */
+export function isApproved(app) {
+  return canonStatus(baseStatus(app.status)) === "EVALUATED" && String(app.notes ?? "").includes("APPROVED by Carlos");
+}
+
+/**
+ * Every approved row, best score first. No limit: approved rows are the ones
+ * Carlos is about to apply to, so none may be cut off.
+ *
+ * @template {{date?: string, score?: string, status?: string, notes?: string}} T
+ * @param {T[]} applications
+ * @param {(score: string) => number} scoreOf
+ * @returns {T[]}
+ */
+export function pickApproved(applications, scoreOf) {
+  const rank = (s) => {
+    const n = scoreOf(s ?? "");
+    return Number.isNaN(n) ? -1 : n;
+  };
+  return applications
+    .filter(isApproved)
+    .sort((a, b) => rank(b.score) - rank(a.score) || (b.date || "").localeCompare(a.date || ""));
 }
 
 // "Check the posting first" is what applyLineLabel returns for a flagged

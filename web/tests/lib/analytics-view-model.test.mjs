@@ -119,12 +119,25 @@ test("an Unknown-only breakdown is not rendered as an insight", () => {
   // All-Unknown means the reports carry no metadata for that axis; one Unknown
   // bar at 100% invites a conclusion drawn from a missing field.
   assert.equal(m.sections.find((s) => s.key === "archetype"), undefined);
-  // A breakdown with at least one real label is kept — including its unknown
-  // row, so the counts still add up — and marked partial.
+  // A breakdown with at least one real label is kept; the unknown bucket is not
+  // drawn as a category but counted, so the panel can say how many lack data.
   const remote = m.sections.find((s) => s.key === "remote");
   assert.ok(remote);
-  assert.equal(remote.rows.length, 2);
+  assert.deepEqual(remote.rows.map((r) => r.policy), ["hybrid/onsite"]);
   assert.equal(remote.partial, true);
+  assert.equal(remote.missing, 8);
+});
+
+test("a rate over nothing decided is null, not 0%", () => {
+  const m = statsModel({
+    archetypeBreakdown: [
+      { archetype: "AI Engineer / Agentic Dev", total: 7, decided: 0, conversionRate: 0 },
+      { archetype: "Senior / Lead Android Engineer", total: 9, decided: 2, conversionRate: 50 },
+      { archetype: "none", total: 1, decided: 0, conversionRate: 0 },
+    ],
+  });
+  const rows = m.sections.find((s) => s.key === "archetype").rows;
+  assert.deepEqual(rows.map((r) => r.conversionRate), [null, 50]);
 });
 
 test("the ATS panel makes no claim below the core's own sample bar", () => {

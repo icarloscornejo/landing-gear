@@ -10,8 +10,21 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { pathToFileURL } from "node:url";
 import { postingUrl } from "./posting-url.mjs";
+import { localJdPath, stripEmDash } from "./lifecycle.mjs";
 
 export { postingUrl };
+
+/**
+ * A pipeline row target: an http(s) posting URL, or a `local:jds/<name>.md`
+ * capture (LinkedIn posts, pasted JDs). Anything else is refused.
+ * @param {unknown} raw
+ * @returns {string|null}
+ */
+export function rowTarget(raw) {
+  if (typeof raw !== "string") return null;
+  const value = raw.trim();
+  return postingUrl(value) ?? (localJdPath(value) ? value : null);
+}
 
 const CHECKBOX_LINE = /^(\s*-\s*)\[([ xX])\](.*)$/;
 const PENDING_HEADING = /^##\s+(Pending|Pendientes)\s*$/i;
@@ -25,7 +38,7 @@ const PENDING_HEADING = /^##\s+(Pending|Pendientes)\s*$/i;
  * @returns {string | null}
  */
 export function jobUrlFromRest(rest) {
-  return postingUrl(rest.split("|")[0]);
+  return rowTarget(rest.split("|")[0]);
 }
 
 function pendingRange(lines) {
@@ -57,7 +70,7 @@ function inRange(i, range) {
  * @returns {{ ok: true, text: string, matched: number, changed: number } | { ok: false, error: string }}
  */
 export function applyInboxSkip(text, url, done) {
-  const parsed = postingUrl(url);
+  const parsed = rowTarget(url);
   if (!parsed) return { ok: false, error: "invalid-url" };
 
   const nl = text.includes("\r\n") ? "\r\n" : "\n";
@@ -109,9 +122,77 @@ function atomicWrite(file, content) {
  * @param {{ lockModule?: string, timeoutMs?: number }} [options]
  */
 export async function setInboxSkip(pipelinePath, url, done, options = {}) {
-  const parsed = postingUrl(url);
+  const parsed = rowTarget(url);
   if (!parsed) return { ok: false, error: "invalid-url" };
+  return editPipeline(pipelinePath, (md) => applyInboxSkip(md, parsed, done), options);
+}
 
+const LABEL_KEY = /^[a-z]+$/;
+
+/**
+ * Set one `key: value` label cell on Pending rows whose target equals `url`,
+ * replacing an earlier cell with the same key. Company and role cells are
+ * padded first, because parseInbox only reads labels from the third cell after
+ * the URL; otherwise a short row would read the label as its location.
+ *
+ * @param {string} text pipeline.md contents
+ * @param {string} url row target accepted by rowTarget()
+ * @param {string} key lowercase label name, e.g. "triage"
+ * @param {string} value label text (pipes, newlines and em-dashes are removed)
+ * @returns {{ ok: true, text: string, matched: number, changed: number } | { ok: false, error: string }}
+ */
+export function applyInboxLabel(text, url, key, value) {
+  const parsed = rowTarget(url);
+  if (!parsed) return { ok: false, error: "invalid-url" };
+  if (!LABEL_KEY.test(key)) return { ok: false, error: "invalid-label" };
+  const clean = stripEmDash(value).replace(/[|\r\n]/g, " ").replace(/\s+/g, " ").trim();
+  if (!clean) return { ok: false, error: "invalid-label" };
+
+  const nl = text.includes("\r\n") ? "\r\n" : "\n";
+  const endedWithNl = /\r?\n$/.test(text);
+  const lines = text.split(/\r?\n/);
+  if (endedWithNl && lines[lines.length - 1] === "") lines.pop();
+
+  const range = pendingRange(lines);
+  const sameKey = new RegExp(`^${key}:\\s`, "i");
+  let matched = 0;
+  let changed = 0;
+  for (let i = 0; i < lines.length; i++) {
+    if (!inRange(i, range)) continue;
+    const m = lines[i].match(CHECKBOX_LINE);
+    if (!m) continue;
+    if (jobUrlFromRest(m[3]) !== parsed) continue;
+    matched += 1;
+    const cells = m[3].split("|").map((c) => c.trim());
+    const kept = cells.filter((c, idx) => idx < 3 || !sameKey.test(c));
+    while (kept.length < 3) kept.push("");
+    kept.push(`${key}: ${clean}`);
+    const next = `${m[1]}[${m[2]}] ${kept.join(" | ")}`;
+    if (next !== lines[i]) {
+      lines[i] = next;
+      changed += 1;
+    }
+  }
+  if (matched === 0) return { ok: false, error: "unmatched" };
+  return { ok: true, text: lines.join(nl) + (endedWithNl ? nl : ""), matched, changed };
+}
+
+/**
+ * Write a label cell on the matching pipeline row, under the pipeline lock.
+ * @param {string} pipelinePath
+ * @param {string} url
+ * @param {string} key
+ * @param {string} value
+ * @param {{ lockModule?: string, timeoutMs?: number }} [options]
+ */
+export async function setInboxLabel(pipelinePath, url, key, value, options = {}) {
+  const parsed = rowTarget(url);
+  if (!parsed) return { ok: false, error: "invalid-url" };
+  return editPipeline(pipelinePath, (md) => applyInboxLabel(md, parsed, key, value), options);
+}
+
+/** Read-modify-write pipeline.md with `apply`, under the core pipeline lock when given. */
+async function editPipeline(pipelinePath, apply, options) {
   const run = () => {
     let md;
     try {
@@ -120,7 +201,7 @@ export async function setInboxSkip(pipelinePath, url, done, options = {}) {
       if (err && err.code === "ENOENT") return { ok: false, error: "not-found" };
       throw err;
     }
-    const result = applyInboxSkip(md, parsed, done);
+    const result = apply(md);
     if (!result.ok) return result;
     if (result.changed > 0) atomicWrite(pipelinePath, result.text);
     return result;

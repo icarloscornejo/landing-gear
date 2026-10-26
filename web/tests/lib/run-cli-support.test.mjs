@@ -607,10 +607,10 @@ test("the fallback still catches every real failure it caught before", () => {
 import { killMsForKind, timeoutMessage, RUN_MAX_DURATION_S } from "../../src/lib/run-cli-support.mjs";
 
 test("evaluate's kill budget gives real headroom, not the old 285s floor (#3124)", () => {
-  const ms = killMsForKind("evaluate");
-  assert.equal(ms, 740_000, "evaluate leaves 60s under maxDuration for report-persist");
-  assert.ok(ms > 285_000, `evaluate must exceed the 285s that killed real runs, got ${ms}ms`);
-  assert.ok(ms < RUN_MAX_DURATION_S * 1000, "must stay under maxDuration so the SIGTERM is graceful, not a hard cutoff");
+  // Carlos's evaluate and triage (Haiku, max effort) must finish: no kill timer.
+  assert.equal(killMsForKind("evaluate"), null);
+  assert.equal(killMsForKind("triage"), null);
+  assert.ok(780_000 < RUN_MAX_DURATION_S * 1000, "timed kinds stay under maxDuration so the SIGTERM is graceful");
   assert.equal(killMsForKind("pdf"), 600_000, "pdf keeps its post-agent render headroom");
   assert.equal(killMsForKind("fix-portal"), 780_000, "kinds with no post-agent phase keep the longer budget");
 });

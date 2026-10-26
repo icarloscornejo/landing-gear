@@ -44,6 +44,8 @@ export type CadenceEntry = {
   date: string;
   appliedDate: string;
   company: string;
+  /** Agency or recruiter the application went through, when there is one. */
+  via?: string | null;
   role: string;
   status: "applied" | "responded" | "assessment" | "interview";
   score: string;

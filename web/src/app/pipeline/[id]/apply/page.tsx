@@ -88,6 +88,7 @@ export default async function ApplyPage({
       tips={PORTAL_TIPS}
       trackerNum={app?.n ?? null}
       status={app?.status ?? ""}
+      notes={app?.notes ?? ""}
     />
   );
 }

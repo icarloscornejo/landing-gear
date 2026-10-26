@@ -12,6 +12,20 @@
  */
 
 import { compareTrackerNumbers } from '../pipeline-sort.mjs';
+import { canonStatus } from '../status-alias.mjs';
+import { isApproved } from '../home/awaiting.mjs';
+
+// Furthest along first under a descending sort: live processes, then Applied,
+// then approved, then Evaluated, and the closed states (Discarded last) at the
+// bottom. Approved is an Evaluated row with the APPROVED note, ranked half a
+// step above plain Evaluated.
+const STATUS_ORDER = ['DISCARDED', 'SKIP', 'REJECTED', 'EVALUATED', 'APPLIED', 'RESPONDED', 'ASSESSMENT', 'INTERVIEW', 'OFFER', 'HIRED'];
+
+/** @param {{status?: unknown, notes?: unknown}} row @returns {number} -1 for a status not in the list. */
+export function statusRank(row) {
+  const rank = STATUS_ORDER.indexOf(canonStatus(String(row.status ?? '')));
+  return isApproved(row) ? rank + 0.5 : rank;
+}
 
 /**
  * Order pipeline rows by the active key and direction.
@@ -65,6 +79,15 @@ export function sortRows(rows, sort, scoreOf, companyLabel = (row) => String(row
       // comparator result is not a "less than", so two unusable scores would
       // never reach the row-number tie-break below.
       return av === bv ? 0 : (av - bv) * dir;
+    }
+    if (sort.key === 'status') {
+      // Lifecycle order, not alphabetical; the same status ties on score,
+      // best first whichever way the status order runs.
+      const delta = statusRank(a) - statusRank(b);
+      if (delta !== 0) return delta * dir;
+      const av = scoreKey(a);
+      const bv = scoreKey(b);
+      return av === bv ? 0 : bv - av;
     }
     const aValue = sort.key === 'company' ? companyLabel(a) : a[sort.key] || '';
     const bValue = sort.key === 'company' ? companyLabel(b) : b[sort.key] || '';

@@ -2,10 +2,9 @@
 
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { PageFrame } from "@/components/page-frame";
-import { saveStatus } from "@/lib/pipeline-status.mjs";
+import { LifecycleActions } from "@/components/lifecycle-actions";
 
 type CopyItem = { label: string; text: string };
 type PdfFile = { relativePath: string; downloadHref: string } | null;
@@ -29,6 +28,7 @@ export function ApplyChecklist({
   tips,
   trackerNum,
   status,
+  notes,
 }: {
   company: string;
   role: string;
@@ -44,9 +44,10 @@ export function ApplyChecklist({
   tips: Tip[];
   trackerNum: string | null;
   status: string;
+  notes?: string;
 }) {
   return (
-    <PageFrame className="max-w-3xl">
+    <PageFrame>
       <Link href={backHref} className="inline-flex items-center gap-1.5 text-sm text-muted transition-colors hover:text-brand">
         <ArrowLeft className="size-4" /> Pipeline
       </Link>
@@ -135,7 +136,7 @@ export function ApplyChecklist({
 
       <Section title="After you submit">
         <div className="flex flex-wrap items-start gap-2">
-          <AppliedButton trackerNum={trackerNum} status={status} />
+          {trackerNum && <LifecycleActions app={{ n: trackerNum, status, notes: notes ?? "" }} />}
         </div>
         {!trackerNum && <p className="mt-2 text-xs text-faint">Applied needs a tracker row.</p>}
       </Section>
@@ -200,35 +201,5 @@ function CopyButton({ text, label }: { text: string; label: string }) {
     >
       {state === "copied" ? "Copied" : state === "failed" ? "Copy failed" : label}
     </button>
-  );
-}
-
-function AppliedButton({ trackerNum, status }: { trackerNum: string | null; status: string }) {
-  const router = useRouter();
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const applied = status.trim().toLowerCase() === "applied";
-
-  async function markApplied() {
-    if (!trackerNum || busy || applied) return;
-    setBusy(true);
-    setError("");
-    try {
-      await saveStatus(trackerNum, status, "Applied");
-      router.refresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not mark this Applied.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <span className="inline-flex flex-col items-start gap-1">
-      <button type="button" className={PILL} disabled={!trackerNum || busy || applied} onClick={markApplied}>
-        {busy ? "Saving…" : "Applied"}
-      </button>
-      {error && <span className="max-w-xs text-xs text-red-500">{error}</span>}
-    </span>
   );
 }

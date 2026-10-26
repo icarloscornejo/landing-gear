@@ -11,6 +11,7 @@ import * as yaml from "js-yaml";
  *   requirements: Requirement[],
  *   confidenceGaps: string[],
  *   unknownEvidence: string[],
+ *   facts: { archetype: string, location: string, comp: string, workAuth: string, risk: string, nextAction: string },
  * }} MachineSummary
  * @typedef {{ text: string, importance: Importance | null }} Lever
  * @typedef {{ holding: Lever[], close: Lever[], verify: string[], strengths: string[] }} ScoreLevers
@@ -29,6 +30,7 @@ const EVIDENCE_LABEL = {
 const FENCE = /##\s*Machine Summary\s*\n+```(?:yaml|yml)?\s*\n([\s\S]*?)\n```/i;
 
 const strings = (v) => (Array.isArray(v) ? v.map((s) => String(s ?? "").trim()).filter(Boolean) : []);
+const scalar = (v) => (typeof v === "string" || typeof v === "number" ? String(v).trim() : "");
 
 /**
  * The report's Machine Summary, or null when the report has none or its YAML
@@ -63,6 +65,15 @@ export function readMachineSummary(report) {
     unknownEvidence: Object.entries(EVIDENCE_LABEL)
       .filter(([key]) => evidence[key] === "unknown")
       .map(([, label]) => label),
+    // Scalar facts for the detail page's key-facts row; "" when absent.
+    facts: {
+      archetype: scalar(raw.archetype),
+      location: scalar(raw.posting_location),
+      comp: scalar(raw.advertised_comp),
+      workAuth: scalar(raw.work_auth).replace(/_/g, " "),
+      risk: scalar(raw.risk_level),
+      nextAction: scalar(raw.next_action),
+    },
   };
 }
 

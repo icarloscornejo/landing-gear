@@ -1,7 +1,9 @@
 "use client";
 
-import { use } from "react";
+import { use, useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { PasteJd } from "@/components/paste-jd";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { ArrowLeft, Loader2, Wrench, CircleDot, Check, X } from "lucide-react";
@@ -9,10 +11,70 @@ import { useJobs } from "@/components/jobs/job-store";
 import { HeroGlow } from "@/components/hero-glow";
 import { Badge } from "@/components/ui/badge";
 
+type LiveRun = {
+  title: string; subtitle: string; source: string; kind: string; input: string; status: "queued" | "running" | "done" | "error";
+  steps: { kind: "tool" | "status"; label: string }[]; text: string; verdictLine: string;
+};
+
+// A server-owned run (lib/live-runs.ts): poll its full log while it runs. This is
+// also what makes the live view survive a reload, or a run started from chat.
+function useLiveRun(id: string, enabled: boolean): LiveRun | null {
+  const [run, setRun] = useState<LiveRun | null>(null);
+  useEffect(() => {
+    if (!enabled) return;
+    let alive = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const poll = async () => {
+      let again = true;
+      try {
+        const response = await fetch(`/api/live-runs/${encodeURIComponent(id)}`, { cache: "no-store" });
+        if (response.status === 404) again = false;
+        else {
+          const { run: next } = (await response.json()) as { run: LiveRun };
+          if (alive) setRun(next);
+          again = next.status === "running" || next.status === "queued";
+        }
+      } catch {
+        // Retry on the next tick.
+      }
+      if (alive && again) timer = setTimeout(poll, 2000);
+    };
+    void poll();
+    return () => {
+      alive = false;
+      if (timer) clearTimeout(timer);
+    };
+  }, [id, enabled]);
+  return run;
+}
+
 export default function JobPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const { jobs } = useJobs();
-  const job = jobs.find((j) => j.id === id);
+  const router = useRouter();
+  const { jobs, startJob } = useJobs();
+  const local = jobs.find((j) => j.id === id);
+  const live = useLiveRun(id, !local || local.remote === true);
+  const job = live
+    ? {
+        title: live.title,
+        subtitle: live.subtitle,
+        kind: live.kind,
+        input: live.input,
+        status: live.status === "queued" ? "running" : live.status,
+        steps: live.steps,
+        text: live.text,
+        result: local?.result,
+        source: live.source,
+      }
+    : local;
+  // A failed triage/evaluation of a posting URL: offer to paste the JD here, then
+  // run the same job again from it (the server now reads the pasted file).
+  const canPaste = job?.status === "error" && (job.kind === "evaluate" || job.kind === "triage") && /^https?:\/\//i.test(job.input ?? "");
+  const rerun = () => {
+    if (!job?.kind || !job.input) return;
+    const next = startJob({ title: job.title.replace(/ \(retry\)$/, ""), subtitle: job.subtitle, kind: job.kind, input: job.input, page: "/pipeline" });
+    if (next) router.push(`/jobs/${next}`);
+  };
 
   if (!job) {
     return (
@@ -47,6 +109,7 @@ export default function JobPage({ params }: { params: Promise<{ id: string }> })
           </p>
           <h1 className="mt-2 font-display text-2xl tracking-tight text-landing">{job.title}</h1>
           {job.subtitle && <p className="mt-1 text-sm text-muted">{job.subtitle}</p>}
+          {job.source === "chat" && <p className="mt-1 text-xs text-faint">Started from a chat session</p>}
           {job.result?.score != null && (
             <div className="mt-3 flex flex-wrap items-center gap-2.5">
               <Badge tone={job.result.tone}>{job.result.score}/5</Badge>
@@ -55,6 +118,23 @@ export default function JobPage({ params }: { params: Promise<{ id: string }> })
           )}
         </div>
       </section>
+
+      {canPaste && job.input && (
+        <section className="mt-5">
+          <h2 className="text-sm font-semibold text-foreground">The posting could not be read? Paste its job description</h2>
+          <div className="mt-2">
+            <PasteJd
+              url={job.input}
+              company={job.title.replace(/^(Score|Triage|Evaluate)\s*·\s*/, "").replace(/ \(retry\)$/, "")}
+              role={job.subtitle ?? ""}
+              actionLabel={job.kind === "triage" ? "Save & re-run triage" : "Save & re-run evaluation"}
+              onSaved={(again) => {
+                if (again) rerun();
+              }}
+            />
+          </div>
+        </section>
+      )}
 
       <ol className="mt-6 space-y-2">
         {job.steps.map((s, i) => (

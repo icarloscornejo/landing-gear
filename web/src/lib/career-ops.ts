@@ -96,7 +96,7 @@ function read(rel: string): string | null {
   }
 }
 
-export type InboxJob = { url: string; company: string; role: string; location?: string; compensation?: string; done: boolean; postedAt?: string };
+export type InboxJob = { url: string; company: string; role: string; location?: string; compensation?: string; done: boolean; postedAt?: string; triage?: string; /** Passed the zero-token pre-triage (lib/pre-triage.mjs). */ pretriaged?: boolean; /** A JD for this posting is saved in jds/ (pasted or captured). */ jdSaved?: boolean };
 
 /** Parse data/pipeline.md. The row grammar and its labeled-segment handling
  *  live in pipeline-table.mjs — see there for the column rules (#1015, #1017). */

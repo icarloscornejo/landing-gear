@@ -29,7 +29,7 @@
  *   A `null` numeric means the core had a value but it is not claimable yet
  *   (too small a sample); `provisional: true` marks such a row.
  * @typedef {{key: "threshold", label: string, value: number|null, note: string|null, sampleSize: number|null, provisional: boolean}} ThresholdSection
- * @typedef {{key: string, label: string, rows: BreakdownRow[], dimension: string, partial: boolean}} BreakdownSection
+ * @typedef {{key: string, label: string, rows: BreakdownRow[], dimension: string, partial: boolean, missing: number}} BreakdownSection
  * @typedef {{key: "vendor", label: string, rows: BreakdownRow[], claimable: boolean, coveragePct: number, minSampleForClaim: number, identified: number, citation: string|null}} VendorSection
  * @typedef {ThresholdSection|BreakdownSection|VendorSection} StatsSection
  * @typedef {{state: "unavailable"|"below-threshold"|"ready", progress: {current: number, threshold: number|null, message: string}|null, sections: StatsSection[]}} StatsModel
@@ -167,7 +167,9 @@ export function statsModel(patterns) {
     const list = Array.isArray(rows) ? rows.filter((r) => Number.isFinite(r?.total) && r.total > 0) : [];
     const named = list.filter((r) => !isUnlabelled(r?.[dim]));
     if (named.length === 0) continue;
-    sections.push({ key, label, rows: list, dimension: dim, partial: named.length < list.length });
+    // Unlabelled buckets are not a category; they are counted, not drawn.
+    const missing = list.filter((r) => isUnlabelled(r?.[dim])).reduce((sum, r) => sum + r.total, 0);
+    sections.push({ key, label, rows: named.map(withReplyRate), dimension: dim, partial: missing > 0, missing });
   }
 
   // Per-ATS advance rate. The core states the sample it needs and how much of
@@ -219,7 +221,23 @@ export function statsModel(patterns) {
  * @param {unknown} label
  * @returns {boolean}
  */
+// U+2014 by code point, so this file never contains the character itself.
+const UNLABELLED = new Set(["", "unknown", "none", "n/a", String.fromCharCode(0x2014), "-"]);
+
 export function isUnlabelled(label) {
-  const s = String(label ?? "").trim().toLowerCase();
-  return s === "" || s === "unknown" || s === "n/a" || s === "—" || s === "-";
+  return UNLABELLED.has(String(label ?? "").trim().toLowerCase());
+}
+
+/**
+ * A rate over zero decided applications is no rate at all: with nothing
+ * decided yet the row's `conversionRate` becomes null instead of a 0% that
+ * reads as "nobody ever replies".
+ *
+ * @template {{decided?: number, conversionRate?: number}} R
+ * @param {R} row
+ * @returns {R & {conversionRate: number|null}}
+ */
+export function withReplyRate(row) {
+  const decided = Number(row?.decided);
+  return { ...row, conversionRate: Number.isFinite(decided) && decided > 0 ? row.conversionRate : null };
 }

@@ -180,3 +180,11 @@ test("an inherited key is not a valid importance or match", () => {
   assert.deepEqual(s.requirements.map((r) => r.requirement), ["Go", "Python"]);
   assert.deepEqual(prepQuestions(s).map((q) => q.requirement), ["Python"]);
 });
+
+test("the key facts come through as plain strings, empty when absent", async () => {
+  const { readMachineSummary } = await import("../../src/lib/machine-summary.mjs");
+  const report = "## Machine Summary\n\n```yaml\narchetype: \"Senior / Lead Android Engineer\"\nposting_location: null\nadvertised_comp: \"$2900 - 3300 USD/month\"\nwork_auth: \"not_needed\"\nrisk_level: \"Medium\"\nnext_action: \"Check the Apply link.\"\n```\n";
+  assert.deepEqual(readMachineSummary(report).facts, {
+    archetype: "Senior / Lead Android Engineer", location: "", comp: "$2900 - 3300 USD/month", workAuth: "not needed", risk: "Medium", nextAction: "Check the Apply link.",
+  });
+});
