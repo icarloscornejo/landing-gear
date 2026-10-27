@@ -1,72 +1,46 @@
 /**
  * Pipeline Sankey graph + layout (pure, no fs).
  *
- * Snapshot of current tracker status, with status-log overlays so a later
- * Rejected/Discarded does not erase Interview/Offer/Hired that already happened.
- * The cumulative headline tiles also recover these stages from the ledger.
+ * A chained funnel over the hiring phases each row actually went through
+ * (lifecycle.mjs phasePath, house rule 25): Tracked -> Submitted -> Replied ->
+ * Screening -> Assessment -> Tech interview -> Hiring manager -> Final interview
+ * -> Offer -> Hired. A row's ribbon goes from one phase of its path to the next,
+ * so a skipped phase is crossed, not counted. A closed row leaves through
+ * "Out at <phase>" (rejected, withdrew, ghosted, posting closed); an open row
+ * simply stops at its phase, so a node is taller than its outgoing ribbons by
+ * the rows still in it (the tooltip counts them). Counts match the pipeline
+ * tabs and the Closed tab, which read the same helpers.
  *
- * Status folding goes through canonStatus (status-alias.mjs) — the same map
- * Analytics stage bars and cumulative tiles use — so "Oferta" / "mülakat"
- * count as Offer / Interview here too.
+ * Status folding goes through canonStatus (status-alias.mjs), the same map
+ * Analytics stage bars and cumulative tiles use.
  */
 
 import { canonStatus } from "./status-alias.mjs";
+import { PHASES, exitOutcome, phaseInfo, phasePath } from "./lifecycle.mjs";
 
-/** @typedef {{ n: string|number, status: string }} SankeyApp */
+/** @typedef {{ n: string|number, status: string, notes?: string }} SankeyApp */
 /** @typedef {{ num: number, from: string, to: string }} SankeyLogRow */
-/** @typedef {{ id: string, label: string, rank: number, tone: string, value: number }} SankeyNode */
+/** @typedef {{ id: string, label: string, rank: number, tone: string, value: number, detail?: string }} SankeyNode */
 /** @typedef {{ source: string, target: string, value: number }} SankeyLink */
 
+// The fixed nodes before the hiring phases. Phase, "active" and "out" nodes
+// are built per phase below.
 export const NODE_DEFS = [
   { id: "tracked", label: "Tracked", rank: 0, tone: "neutral" },
   { id: "skip", label: "SKIP", rank: 1, tone: "danger" },
   { id: "evaluated", label: "Still evaluated", rank: 1, tone: "muted" },
-  { id: "discardedEarly", label: "Discarded (no application recorded)", rank: 1, tone: "muted" },
-  { id: "submitted", label: "Submitted", rank: 1, tone: "info" },
-  { id: "waiting", label: "Waiting", rank: 2, tone: "warn" },
-  { id: "engaged", label: "Company engaged", rank: 2, tone: "info" },
-  { id: "rejectedApply", label: "Rejected (no interview)", rank: 2, tone: "danger" },
-  { id: "discarded", label: "Discarded", rank: 2, tone: "muted" },
-  // Status Responded: the company replied, nothing more is known yet.
-  { id: "screening", label: "Replied", rank: 3, tone: "info" },
-  // Status Assessment: online assessment or asynchronous screening (states.yml),
-  // the step after a reply.
-  { id: "assessment", label: "Screening", rank: 3, tone: "info" },
-  { id: "interview", label: "Interview", rank: 3, tone: "success" },
-  { id: "offer", label: "Offer", rank: 3, tone: "success" },
-  { id: "hired", label: "Hired", rank: 3, tone: "success" },
-  { id: "rejectedInterview", label: "Rejected after interview", rank: 3, tone: "danger" },
-  { id: "discardedInterview", label: "Discarded after interview", rank: 3, tone: "muted" },
+  { id: "discardedEarly", label: "Discarded before applying", rank: 1, tone: "muted" },
 ];
 
-const ADVANCED = new Set(["INTERVIEW", "OFFER", "HIRED"]);
-
-// Discarded (withdrawn, or the posting closed) is not by itself a proven
-// submission: the core counts it in neither `submitted` nor `decided`
-// (modes/patterns.md). A Discarded row stays under Submitted only when the
-// status log shows it reached one of these; otherwise it leaves from Tracked.
-const SUBMITTED_OR_LATER = new Set(["APPLIED", "RESPONDED", "ASSESSMENT", "INTERVIEW", "OFFER", "HIRED", "REJECTED"]);
-
-const LEAVES = [
-  "skip",
-  "evaluated",
-  "discardedEarly",
-  "waiting",
-  "screening",
-  "assessment",
-  "interview",
-  "offer",
-  "hired",
-  "rejectedApply",
-  "rejectedInterview",
-  "discarded",
-  "discardedInterview",
-];
+/** Phase key -> column. Applied is the "Submitted" column right after Tracked. */
+const RANK = Object.fromEntries(PHASES.map((phase, index) => [phase.key, index + 1]));
+const PHASE_TONE = { applied: "info", replied: "info", screening: "info", assessment: "info", tech: "success", manager: "success", final: "success", offer: "success", hired: "success" };
+const OUT_WORDS = { rejected: "rejected", withdrawn: "withdrew", ghosted: "ghosted", closed: "posting closed", repeated: "repeated", discarded: "discarded" };
 
 /**
  * Canonical status token via the shared alias table.
  * Trailing dates come off first (states.yml forbids them; real trackers
- * still carry "Interview 2026-08-20") so canonStatus sees an exact key —
+ * still carry "Interview 2026-08-20") so canonStatus sees an exact key,
  * same strip awaiting.mjs uses before folding.
  * @param {string} raw
  * @returns {string}
@@ -78,7 +52,7 @@ export function statusToken(raw) {
   const c = canonStatus(base);
   // Pass-through uppercases the raw input, so markdown bold that foldStatus
   // already stripped for alias lookup can survive on English stage names
-  // ("**Rejected**" → "**REJECTED**"). Leaf equality needs a clean token;
+  // ("**Rejected**" becomes "**REJECTED**"). Leaf equality needs a clean token;
   // Analytics stage bars use .includes() and tolerate the bold.
   const cleaned = c.replace(/\*\*/g, "").trim();
   return cleaned.split(/[\s/]/)[0] || "EVALUATED";
@@ -108,59 +82,6 @@ export function parseStatusLog(tsv) {
 }
 
 /**
- * @param {number} num
- * @param {SankeyLogRow[]} log
- * @returns {boolean}
- */
-function logReachedAdvanced(num, log) {
-  for (const row of log) {
-    if (row.num !== num) continue;
-    if (ADVANCED.has(statusToken(row.from)) || ADVANCED.has(statusToken(row.to))) return true;
-  }
-  return false;
-}
-
-/**
- * @param {number} num
- * @param {SankeyLogRow[]} log
- * @returns {boolean}
- */
-function logReachedSubmitted(num, log) {
-  return log.some(
-    (row) =>
-      row.num === num &&
-      (SUBMITTED_OR_LATER.has(statusToken(row.from)) || SUBMITTED_OR_LATER.has(statusToken(row.to))),
-  );
-}
-
-/**
- * Exclusive leaf for one tracker row.
- * @param {SankeyApp} app
- * @param {SankeyLogRow[]} log
- * @returns {string}
- */
-export function classifyLeaf(app, log) {
-  const num = Number(app.n);
-  const status = statusToken(app.status);
-  const reachedInterview = ADVANCED.has(status) || logReachedAdvanced(num, log);
-
-  if (status === "SKIP") return "skip";
-  if (status === "EVALUATED") return "evaluated";
-  if (status === "APPLIED") return "waiting";
-  if (status === "RESPONDED") return "screening";
-  if (status === "ASSESSMENT") return "assessment";
-  if (status === "INTERVIEW") return "interview";
-  if (status === "OFFER") return "offer";
-  if (status === "HIRED") return "hired";
-  if (status === "REJECTED") return reachedInterview ? "rejectedInterview" : "rejectedApply";
-  if (status === "DISCARDED") {
-    if (reachedInterview) return "discardedInterview";
-    return logReachedSubmitted(num, log) ? "discarded" : "discardedEarly";
-  }
-  return "evaluated";
-}
-
-/**
  * @param {SankeyApp[]} apps
  * @param {SankeyLogRow[]} [log]
  * @returns {{ nodes: SankeyNode[], links: SankeyLink[], total: number }}
@@ -168,67 +89,81 @@ export function classifyLeaf(app, log) {
 export function buildPipelineSankey(apps, log = []) {
   const rows = Array.isArray(apps) ? apps : [];
   const ledger = Array.isArray(log) ? log : [];
-  const counts = Object.fromEntries(LEAVES.map((id) => [id, 0]));
+  /** @type {Map<string, number>} */
+  const flows = new Map();
+  /** @type {Map<string, Record<string, number>>} why rows left at each phase */
+  const outKinds = new Map();
+  /** @type {Map<string, number>} open rows whose last phase is this one */
+  const stillHere = new Map();
+  const add = (source, target) => flows.set(`${source}>${target}`, (flows.get(`${source}>${target}`) ?? 0) + 1);
+
   for (const app of rows) {
-    const leaf = classifyLeaf(app, ledger);
-    counts[leaf] = (counts[leaf] ?? 0) + 1;
+    const status = statusToken(app.status);
+    if (status === "SKIP") {
+      add("tracked", "skip");
+      continue;
+    }
+    const path = phasePath(app, ledger);
+    if (!path.length) {
+      add("tracked", status === "EVALUATED" ? "evaluated" : "discardedEarly");
+      continue;
+    }
+    add("tracked", path[0]);
+    for (let index = 1; index < path.length; index += 1) add(path[index - 1], path[index]);
+    const last = path[path.length - 1];
+    if (last === "hired") continue;
+    const outcome = exitOutcome(app, ledger);
+    if (!outcome) {
+      // Still open here: no ribbon leaves the node, the tooltip counts it.
+      stillHere.set(last, (stillHere.get(last) ?? 0) + 1);
+      continue;
+    }
+    add(last, `out:${last}`);
+    const kinds = outKinds.get(last) ?? {};
+    kinds[outcome.kind] = (kinds[outcome.kind] ?? 0) + 1;
+    outKinds.set(last, kinds);
   }
 
-  const engaged =
-    counts.screening +
-    counts.assessment +
-    counts.interview +
-    counts.offer +
-    counts.hired +
-    counts.rejectedInterview +
-    counts.discardedInterview;
-  const submitted = counts.waiting + engaged + counts.rejectedApply + counts.discarded;
-  const values = {
-    tracked: rows.length,
-    skip: counts.skip,
-    evaluated: counts.evaluated,
-    discardedEarly: counts.discardedEarly,
-    submitted,
-    waiting: counts.waiting,
-    engaged,
-    rejectedApply: counts.rejectedApply,
-    discarded: counts.discarded,
-    screening: counts.screening,
-    assessment: counts.assessment,
-    interview: counts.interview,
-    offer: counts.offer,
-    hired: counts.hired,
-    rejectedInterview: counts.rejectedInterview,
-    discardedInterview: counts.discardedInterview,
-  };
+  const links = [...flows].map(([key, value]) => {
+    const [source, target] = key.split(">");
+    return { source, target, value };
+  });
+  const inflow = (id) => links.filter((link) => link.target === id).reduce((sum, link) => sum + link.value, 0);
 
-  const nodes = NODE_DEFS.map((def) => ({ ...def, value: values[def.id] ?? 0 })).filter((n) => n.value > 0);
-
-  const rawLinks = [
-    { source: "tracked", target: "skip", value: values.skip },
-    { source: "tracked", target: "evaluated", value: values.evaluated },
-    { source: "tracked", target: "discardedEarly", value: values.discardedEarly },
-    { source: "tracked", target: "submitted", value: values.submitted },
-    { source: "submitted", target: "waiting", value: values.waiting },
-    { source: "submitted", target: "engaged", value: values.engaged },
-    { source: "submitted", target: "rejectedApply", value: values.rejectedApply },
-    { source: "submitted", target: "discarded", value: values.discarded },
-    { source: "engaged", target: "screening", value: values.screening },
-    { source: "engaged", target: "assessment", value: values.assessment },
-    { source: "engaged", target: "interview", value: values.interview },
-    { source: "engaged", target: "offer", value: values.offer },
-    { source: "engaged", target: "hired", value: values.hired },
-    { source: "engaged", target: "rejectedInterview", value: values.rejectedInterview },
-    { source: "engaged", target: "discardedInterview", value: values.discardedInterview },
-  ];
-  const live = new Set(nodes.map((n) => n.id));
-  const links = rawLinks.filter((l) => l.value > 0 && live.has(l.source) && live.has(l.target));
-
-  return { nodes, links, total: rows.length };
+  /** @type {SankeyNode[]} */
+  const nodes = [{ ...NODE_DEFS[0], value: rows.length }, ...NODE_DEFS.slice(1).map((def) => ({ ...def, value: inflow(def.id) }))];
+  for (const phase of PHASES) {
+    const rank = RANK[phase.key];
+    const reached = inflow(phase.key);
+    const label = phase.key === "applied" ? "Submitted" : phase.label;
+    nodes.push({
+      id: phase.key,
+      label,
+      rank,
+      tone: PHASE_TONE[phase.key],
+      value: reached,
+      // The rows still in this phase have no ribbon out; the tooltip counts them.
+      detail: `${label}: ${reached} reached, ${stillHere.get(phase.key) ?? 0} still here`,
+    });
+    const kinds = outKinds.get(phase.key) ?? {};
+    const out = inflow(`out:${phase.key}`);
+    nodes.push({
+      id: `out:${phase.key}`,
+      label: `Out at ${phaseInfo(phase.key).label}`,
+      rank: rank + 1,
+      tone: "danger",
+      value: out,
+      detail: `Out at ${phaseInfo(phase.key).label}: ${Object.entries(kinds).map(([kind, count]) => `${count} ${OUT_WORDS[kind] ?? kind}`).join(", ")}`,
+    });
+  }
+  const live = nodes.filter((node) => node.value > 0);
+  const liveIds = new Set(live.map((node) => node.id));
+  return { nodes: live, links: links.filter((link) => liveIds.has(link.source) && liveIds.has(link.target)), total: rows.length };
 }
 
 /**
  * Horizontal Sankey positions + ribbon paths. Empty nodes already dropped.
+ * Nodes stack inside a column in the order the graph lists them.
  * @param {{ nodes: SankeyNode[], links: SankeyLink[] }} graph
  * @param {{ width?: number, height?: number, padding?: { top: number, right: number, bottom: number, left: number }, nodeWidth?: number, nodeGap?: number }} [opts]
  */
@@ -259,7 +194,7 @@ export function layoutSankey(graph, opts = {}) {
   }
   if (!Number.isFinite(scale) || scale <= 0) scale = 1;
 
-  const order = new Map(NODE_DEFS.map((d, i) => [d.id, i]));
+  const order = new Map(nodes.map((n, i) => [n.id, i]));
   const positioned = [];
   const byId = new Map();
   for (const r of ranks) {
@@ -306,4 +241,17 @@ export function layoutSankey(graph, opts = {}) {
   }
 
   return { nodes: positioned, links: laidLinks, width, height, scale };
+}
+
+/** Columns get at least this much room, so side labels never overlap the next column. */
+export const SANKEY_COLUMN_WIDTH = 200;
+
+/**
+ * The chart width for a graph: one column per rank in use, at least 920.
+ * @param {{ nodes: SankeyNode[] }} graph
+ * @param {{ left: number, right: number }} padding
+ */
+export function sankeyWidth(graph, padding) {
+  const columns = new Set((graph?.nodes ?? []).map((n) => n.rank)).size;
+  return Math.max(920, Math.max(0, columns - 1) * SANKEY_COLUMN_WIDTH + padding.left + padding.right);
 }

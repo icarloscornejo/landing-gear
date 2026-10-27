@@ -6,6 +6,8 @@
  * every rule here is testable as a value. House rules live in modes/_custom.md.
  */
 
+import { canonStatus } from "./status-alias.mjs";
+
 /** A pipeline row that points at a saved JD instead of a URL. */
 const LOCAL_JD_RE = /^local:(jds\/[A-Za-z0-9._-]+\.md)$/;
 
@@ -130,16 +132,17 @@ export function jdSourceLine(text) {
 }
 
 /**
- * The markdown saved for a JD Carlos pasted in the web.
- * @param {{url: string, company: string, role: string, text: string, date: string}} args
+ * The markdown saved for a JD Carlos pasted in the web, or one the server read
+ * from an ATS API (`how` says which).
+ * @param {{url: string, company: string, role: string, text: string, date: string, how?: string}} args
  * @returns {string}
  */
-export function pastedJdMarkdown({ url, company, role, text, date }) {
+export function pastedJdMarkdown({ url, company, role, text, date, how = "pasted by Carlos in the web" }) {
   const oneLine = (value) => stripEmDash(String(value ?? "")).replace(/\s+/g, " ").trim();
   return `# ${oneLine(company) || "Unknown company"}: ${oneLine(role) || "Unknown role"}
 
 - Source: ${url}
-- Captured: ${date}, pasted by Carlos in the web (untrusted posting text)
+- Captured: ${date}, ${how} (untrusted posting text)
 
 ## Job description (verbatim)
 
@@ -273,6 +276,267 @@ const CLOSED = new Set(["HIRED", "REJECTED", "DISCARDED", "SKIP"]);
 export function nextStatuses(canon) {
   if (CLOSED.has(canon)) return [];
   return [...(NEXT_STATUSES[canon] ?? []), "Discarded"];
+}
+
+// ── Hiring phases (house rule 25) ─────────────────────────────────────────────
+// The canonical states have no screening or interview rounds, so a phase is a
+// canonical status plus a "STAGE: <Phase> <round>" note, the same way Approved
+// is Evaluated plus a note. set-status appends notes in order and never drops
+// them, so the Notes cell is the phase history; the round lives in the note
+// because set-status will not append the same note twice.
+
+/**
+ * @typedef {"applied"|"replied"|"screening"|"assessment"|"tech"|"manager"|"final"|"offer"|"hired"} PhaseKey
+ * @typedef {"rejected"|"withdrawn"|"ghosted"|"closed"} ExitKind
+ * @typedef {{key: PhaseKey, label: string, status: string, repeatable: boolean, noted: boolean}} Phase
+ * @typedef {{num: number, from: string, to: string}} PhaseLogRow
+ */
+
+/** @type {readonly Phase[]} Phases after applying, in order. */
+export const PHASES = Object.freeze([
+  { key: "applied", label: "Applied", status: "Applied", repeatable: false, noted: false },
+  { key: "replied", label: "Replied", status: "Responded", repeatable: false, noted: false },
+  { key: "screening", label: "Screening", status: "Responded", repeatable: true, noted: true },
+  { key: "assessment", label: "Assessment", status: "Assessment", repeatable: true, noted: true },
+  { key: "tech", label: "Tech interview", status: "Interview", repeatable: true, noted: true },
+  { key: "manager", label: "Hiring manager", status: "Interview", repeatable: true, noted: true },
+  { key: "final", label: "Final interview", status: "Interview", repeatable: true, noted: true },
+  { key: "offer", label: "Offer", status: "Offer", repeatable: false, noted: true },
+  { key: "hired", label: "Hired", status: "Hired", repeatable: false, noted: true },
+]);
+
+const PHASE_ORDER = Object.fromEntries(PHASES.map((phase, index) => [phase.key, index]));
+const PHASE_BY_KEY = Object.fromEntries(PHASES.map((phase) => [phase.key, phase]));
+const PHASE_BY_LABEL = Object.fromEntries(PHASES.map((phase) => [phase.label.toLowerCase(), phase.key]));
+
+/** Statuses of a row that was applied to and is still open (Hired is done). */
+const OPEN_APPLIED = new Set(["APPLIED", "RESPONDED", "ASSESSMENT", "INTERVIEW", "OFFER"]);
+/** Statuses whose presence in the ledger proves the row was applied to. */
+const SUBMITTED = new Set(["APPLIED", "RESPONDED", "ASSESSMENT", "INTERVIEW", "OFFER", "HIRED", "REJECTED"]);
+/** A bare status (no STAGE note) read as a phase. */
+const PHASE_OF_STATUS = { APPLIED: "applied", RESPONDED: "replied", ASSESSMENT: "assessment", INTERVIEW: "tech", OFFER: "offer", HIRED: "hired" };
+
+export const EXIT_KINDS = Object.freeze({
+  rejected: { label: "Rejected", status: "Rejected" },
+  withdrawn: { label: "Withdrawn", status: "Discarded" },
+  ghosted: { label: "Ghosted", status: "Discarded" },
+  closed: { label: "Posting closed", status: "Discarded" },
+});
+const EXIT_BY_LABEL = { rejected: "rejected", withdrawn: "withdrawn", ghosted: "ghosted", "posting closed": "closed" };
+
+const PHASE_LABELS = "Applied|Replied|Screening|Assessment|Tech interview|Hiring manager|Final interview|Offer|Hired";
+const STAGE_RE = new RegExp(`STAGE:\\s*(${PHASE_LABELS})(?:\\s+(\\d+))?`, "gi");
+const OUTCOME_RE = new RegExp(`OUTCOME:\\s*(Rejected|Withdrawn|Ghosted|Posting closed)\\s+at\\s+(${PHASE_LABELS})(?:\\s+(\\d+))?`, "gi");
+
+/** @param {string} raw */
+function canonOf(raw) {
+  return canonStatus(String(raw ?? "").replace(/\s+\d{4}-\d{2}-\d{2}\s*$/, "").trim());
+}
+
+/** @param {PhaseKey} key */
+export function phaseInfo(key) {
+  return PHASE_BY_KEY[key];
+}
+
+/**
+ * "Screening 2" for a repeatable phase, the bare label otherwise.
+ * @param {PhaseKey} key
+ * @param {number} [round]
+ */
+export function phaseLabel(key, round = 1) {
+  const phase = PHASE_BY_KEY[key];
+  return phase.repeatable ? `${phase.label} ${round}` : phase.label;
+}
+
+/**
+ * Every STAGE note in the cell, in the order written. A legacy note with no
+ * number ("STAGE: Screening") is round 1.
+ * @param {unknown} notes
+ * @returns {{phase: PhaseKey, round: number}[]}
+ */
+export function stageMarks(notes) {
+  return [...String(notes ?? "").matchAll(STAGE_RE)].map((match) => ({
+    phase: PHASE_BY_LABEL[match[1].toLowerCase()],
+    round: match[2] ? Number(match[2]) : 1,
+  }));
+}
+
+/**
+ * The note set-status.mjs appends for a phase, or null for a phase without one.
+ * @param {PhaseKey} key
+ * @param {number} [round]
+ * @returns {string|null}
+ */
+export function phaseNote(key, round = 1) {
+  return PHASE_BY_KEY[key].noted ? `STAGE: ${phaseLabel(key, round)}` : null;
+}
+
+/**
+ * @param {ExitKind} kind
+ * @param {PhaseKey} key
+ * @param {number} [round]
+ */
+export function exitNote(kind, key, round = 1) {
+  return `OUTCOME: ${EXIT_KINDS[kind].label} at ${phaseLabel(key, round)}`;
+}
+
+/**
+ * The phase an open, applied row is in: the last STAGE note whose status the
+ * row still has, else the status alone (bare Interview reads as Tech interview).
+ * @param {{status?: unknown, notes?: unknown}} app
+ * @returns {{phase: PhaseKey, round: number}|null}
+ */
+export function currentPhase(app) {
+  const canon = canonOf(app.status);
+  const marks = stageMarks(app.notes);
+  for (let index = marks.length - 1; index >= 0; index -= 1) {
+    if (PHASE_BY_KEY[marks[index].phase].status.toUpperCase() === canon) return marks[index];
+  }
+  const phase = PHASE_OF_STATUS[canon];
+  return phase ? { phase, round: 1 } : null;
+}
+
+/**
+ * Where a row can move next: a later phase (skips allowed) or another round of
+ * the current one. Only open, applied rows move; Applied itself is written only
+ * by apply-cv (house rule 6), so it is never a target.
+ * @param {{status?: unknown, notes?: unknown}} app
+ * @returns {PhaseKey[]}
+ */
+export function nextPhases(app) {
+  if (!OPEN_APPLIED.has(canonOf(app.status))) return [];
+  const current = currentPhase(app);
+  if (!current) return [];
+  const order = PHASE_ORDER[current.phase];
+  return PHASES.filter((phase) =>
+    phase.key !== "applied" && (PHASE_ORDER[phase.key] > order || (phase.key === current.phase && phase.repeatable)),
+  ).map((phase) => phase.key);
+}
+
+/**
+ * The round a move to `key` writes: the next one when repeating the current phase.
+ * @param {{status?: unknown, notes?: unknown}} app
+ * @param {PhaseKey} key
+ */
+export function nextRound(app, key) {
+  const current = currentPhase(app);
+  return current && current.phase === key ? current.round + 1 : 1;
+}
+
+/** Whether a row was applied to and is still open. */
+export function isOpenApplied(app) {
+  return OPEN_APPLIED.has(canonOf(app.status));
+}
+
+/**
+ * Phases the row went through, uncapped. STAGE notes first; the ledger and the
+ * status only fill in a status no note covers, so a web move Screening -> Final
+ * (ledger Responded -> Interview) does not invent a Tech phase.
+ * @param {{n?: unknown, status?: unknown, notes?: unknown}} app
+ * @param {PhaseLogRow[]} log
+ * @returns {PhaseKey[]}
+ */
+function rawPath(app, log) {
+  const canon = canonOf(app.status);
+  const marks = stageMarks(app.notes);
+  const num = Number(app.n);
+  const ledger = new Set();
+  for (const row of log) {
+    if (row.num !== num) continue;
+    ledger.add(canonOf(row.from));
+    ledger.add(canonOf(row.to));
+  }
+  const outcome = lastOutcome(app.notes);
+  const applied = marks.length > 0 || outcome !== null || SUBMITTED.has(canon) || [...ledger].some((status) => SUBMITTED.has(status));
+  if (!applied) return [];
+
+  const phases = new Set(/** @type {PhaseKey[]} */ (["applied"]));
+  for (const mark of marks) phases.add(mark.phase);
+  if (outcome) phases.add(outcome.phase);
+  const covered = new Set(marks.map((mark) => PHASE_BY_KEY[mark.phase].status.toUpperCase()));
+  for (const status of [...ledger, canon]) {
+    const phase = PHASE_OF_STATUS[status];
+    if (phase && !covered.has(status)) phases.add(phase);
+  }
+  const ordered = [...phases].sort((a, b) => PHASE_ORDER[a] - PHASE_ORDER[b]);
+  // Any phase past Applied means the company replied.
+  if (ordered.some((phase) => PHASE_ORDER[phase] > PHASE_ORDER.replied) && !phases.has("replied")) ordered.splice(1, 0, "replied");
+  return ordered;
+}
+
+/** @param {unknown} notes */
+function lastOutcome(notes) {
+  const matches = [...String(notes ?? "").matchAll(OUTCOME_RE)];
+  if (!matches.length) return null;
+  const match = matches[matches.length - 1];
+  return {
+    kind: /** @type {ExitKind} */ (EXIT_BY_LABEL[match[1].toLowerCase()]),
+    phase: /** @type {PhaseKey} */ (PHASE_BY_LABEL[match[2].toLowerCase()]),
+    round: match[3] ? Number(match[3]) : 1,
+  };
+}
+
+/**
+ * How a closed row ended: the OUTCOME note when there is one; otherwise, for a
+ * legacy row, Rejected reads as rejected, a "repeated:" note as repeated and any
+ * other Discarded as closed, at the last phase it went through. A row closed
+ * before applying has phase null.
+ * @param {{n?: unknown, status?: unknown, notes?: unknown}} app
+ * @param {PhaseLogRow[]} [log]
+ * @returns {{kind: ExitKind|"repeated"|"skip"|"discarded", phase: PhaseKey|null, round: number}|null}
+ */
+export function exitOutcome(app, log = []) {
+  const canon = canonOf(app.status);
+  if (canon === "SKIP") return { kind: "skip", phase: null, round: 1 };
+  if (canon !== "REJECTED" && canon !== "DISCARDED") return null;
+  const noted = lastOutcome(app.notes);
+  if (noted) return noted;
+  const path = rawPath(app, log);
+  const phase = path.length ? path[path.length - 1] : null;
+  const round = phase ? stageMarks(app.notes).filter((mark) => mark.phase === phase).pop()?.round ?? 1 : 1;
+  if (/\brepeated:/i.test(String(app.notes ?? ""))) return { kind: "repeated", phase, round };
+  if (canon === "REJECTED") return { kind: "rejected", phase: phase ?? "applied", round };
+  return { kind: phase ? "closed" : "discarded", phase, round };
+}
+
+/**
+ * One line for a closed row: "Rejected after Tech interview 2", "Withdrew at
+ * Screening 1", "Ghosted after Applied", "Posting closed at Offer". Null for
+ * an open row.
+ * @param {{n?: unknown, status?: unknown, notes?: unknown}} app
+ * @param {PhaseLogRow[]} [log]
+ * @returns {string|null}
+ */
+export function outcomeText(app, log = []) {
+  const outcome = exitOutcome(app, log);
+  if (!outcome) return null;
+  const at = outcome.phase ? phaseLabel(outcome.phase, outcome.round) : "";
+  switch (outcome.kind) {
+    case "rejected": return `Rejected after ${at}`;
+    case "withdrawn": return `Withdrew at ${at}`;
+    case "ghosted": return `Ghosted after ${at}`;
+    case "closed": return `Posting closed at ${at}`;
+    case "repeated": return "Repeated posting";
+    case "skip": return "SKIP";
+    default: return "Discarded";
+  }
+}
+
+/**
+ * The phases a row actually went through, ending at its level: the current
+ * phase while open, the exit phase once closed. Ledger evidence never pushes a
+ * row past its level, so a backward CLI correction cannot over-count it.
+ * @param {{n?: unknown, status?: unknown, notes?: unknown}} app
+ * @param {PhaseLogRow[]} [log]
+ * @returns {PhaseKey[]}
+ */
+export function phasePath(app, log = []) {
+  const path = rawPath(app, log);
+  const level = isOpenApplied(app) || canonOf(app.status) === "HIRED" ? currentPhase(app)?.phase : exitOutcome(app, log)?.phase;
+  if (!level) return [];
+  const capped = path.filter((phase) => PHASE_ORDER[phase] <= PHASE_ORDER[level]);
+  if (!capped.includes(level)) capped.push(level);
+  return capped;
 }
 
 /**

@@ -7,23 +7,36 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import "../helpers/web-ts-alias-loader.mjs";
-import { classifyLeaf, buildPipelineSankey, layoutSankey, parseStatusLog, statusToken } from "../../src/lib/pipeline-sankey.mjs";
+import { SANKEY_COLUMN_WIDTH, buildPipelineSankey, layoutSankey, parseStatusLog, sankeyWidth, statusToken } from "../../src/lib/pipeline-sankey.mjs";
 
-test("Assessment has its own engaged leaf and records a submitted application", () => {
-  const graph = buildPipelineSankey([{ n: '1', status: 'Assessment' }]);
-  assert.equal(classifyLeaf({ n: '1', status: 'online assessment' }, []), 'assessment');
-  assert.equal(graph.nodes.find(node => node.id === 'assessment')?.value, 1);
-  assert.equal(graph.nodes.find(node => node.id === 'submitted')?.value, 1);
-  assert.ok(!graph.nodes.some(node => node.id === 'interview'));
-  assert.equal(classifyLeaf({ n: '1', status: 'Discarded' },
-    [{ num: 1, from: 'Assessment', to: 'Discarded' }]), 'discarded');
-});
+// The tracker's "no status" dash, built from its code point: house rules keep
+// the character itself out of source files.
+const DASH = String.fromCharCode(0x2014);
+
+const values = (g) => Object.fromEntries(g.nodes.map((n) => [n.id, n.value]));
+const flow = (g, source, target) => g.links.find((l) => l.source === source && l.target === target)?.value ?? 0;
+const inflow = (g, id) => g.links.filter((l) => l.target === id).reduce((s, l) => s + l.value, 0);
+const outflow = (g, id) => g.links.filter((l) => l.source === id).reduce((s, l) => s + l.value, 0);
+
+/** How many open rows stop at a phase node, read from its tooltip. */
+const still = (g, id) => Number(/(\d+) still here/.exec(g.nodes.find((n) => n.id === id)?.detail ?? "")?.[1] ?? 0);
+
+/** Every phase node = its inflow = its outflows + the open rows still in it. */
+function assertConserved(g) {
+  const v = values(g);
+  assert.equal(v.tracked, outflow(g, "tracked"), "tracked = its outflows");
+  for (const id of ["applied", "replied", "screening", "assessment", "tech", "manager", "final", "offer"]) {
+    if (v[id] === undefined) continue;
+    assert.equal(v[id], inflow(g, id), `${id} value = inflow`);
+    assert.equal(v[id], outflow(g, id) + still(g, id), `${id} value = outflow + still here`);
+  }
+}
 
 test("statusToken uses canonStatus aliases (same map as Analytics)", () => {
   assert.equal(statusToken("Interview"), "INTERVIEW");
   assert.equal(statusToken("Interview 2026-08-20"), "INTERVIEW");
   assert.equal(statusToken("**Rejected**"), "REJECTED");
-  assert.equal(statusToken("—"), "DISCARDED");
+  assert.equal(statusToken(DASH), "DISCARDED");
   assert.equal(statusToken("Oferta"), "OFFER");
   assert.equal(statusToken("**Mülakat**"), "INTERVIEW");
   assert.equal(statusToken("Entrevista"), "INTERVIEW");
@@ -40,93 +53,109 @@ test("parseStatusLog skips header and reads Interview→Rejected rows", () => {
   assert.equal(rows[0].to, "Rejected");
 });
 
-test("rejected after interview stays on the interview path", () => {
-  const leaf = classifyLeaf({ n: 13, status: "Rejected" }, [{ num: 13, from: "Interview", to: "Rejected" }]);
-  assert.equal(leaf, "rejectedInterview");
-});
-
-test("rejected with no interview log is rejectedApply", () => {
-  const leaf = classifyLeaf({ n: 3, status: "Rejected" }, [{ num: 3, from: "Applied", to: "Rejected" }]);
-  assert.equal(leaf, "rejectedApply");
-});
-
-test("current Interview counts as interview even without a log", () => {
-  assert.equal(classifyLeaf({ n: 46, status: "Interview" }, []), "interview");
-});
-
-test("Discarded with no application in the log is not a submission", () => {
-  // Closed or withdrawn before applying: the core counts Discarded in neither
-  // submitted nor decided unless the history proves an application.
-  assert.equal(classifyLeaf({ n: 7, status: "Discarded" }, []), "discardedEarly");
-  assert.equal(classifyLeaf({ n: 7, status: "Discarded" }, [{ num: 7, from: "Evaluated", to: "Discarded" }]), "discardedEarly");
-  // Empty and "—" statuses fold to DISCARDED through canonStatus.
-  assert.equal(classifyLeaf({ n: 8, status: "—" }, []), "discardedEarly");
-  assert.equal(classifyLeaf({ n: 9, status: "" }, []), "discardedEarly");
-  // Another row's application is not evidence for this one.
-  assert.equal(classifyLeaf({ n: 7, status: "Discarded" }, [{ num: 70, from: "Applied", to: "Discarded" }]), "discardedEarly");
-});
-
-test("Discarded after reaching Applied or later stays under Submitted", () => {
-  assert.equal(classifyLeaf({ n: 7, status: "Discarded" }, [{ num: 7, from: "Applied", to: "Discarded" }]), "discarded");
-  assert.equal(classifyLeaf({ n: 7, status: "Descartado" }, [{ num: 7, from: "Respondido", to: "Descartado" }]), "discarded");
-  assert.equal(classifyLeaf({ n: 7, status: "Discarded" }, [{ num: 7, from: "Rejected", to: "Discarded" }]), "discarded");
-  assert.equal(classifyLeaf({ n: 7, status: "Discarded" }, [{ num: 7, from: "Interview", to: "Discarded" }]), "discardedInterview");
-});
-
-test("buildPipelineSankey conserves tracked = skip + evaluated + submitted", () => {
+test("the chain follows each row's phases and ends in Active or Out", () => {
   const apps = [
     { n: 1, status: "SKIP" },
     { n: 2, status: "Evaluated" },
     { n: 3, status: "Applied" },
-    { n: 4, status: "Applied" },
-    { n: 5, status: "Responded" },
-    { n: 12, status: "Interview" },
-    { n: 13, status: "Rejected" },
-    { n: 26, status: "Rejected" },
+    { n: 4, status: "Responded", notes: "STAGE: Screening 1; STAGE: Screening 2" },
+    { n: 5, status: "Interview", notes: "STAGE: Screening 1; STAGE: Tech interview 1" },
+    { n: 6, status: "Rejected", notes: "STAGE: Screening 1; OUTCOME: Rejected at Screening 1" },
+    { n: 7, status: "Discarded", notes: "OUTCOME: Ghosted at Applied" },
+    { n: 8, status: "Hired", notes: "STAGE: Tech interview 1; STAGE: Offer; STAGE: Hired" },
   ];
-  const log = [{ num: 13, from: "Interview", to: "Rejected" }];
-  const g = buildPipelineSankey(apps, log);
-  const v = Object.fromEntries(g.nodes.map((n) => [n.id, n.value]));
-  assert.equal(g.total, 8);
+  const g = buildPipelineSankey(apps);
+  const v = values(g);
   assert.equal(v.tracked, 8);
   assert.equal(v.skip, 1);
   assert.equal(v.evaluated, 1);
-  assert.equal(v.submitted, 6);
-  assert.equal(v.waiting, 2);
-  assert.equal(v.engaged, 3);
-  assert.equal(v.rejectedApply, 1);
-  assert.equal(v.screening, 1);
-  assert.equal(v.interview, 1);
-  assert.equal(v.rejectedInterview, 1);
-  assert.equal(v.tracked, v.skip + v.evaluated + v.submitted);
-  assert.equal(v.submitted, v.waiting + v.engaged + v.rejectedApply);
-  assert.equal(v.engaged, v.screening + v.interview + v.rejectedInterview);
+  assert.equal(v.applied, 6);
+  assert.equal(v.replied, 4);
+  assert.equal(v.screening, 3);
+  assert.equal(v.tech, 2);
+  assert.equal(v.hired, 1);
+  assert.equal(still(g, "applied"), 1);
+  assert.equal(flow(g, "applied", "out:applied"), 1);
+  assert.equal(still(g, "screening"), 1);
+  assert.equal(flow(g, "screening", "out:screening"), 1);
+  assert.equal(still(g, "tech"), 1);
+  // Open rows leave no ribbon: there are no "still" side nodes.
+  assert.equal(g.nodes.some((n) => n.id.startsWith("active:")), false);
+  assert.match(g.nodes.find((n) => n.id === "out:applied").detail, /1 ghosted/);
+  assertConserved(g);
 });
 
-test("buildPipelineSankey keeps pre-application Discarded rows out of Submitted", () => {
-  const apps = [
-    { n: 1, status: "Applied" },
-    { n: 2, status: "Discarded" }, // posting closed before applying
-    { n: 3, status: "Discarded" }, // withdrew after applying
-    { n: 4, status: "—" }, // folds to Discarded, no history
-  ];
-  const log = [
-    { num: 2, from: "Evaluated", to: "Discarded" },
-    { num: 3, from: "Applied", to: "Discarded" },
-  ];
-  const g = buildPipelineSankey(apps, log);
-  const v = Object.fromEntries(g.nodes.map((n) => [n.id, n.value]));
-  const flow = (source, target) => g.links.find((l) => l.source === source && l.target === target)?.value;
-  assert.equal(v.tracked, 4);
-  assert.equal(v.discardedEarly, 2);
-  assert.equal(v.submitted, 2);
-  assert.equal(v.waiting, 1);
-  assert.equal(v.discarded, 1);
-  assert.equal(v.tracked, v.discardedEarly + v.submitted);
-  assert.equal(v.submitted, v.waiting + v.discarded);
-  assert.equal(flow("tracked", "discardedEarly"), 2);
-  assert.equal(flow("tracked", "submitted"), 2);
-  assert.equal(flow("submitted", "discarded"), 1);
+test("a skipped phase is crossed, not counted", () => {
+  // Applied straight to Tech interview: Screening and Assessment never happened.
+  const g = buildPipelineSankey([{ n: 1, status: "Interview", notes: "STAGE: Tech interview 1" }]);
+  const v = values(g);
+  assert.equal(v.screening, undefined);
+  assert.equal(v.assessment, undefined);
+  assert.equal(flow(g, "replied", "tech"), 1);
+  assertConserved(g);
+});
+
+test("a web move Screening -> Final does not invent Tech from the ledger; same for Hiring manager", () => {
+  for (const [label, key] of [["Final interview", "final"], ["Hiring manager", "manager"]]) {
+    const g = buildPipelineSankey(
+      [{ n: 9, status: "Interview", notes: `STAGE: Screening 1; STAGE: ${label} 1` }],
+      [{ num: 9, from: "Applied", to: "Responded" }, { num: 9, from: "Responded", to: "Interview" }],
+    );
+    assert.equal(values(g).tech, undefined, label);
+    assert.equal(flow(g, "screening", key), 1, label);
+    assertConserved(g);
+  }
+});
+
+test("ledger evidence never pushes a row past its tab or its exit", () => {
+  // Open row whose ledger says Interview while its notes say Screening (#54).
+  const open = buildPipelineSankey(
+    [{ n: 54, status: "Responded", notes: "STAGE: Screening" }],
+    [{ num: 54, from: "Applied", to: "Interview" }, { num: 54, from: "Interview", to: "Responded" }],
+  );
+  assert.equal(values(open).tech, undefined);
+  assert.equal(still(open, "screening"), 1);
+  // Closed row whose OUTCOME says Replied, with a stray Interview row in the ledger.
+  const closed = buildPipelineSankey(
+    [{ n: 3, status: "Rejected", notes: "OUTCOME: Rejected at Replied" }],
+    [{ num: 3, from: "Applied", to: "Interview" }, { num: 3, from: "Interview", to: "Rejected" }],
+  );
+  assert.equal(values(closed).tech, undefined);
+  assert.equal(flow(closed, "replied", "out:replied"), 1);
+  assertConserved(closed);
+});
+
+test("bare Interview reads as Tech interview; legacy closed rows land at their last phase", () => {
+  const g = buildPipelineSankey(
+    [
+      { n: 1, status: "Interview" },
+      { n: 2, status: "Rejected" },
+      { n: 3, status: "Discarded", notes: "repeated: same posting as #1" },
+      { n: 4, status: "Discarded" },
+    ],
+    [
+      { num: 2, from: "Responded", to: "Rejected" },
+      { num: 3, from: "Applied", to: "Discarded" },
+      { num: 4, from: "Evaluated", to: "Discarded" },
+    ],
+  );
+  assert.equal(still(g, "tech"), 1);
+  assert.equal(flow(g, "replied", "out:replied"), 1);
+  assert.equal(flow(g, "applied", "out:applied"), 1);
+  assert.equal(flow(g, "tracked", "discardedEarly"), 1);
+  assert.match(g.nodes.find((n) => n.id === "out:applied").detail, /1 repeated/);
+  assertConserved(g);
+});
+
+test("Discarded with no application in the log is not a submission", () => {
+  for (const [app, log] of [
+    [{ n: 7, status: "Discarded" }, []],
+    [{ n: 7, status: "Discarded" }, [{ num: 7, from: "Evaluated", to: "Discarded" }]],
+    [{ n: 8, status: DASH }, []],
+    [{ n: 7, status: "Discarded" }, [{ num: 70, from: "Applied", to: "Discarded" }]],
+  ]) {
+    assert.equal(flow(buildPipelineSankey([app], log), "tracked", "discardedEarly"), 1);
+  }
 });
 
 test("empty apps yield empty graph", () => {
@@ -137,14 +166,11 @@ test("empty apps yield empty graph", () => {
 });
 
 test("layoutSankey positions nodes and draws a path per live link", () => {
-  const g = buildPipelineSankey(
-    [
-      { n: 1, status: "Applied" },
-      { n: 2, status: "Interview" },
-      { n: 3, status: "Rejected" },
-    ],
-    [{ num: 3, from: "Interview", to: "Rejected" }],
-  );
+  const g = buildPipelineSankey([
+    { n: 1, status: "Applied" },
+    { n: 2, status: "Interview", notes: "STAGE: Tech interview 1" },
+    { n: 3, status: "Rejected", notes: "OUTCOME: Rejected at Tech interview 1" },
+  ]);
   const laid = layoutSankey(g, { width: 800, height: 300 });
   assert.equal(laid.nodes.length, g.nodes.length);
   assert.equal(laid.links.length, g.links.length);
@@ -159,6 +185,18 @@ test("layoutSankey positions nodes and draws a path per live link", () => {
     assert.ok(l.d.includes("C"));
     assert.ok(l.thickness > 0);
   }
+});
+
+test("the chart width leaves every column room for its side labels", () => {
+  const g = buildPipelineSankey([
+    { n: 1, status: "Hired", notes: "STAGE: Screening 1; STAGE: Assessment 1; STAGE: Tech interview 1; STAGE: Hiring manager 1; STAGE: Final interview 1; STAGE: Offer; STAGE: Hired" },
+    { n: 2, status: "Rejected", notes: "STAGE: Offer; OUTCOME: Rejected at Offer" },
+  ]);
+  const padding = { top: 24, right: 188, bottom: 24, left: 100 };
+  const width = sankeyWidth(g, padding);
+  const laid = layoutSankey(g, { width, height: 440, padding });
+  const xs = [...new Set(laid.nodes.map((n) => n.x))].sort((a, b) => a - b);
+  for (let i = 1; i < xs.length; i += 1) assert.ok(xs[i] - xs[i - 1] >= SANKEY_COLUMN_WIDTH - 20, `column ${i} gap ${xs[i] - xs[i - 1]}`);
 });
 
 // ── readStatusLog(): the ledger read behind the Sankey ──────────────────────

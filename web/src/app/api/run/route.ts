@@ -25,7 +25,7 @@ import { acquireTrackerWrite, releaseTrackerWrite } from "@/lib/core/run-registr
 import { createRunFinalizer } from "@/lib/run-finalizer.mjs";
 import { readJsonObject } from "@/lib/json-body";
 import { HAIKU_KINDS, parseNeedsChrome, parseTriageLine, resolveWorkerInput, triageLabel } from "@/lib/lifecycle.mjs";
-import { listJdFiles, readJdSources } from "@/lib/jd-captures";
+import { fetchJdCapture, listJdFiles, readJdSources } from "@/lib/jd-captures";
 import { setInboxLabel, setInboxSkip } from "@/lib/inbox-skip.mjs";
 import { safeRunId, startDetachedRun } from "@/lib/live-runs";
 
@@ -172,6 +172,10 @@ export async function POST(req: Request) {
       });
     }
     jdPath = target.jdPath;
+    // No saved capture: read the posting through an ATS API first. WebFetch sees
+    // only the title of a client-rendered board like Ashby's, and the worker then
+    // scored real postings SKIP 0.0/5 as empty shells.
+    if (!jdPath && /^https?:\/\//i.test(input)) jdPath = await fetchJdCapture(input, localISODate());
     if (jdPath) jdText = fs.readFileSync(path.join(careerOpsRoot(), jdPath), "utf8");
   }
 

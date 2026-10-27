@@ -6,7 +6,10 @@ import { parseCliJson, trackerRowArg } from "@/lib/status-cli.mjs";
 import { readJsonObject } from "@/lib/json-body";
 import { readRowWithHash, runSetStatus, setStatusFailure } from "@/lib/set-status-run";
 import { canonStatus } from "@/lib/status-alias.mjs";
-import { nextStatuses } from "@/lib/lifecycle.mjs";
+import { PHASES, isOpenApplied, nextStatuses } from "@/lib/lifecycle.mjs";
+
+// Statuses that belong to a hiring phase (lifecycle.mjs PHASES), Applied aside.
+const PHASE_STATUSES = new Set(PHASES.map((phase) => phase.status).filter((status) => status !== "Applied"));
 import { cvPickUrl, recordCvOutcome } from "@/lib/cv-pick-run";
 
 export const runtime = "nodejs"; // delegates to the core CLI via child_process
@@ -47,6 +50,14 @@ export async function POST(req: Request) {
       { status: 409 },
     );
   }
+  // House rule 25: hiring phases are a status plus a STAGE note, written by
+  // /api/stage, so a bare phase status never lands on a row.
+  if (PHASE_STATUSES.has(canon)) {
+    return NextResponse.json(
+      { error: "Use the phase buttons (Replied, Screening, Tech interview...) so the phase and round are recorded.", code: "use-stage" },
+      { status: 409 },
+    );
+  }
   // `n` arrives from untrusted JSON, so it can be an array or an object.
   const row = trackerRowArg(n);
   if (!row) {
@@ -69,6 +80,13 @@ export async function POST(req: Request) {
   const read = readRowWithHash(row);
   if (!read) return NextResponse.json({ error: "tracker not found" }, { status: 404 });
   if (!read.app) return NextResponse.json({ error: `row #${row} not found` }, { status: 404 });
+  // An applied row closes through /api/exit, which records how and at which phase it ended.
+  if ((canon === "Rejected" || canon === "Discarded") && isOpenApplied(read.app)) {
+    return NextResponse.json(
+      { error: "Use the exit buttons (They rejected me, I withdrew, Ghosted, Posting closed) so the phase it ended at is recorded.", code: "use-exit" },
+      { status: 409 },
+    );
+  }
   const allowed = nextStatuses(canonStatus(String(read.app.status ?? "").trim()));
   if (!allowed.includes(canon)) {
     return NextResponse.json(

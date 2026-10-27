@@ -3,8 +3,16 @@
  * Pure; the page passes the tracker rows and the pending pipeline jobs.
  */
 import { inboxTabHas, trackerTabOf } from "../pipeline-navigation.mjs";
+import { currentPhase, phaseLabel } from "../lifecycle.mjs";
 
-const IN_TALKS = new Set(["RESPONDED", "ASSESSMENT", "INTERVIEW", "OFFER"]);
+// Every open hiring phase from Replied to Offer (house rule 25).
+const IN_TALKS = new Set(["RESPONDED", "SCREENING", "ASSESSMENT", "TECH_INTERVIEW", "HIRING_MANAGER", "FINAL_INTERVIEW", "OFFER"]);
+
+/** "Screening 2" for a row in talks, from its current phase. */
+function phaseText(app) {
+  const phase = currentPhase(app);
+  return phase ? phaseLabel(phase.phase, phase.round) : "";
+}
 
 /**
  * @param {{n: string, status?: unknown, notes?: unknown, company?: string, via?: string, role?: string, date?: string}[]} applications
@@ -25,7 +33,7 @@ export function todayOverview(applications, pending) {
     { key: "RESPONDED", label: "In talks", count: talks.length, needsAction: talks.length > 0, hint: "replied" },
   ];
   const replies = talks
-    .map((app) => ({ n: app.n, company: app.company ?? "", via: app.via ?? "", role: app.role ?? "", status: trackerTabOf(app), date: app.date ?? "" }))
+    .map((app) => ({ n: app.n, company: app.company ?? "", via: app.via ?? "", role: app.role ?? "", status: trackerTabOf(app), phase: phaseText(app), date: app.date ?? "" }))
     .sort((a, b) => b.date.localeCompare(a.date));
   return { stages, replies };
 }

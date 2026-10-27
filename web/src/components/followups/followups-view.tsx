@@ -10,8 +10,7 @@ import { QuietCompanies } from "@/components/followups/quiet-companies";
 import { NextDateDialog } from "@/components/followups/next-date-dialog";
 import { type CadenceEntry, type CadenceMetadata, relativeDays } from "@/lib/followups";
 import { cvSent, groupFollowups } from "@/lib/followup-groups.mjs";
-import { nextStatuses } from "@/lib/lifecycle.mjs";
-import { canonStatus } from "@/lib/status-alias.mjs";
+import { LifecycleActions } from "@/components/lifecycle-actions";
 import { companyPresentation } from "@/lib/company-presentation.mjs";
 import { cn } from "@/lib/cn";
 
@@ -66,18 +65,6 @@ export function FollowupsView() {
     refetch();
   };
 
-  const setStatus = async (entry: CadenceEntry, status: string) => {
-    setActionError(null);
-    try {
-      const res = await fetch("/api/status", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ n: String(entry.num), status }) });
-      const j = (await res.json().catch(() => ({}))) as { error?: string; warning?: string };
-      if (!res.ok) setActionError(`#${entry.num}: ${j.error ?? "status not saved"}`);
-      else if (j.warning) setActionError(j.warning);
-    } catch {
-      setActionError(`#${entry.num}: status not saved`);
-    }
-    refetch();
-  };
 
   const toggle = (num: number) =>
     setExpanded((prev) => {
@@ -150,7 +137,7 @@ export function FollowupsView() {
                     onToggle={() => toggle(entry.num)}
                     onLog={() => setDialogFor(entry)}
                     onPin={() => setPinFor(entry)}
-                    onStatus={(status) => void setStatus(entry, status)}
+                    onChanged={refetch}
                     onRemove={removeLogged}
                   />
                 ))}
@@ -174,7 +161,7 @@ function FollowupRow({
   onToggle,
   onLog,
   onPin,
-  onStatus,
+  onChanged,
   onRemove,
 }: {
   entry: CadenceEntry;
@@ -182,13 +169,12 @@ function FollowupRow({
   onToggle: () => void;
   onLog: () => void;
   onPin: () => void;
-  onStatus: (status: string) => void;
+  /** Reload the list after a phase move or exit: this page loads its rows client-side. */
+  onChanged: () => void;
   onRemove: (num: number) => void;
 }) {
   const cv = cvSent(e.notes);
   const company = companyPresentation({ company: e.company, via: e.via ?? "" });
-  // The next statuses in order, without Discard (that lives on the detail page).
-  const forward = nextStatuses(canonStatus(e.status)).filter((s) => s !== "Discarded");
   const Chevron = expanded ? ChevronDown : ChevronRight;
   const action = "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors max-sm:min-h-[44px]";
   return (
@@ -214,11 +200,6 @@ function FollowupRow({
         <button type="button" onClick={onLog} className={cn(action, "border border-brand/40 text-brand hover:bg-brand-soft")}>
           <Send className="size-3.5" /> Follow-up sent
         </button>
-        {forward.map((status) => (
-          <button key={status} type="button" onClick={() => onStatus(status)} className={cn(action, "border border-border text-muted hover:text-foreground")}>
-            {status === "Rejected" ? "They rejected me" : status}
-          </button>
-        ))}
         <button type="button" onClick={onPin} className={cn(action, "text-muted hover:text-foreground")}>
           <CalendarClock className="size-3.5" /> Move date
         </button>
@@ -226,6 +207,8 @@ function FollowupRow({
           <Chevron className="size-3.5" /> History
         </button>
       </div>
+      {/* Phase moves and exits (house rule 25), the same buttons as the report page. */}
+      <LifecycleActions app={{ n: String(e.num), status: e.status, notes: e.notes }} compact onDone={onChanged} className="pt-2" />
       {expanded && <HistoryPanel entry={e} onRemove={onRemove} />}
     </li>
   );

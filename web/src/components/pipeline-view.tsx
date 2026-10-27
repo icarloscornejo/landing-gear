@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Search, ChevronsUpDown, X, ExternalLink } from "lucide-react";
+import { Search, ChevronsUpDown, X, ExternalLink, Plus, Minus } from "lucide-react";
 import type { Application, InboxJob } from "@/lib/career-ops";
 import { Badge } from "@/components/ui/badge";
 import { isApproved } from "@/lib/home/awaiting.mjs";
@@ -17,7 +17,18 @@ import { PipelineTableRowsSkeleton } from "@/components/page-loading-skeletons";
 import { startRouteProgress } from "@/components/route-progress";
 import { sortRows } from "@/lib/core/pipeline-sort.mjs";
 import { PageFrame } from "@/components/page-frame";
-import { HIDE_WHEN_EMPTY, INBOX_TABS, PIPELINE_TABS, TAB_LABELS, pipelineQuery, pipelineTab, trackerTabOf } from "@/lib/pipeline-navigation.mjs";
+import { GRID_TABS, HIDE_WHEN_EMPTY, INBOX_TABS, PIPELINE_TABS, TAB_LABELS, pipelineQuery, pipelineTab, trackerTabOf } from "@/lib/pipeline-navigation.mjs";
+import type { CardReason } from "@/lib/machine-summary.mjs";
+import { LifecycleActions } from "@/components/lifecycle-actions";
+import { currentPhase, outcomeText, phaseLabel, type PhaseLogRow } from "@/lib/lifecycle.mjs";
+
+/** The table's status cell: how a closed row ended, the phase and round of an open one. */
+function rowStatusText(row: Application, statusLog: PhaseLogRow[]): string {
+  const outcome = outcomeText(row, statusLog);
+  if (outcome) return outcome;
+  const phase = currentPhase(row);
+  return phase ? phaseLabel(phase.phase, phase.round) : row.status;
+}
 import { COMPARE_MAX } from "@/lib/pipeline-compare.mjs";
 import { postingHref, postingLabel } from "@/lib/posting-url.mjs";
 
@@ -31,11 +42,17 @@ export function PipelineView({
   inbox,
   inboxCount,
   triagedCount,
+  reasons = {},
+  statusLog = [],
 }: {
   applications: Application[];
   inbox: InboxJob[] | null;
   inboxCount: number;
   triagedCount: number;
+  /** The report's one-line reason per tracker #, for the open grid tab's cards. */
+  reasons?: Record<string, CardReason>;
+  /** data/status-log.tsv rows, for legacy closed rows with no OUTCOME note. */
+  statusLog?: PhaseLogRow[];
 }) {
   const params = useSearchParams();
   const router = useRouter();
@@ -249,6 +266,23 @@ export function PipelineView({
             </>
           )}
         </>
+      ) : !isPending && filtered.length > 0 && (GRID_TABS as readonly string[]).includes(tab) ? (
+        // Cards with stage and status buttons cap at 3 columns to fit them.
+        <ul className={cn("mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3", (tab === "EVALUATED" || tab === "OFFER") && "2xl:grid-cols-4")}>
+          {filtered.map((r) => {
+            const key = applicationKey(r);
+            return (
+              <TrackerCard
+                key={key}
+                row={r}
+                reason={reasons[r.n] ?? null}
+                detailHref={`/pipeline/${encodeURIComponent(r.n)}${detailQuery ? `?${detailQuery}` : ""}`}
+                selected={selected.has(key)}
+                onToggleSelect={() => toggleRow(key)}
+              />
+            );
+          })}
+        </ul>
       ) : isPending || filtered.length > 0 ? (
         /* ── Tracker table ──
            overflow-x-auto, not overflow-hidden: the rounded corners still clip,
@@ -338,7 +372,7 @@ export function PipelineView({
                     <Badge tone={scoreTone(r.score)}>{r.score || "—"}</Badge>
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-muted">
-                    {isApproved(r) ? <Badge tone="good">Approved</Badge> : r.status}
+                    {isApproved(r) ? <Badge tone="good">Approved</Badge> : rowStatusText(r, statusLog)}
                   </td>
                   <td className="hidden whitespace-nowrap px-4 py-3 text-faint tabular-nums lg:table-cell">{r.date}</td>
                   </tr>
@@ -359,6 +393,136 @@ export function PipelineView({
         </div>
       )}
     </PageFrame>
+  );
+}
+
+// The tracker writes a dash (or N/A) for "direct, no agency" in the Via column.
+// The long dash is built from its code point: house rules keep it out of source.
+const NO_VIA = new Set(["", "-", "N/A", String.fromCharCode(0x2014)]);
+
+// A tracker row as a card, laid out like TriageRow (inbox/triage-row.tsx) so the
+// Evaluated, Approved and Responded tabs read like Discovered and Triaged: header,
+// the evaluator's call in the inset box, actions pinned to the bottom.
+function TrackerCard({
+  row,
+  reason,
+  detailHref,
+  selected,
+  onToggleSelect,
+}: {
+  row: Application;
+  reason: CardReason | null;
+  detailHref: string;
+  selected: boolean;
+  onToggleSelect: () => void;
+}) {
+  const company = companyPresentation(row);
+  const posting = postingHref(row.url);
+  const score = scoreNum(row.score);
+  const approved = isApproved(row);
+  const tabOfRow = trackerTabOf(row);
+  // Applied rows show their hiring phase with its round ("SCREENING 2").
+  const phase = approved ? null : currentPhase(row);
+  const label = approved
+    ? "APPROVED"
+    : phase
+      ? phaseLabel(phase.phase, phase.round).toUpperCase()
+      : (TAB_LABELS[tabOfRow] ?? tabOfRow).replace(/_/g, " ");
+  const labelStyle =
+    approved || tabOfRow === "OFFER"
+      ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
+      : tabOfRow === "RESPONDED" || tabOfRow === "SCREENING" || tabOfRow === "ASSESSMENT"
+        ? "bg-amber-500/15 text-amber-700 dark:text-amber-400"
+        : tabOfRow.endsWith("INTERVIEW") || tabOfRow === "HIRING_MANAGER"
+          ? "bg-violet-500/15 text-violet-700 dark:text-violet-400"
+          : "bg-sky-500/15 text-sky-700 dark:text-sky-400";
+  const via = NO_VIA.has(row.via.trim()) ? "" : row.via;
+
+  return (
+    <li
+      className={cn(
+        "flex flex-col gap-3 rounded-xl border border-border p-4 transition-colors",
+        selected ? "bg-brand-soft/50" : "bg-surface/40 hover:bg-surface-hover",
+      )}
+    >
+      <div className="flex items-start gap-3">
+        <CompanyLogo name={company.logoName} size={32} />
+        <div className="min-w-0 flex-1">
+          <p className="break-words text-sm font-semibold text-foreground">{company.label}</p>
+          <p className="mt-0.5 break-words text-sm leading-snug text-muted">
+            <Link href={detailHref} className="hover:text-brand hover:underline">
+              {row.role}
+            </Link>
+          </p>
+          <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-faint">
+            <span className="tabular-nums">#{row.n}</span>
+            {row.location && <span className="break-words">{row.location}</span>}
+            {via && <span className="rounded bg-surface-hover px-1.5 py-px font-medium text-muted">via {via}</span>}
+            {row.date && <span className="tabular-nums">{row.date}</span>}
+          </p>
+        </div>
+        <input
+          type="checkbox"
+          checked={selected}
+          onChange={onToggleSelect}
+          aria-label={`Select ${company.label}, ${row.role} (#${row.n})`}
+          className="mt-1 size-4 shrink-0 accent-brand max-sm:min-h-[44px] max-sm:min-w-[24px]"
+        />
+      </div>
+
+      <div className="rounded-lg border border-border/70 bg-background/60 px-3 py-2.5">
+        <div className="flex items-center gap-2">
+          <span className={cn("rounded-md px-2 py-0.5 text-xs font-semibold tracking-wide", labelStyle)}>{label}</span>
+          {!Number.isNaN(score) && (
+            <span className="text-base font-semibold tabular-nums text-foreground">
+              {score.toFixed(1)}
+              <span className="text-xs font-normal text-faint">/5</span>
+            </span>
+          )}
+        </div>
+        {reason?.decision && <p className="mt-1.5 line-clamp-3 text-sm leading-relaxed text-muted">{reason.decision}</p>}
+        {(reason?.plus || reason?.minus) && (
+          <ul className="mt-1.5 space-y-0.5 text-xs leading-snug">
+            {reason.plus && (
+              <li className="flex gap-1.5 text-emerald-700 dark:text-emerald-400">
+                <Plus className="mt-0.5 size-3 shrink-0" />
+                <span className="line-clamp-2">{reason.plus}</span>
+              </li>
+            )}
+            {reason.minus && (
+              <li className="flex gap-1.5 text-red-700 dark:text-red-400">
+                <Minus className="mt-0.5 size-3 shrink-0" />
+                <span className="line-clamp-2">{reason.minus}</span>
+              </li>
+            )}
+          </ul>
+        )}
+      </div>
+
+      {/* The same buttons as the report page, so a card can Approve, mark Applied
+          with CV A/B, or move a Responded row on without opening it. */}
+      <LifecycleActions app={row} compact className="mt-auto border-t border-border/60 pt-3" />
+
+      <div className="flex flex-wrap items-center justify-end gap-1">
+        {posting && (
+          <a
+            href={posting}
+            target="_blank"
+            rel="noreferrer"
+            title={posting}
+            className="inline-flex items-center justify-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-muted transition-colors hover:bg-surface-hover hover:text-brand max-sm:min-h-[44px]"
+          >
+            {postingLabel(posting)} <ExternalLink className="size-3" />
+          </a>
+        )}
+        <Link
+          href={detailHref}
+          className="inline-flex items-center justify-center rounded-md bg-brand-soft px-2 py-1 text-xs font-medium text-brand transition-colors hover:bg-brand/15 max-sm:min-h-[44px]"
+        >
+          Report
+        </Link>
+      </div>
+    </li>
   );
 }
 

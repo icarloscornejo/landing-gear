@@ -61,3 +61,17 @@ test("tracker rows group into Carlos's lifecycle tabs", async () => {
   // Every tab a row can land in is a real tab.
   for (const tab of ["EVALUATED", "APPROVED", "APPLIED", "ASSESSMENT", "OFFER", "CLOSED"]) assert.ok(PIPELINE_TABS.includes(tab), tab);
 });
+
+test("hiring phase rows sit on their phase's tab (house rule 25)", async () => {
+  const { trackerTabOf, PIPELINE_TABS } = await import("../../src/lib/pipeline-navigation.mjs");
+  assert.equal(trackerTabOf({ status: "Responded", notes: "STAGE: Screening 2" }), "SCREENING");
+  assert.equal(trackerTabOf({ status: "Interview", notes: "STAGE: Tech interview 1" }), "TECH_INTERVIEW");
+  assert.equal(trackerTabOf({ status: "Interview", notes: "STAGE: Hiring manager 1" }), "HIRING_MANAGER");
+  assert.equal(trackerTabOf({ status: "Interview", notes: "STAGE: Final interview 1" }), "FINAL_INTERVIEW");
+  // A bare Interview row (legacy, CLI or reply-watch) reads as Tech interview round 1.
+  assert.equal(trackerTabOf({ status: "Interview", notes: "" }), "TECH_INTERVIEW");
+  assert.equal(trackerTabOf({ status: "Responded", notes: "" }), "RESPONDED");
+  assert.equal(trackerTabOf({ status: "Hired", notes: "STAGE: Hired" }), "OFFER");
+  assert.equal(trackerTabOf({ status: "Rejected", notes: "OUTCOME: Rejected at Screening 1" }), "CLOSED");
+  assert.equal(PIPELINE_TABS.includes("INTERVIEW"), false);
+});

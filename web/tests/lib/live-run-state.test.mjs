@@ -22,6 +22,21 @@ test("events build the run: tools and statuses as steps, text as a tail, done as
   assert.deepEqual(run.steps.map((step) => step.label), ["Queued", "Starting", "Read", "Done"]);
 });
 
+test("narration becomes one note per stretch between steps, stamped when it started", () => {
+  let run = newRunSnapshot(meta, 1);
+  run = applyRunEvent(run, { type: "text", text: "Reading the " }, 2);
+  run = applyRunEvent(run, { type: "text", text: "brief.\n" }, 3);
+  run = applyRunEvent(run, { type: "tool", name: "Read" }, 4);
+  run = applyRunEvent(run, { type: "tool", name: "WebFetch" }, 5);
+  run = applyRunEvent(run, { type: "text", text: "TRIAGE: PASS" }, 6);
+  assert.deepEqual(run.notes, [
+    { text: "Reading the brief.\n", ts: 2 },
+    { text: "TRIAGE: PASS", ts: 6 },
+  ]);
+  assert.deepEqual(run.steps.map((step) => step.label), ["Queued", "Read", "WebFetch"]);
+  assert.equal("notes" in runSummary(run), false);
+});
+
 test("the verdict survives the text tail being trimmed", () => {
   let run = applyRunEvent(newRunSnapshot(meta, 1), { type: "text", text: "TRIAGE: PASS | Acme | Dev | 3.6/5 | ok\n" }, 2);
   run = applyRunEvent(run, { type: "text", text: "x".repeat(MAX_TEXT + 50) }, 3);

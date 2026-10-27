@@ -265,3 +265,73 @@ test("a pasted JD for the same posting URL is used instead of fetching, on any h
   assert.equal(resolveWorkerInput("https://himalayas.app/companies/a/jobs/b", { jdFiles: [], needsChromeHosts: ["himalayas.app"] }).ok, false);
   assert.equal(sameUrl("https://a.test/x?id=1", "https://a.test/x?id=2"), false);
 });
+
+// House rule 25: hiring phases are a status plus a "STAGE: <Phase> <round>" note.
+// A block, so this tracker-row helper does not clash with the awaiting tests' `row`.
+{
+const row = (status, notes = "", n = 1) => ({ n, status, notes });
+
+test("phases: the round lives in the note; a legacy bare note and a note-less status are round 1", async () => {
+  const { currentPhase, nextRound, phaseNote } = await import("../../src/lib/lifecycle.mjs");
+  assert.equal(phaseNote("tech", 2), "STAGE: Tech interview 2");
+  assert.equal(phaseNote("offer"), "STAGE: Offer");
+  assert.equal(phaseNote("replied"), null);
+  assert.deepEqual(currentPhase(row("Responded", "job id 1; STAGE: Screening")), { phase: "screening", round: 1 });
+  assert.deepEqual(currentPhase(row("Responded", "STAGE: Screening 1; STAGE: Screening 2")), { phase: "screening", round: 2 });
+  // set-status will not append the same note twice, so the next round must be a new number.
+  assert.equal(nextRound(row("Responded", "STAGE: Screening 1"), "screening"), 2);
+  // A bare Assessment row is round 1, so its first repeat writes round 2.
+  assert.deepEqual(currentPhase(row("Assessment")), { phase: "assessment", round: 1 });
+  assert.equal(nextRound(row("Assessment"), "assessment"), 2);
+});
+
+test("phases: the current phase follows the row's status; bare Interview reads as Tech interview", async () => {
+  const { currentPhase } = await import("../../src/lib/lifecycle.mjs");
+  assert.deepEqual(currentPhase(row("Interview", "STAGE: Screening 1; STAGE: Final interview 1")), { phase: "final", round: 1 });
+  // A Screening note on a row that later became Interview without a phase note is stale.
+  assert.deepEqual(currentPhase(row("Interview", "STAGE: Screening 1")), { phase: "tech", round: 1 });
+  assert.deepEqual(currentPhase(row("Responded")), { phase: "replied", round: 1 });
+  assert.equal(currentPhase(row("Evaluated")), null);
+});
+
+test("phases: moves are forward, may skip, repeat only the five round phases, and never target Applied", async () => {
+  const { nextPhases } = await import("../../src/lib/lifecycle.mjs");
+  assert.deepEqual(nextPhases(row("Applied")), ["replied", "screening", "assessment", "tech", "manager", "final", "offer", "hired"]);
+  assert.deepEqual(nextPhases(row("Responded", "STAGE: Screening 1")).slice(0, 2), ["screening", "assessment"]);
+  assert.equal(nextPhases(row("Responded")).includes("replied"), false);
+  assert.deepEqual(nextPhases(row("Offer", "STAGE: Offer")), ["hired"]);
+  for (const status of ["Evaluated", "Rejected", "Discarded", "SKIP", "Hired"]) assert.deepEqual(nextPhases(row(status)), [], status);
+});
+
+test("phases: the path is what the row went through, capped at its level", async () => {
+  const { phasePath } = await import("../../src/lib/lifecycle.mjs");
+  // A web move Screening -> Final writes ledger Responded -> Interview; that must not invent Tech.
+  assert.deepEqual(
+    phasePath(row("Interview", "STAGE: Screening 1; STAGE: Final interview 1", 9), [{ num: 9, from: "Responded", to: "Interview" }]),
+    ["applied", "replied", "screening", "final"],
+  );
+  // #54's mistaken ledger Interview row cannot push it past the Screening tab.
+  assert.deepEqual(
+    phasePath(row("Responded", "STAGE: Screening", 54), [{ num: 54, from: "Applied", to: "Interview" }, { num: 54, from: "Interview", to: "Responded" }]),
+    ["applied", "replied", "screening"],
+  );
+  // Applied straight to Assessment: the company replied by sending it.
+  assert.deepEqual(phasePath(row("Assessment", "STAGE: Assessment 1", 3)), ["applied", "replied", "assessment"]);
+  assert.deepEqual(phasePath(row("Evaluated", "", 4)), []);
+});
+
+test("exits: the OUTCOME note first, then legacy rules for closed rows without one", async () => {
+  const { exitNote, exitOutcome, outcomeText } = await import("../../src/lib/lifecycle.mjs");
+  assert.equal(exitNote("closed", "screening", 1), "OUTCOME: Posting closed at Screening 1");
+  const rejected = row("Rejected", "STAGE: Tech interview 2; OUTCOME: Rejected at Tech interview 2", 5);
+  assert.deepEqual(exitOutcome(rejected), { kind: "rejected", phase: "tech", round: 2 });
+  assert.equal(outcomeText(rejected), "Rejected after Tech interview 2");
+  assert.equal(outcomeText(row("Discarded", "OUTCOME: Ghosted at Applied", 6)), "Ghosted after Applied");
+  // Legacy: no-note Rejected, a repeated row, a Discarded applied row, a row closed before applying.
+  assert.equal(exitOutcome(row("Rejected", "", 7), [{ num: 7, from: "Applied", to: "Rejected" }]).kind, "rejected");
+  assert.equal(exitOutcome(row("Discarded", "repeated: same posting as #3", 8), [{ num: 8, from: "Applied", to: "Discarded" }]).kind, "repeated");
+  assert.deepEqual(exitOutcome(row("Discarded", "", 9), [{ num: 9, from: "Responded", to: "Discarded" }]), { kind: "closed", phase: "replied", round: 1 });
+  assert.deepEqual(exitOutcome(row("Discarded", "", 10), [{ num: 10, from: "Evaluated", to: "Discarded" }]), { kind: "discarded", phase: null, round: 1 });
+  assert.equal(exitOutcome(row("Responded")), null);
+});
+}

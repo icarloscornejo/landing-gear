@@ -14,6 +14,7 @@
 import { compareTrackerNumbers } from '../pipeline-sort.mjs';
 import { canonStatus } from '../status-alias.mjs';
 import { isApproved } from '../home/awaiting.mjs';
+import { PHASES, currentPhase } from '../lifecycle.mjs';
 
 // Furthest along first under a descending sort: live processes, then Applied,
 // then approved, then Evaluated, and the closed states (Discarded last) at the
@@ -21,9 +22,19 @@ import { isApproved } from '../home/awaiting.mjs';
 // step above plain Evaluated.
 const STATUS_ORDER = ['DISCARDED', 'SKIP', 'REJECTED', 'EVALUATED', 'APPLIED', 'RESPONDED', 'ASSESSMENT', 'INTERVIEW', 'OFFER', 'HIRED'];
 
-/** @param {{status?: unknown, notes?: unknown}} row @returns {number} -1 for a status not in the list. */
+const APPLIED_RANK = STATUS_ORDER.indexOf('APPLIED');
+const PHASE_RANK = Object.fromEntries(PHASES.map((phase, index) => [phase.key, index]));
+
+/**
+ * Rows past applying rank by hiring phase and round (house rule 25), so
+ * Screening 2 sorts above Screening 1 and both above a bare Replied.
+ * @param {{status?: unknown, notes?: unknown}} row @returns {number} -1 for a status not in the list.
+ */
 export function statusRank(row) {
-  const rank = STATUS_ORDER.indexOf(canonStatus(String(row.status ?? '')));
+  const status = canonStatus(String(row.status ?? ''));
+  const phase = status === 'EVALUATED' ? null : currentPhase(row);
+  if (phase) return APPLIED_RANK + PHASE_RANK[phase.phase] + Math.min(phase.round, 99) / 100;
+  const rank = STATUS_ORDER.indexOf(status);
   return isApproved(row) ? rank + 0.5 : rank;
 }
 

@@ -5,7 +5,7 @@ import { readJsonObject } from "@/lib/json-body";
 import { readRowWithHash, runSetStatus, setStatusFailure } from "@/lib/set-status-run";
 import { cvPickUrl, recordCvOutcome } from "@/lib/cv-pick-run";
 import { findApplication } from "@/lib/career-ops";
-import { nextStatuses } from "@/lib/lifecycle.mjs";
+import { isOpenApplied, nextStatuses } from "@/lib/lifecycle.mjs";
 
 export const runtime = "nodejs";
 
@@ -29,6 +29,10 @@ export async function POST(req: Request) {
   if (original && !findApplication(original)) return NextResponse.json({ error: `There is no row #${original}.` }, { status: 404 });
   if (!nextStatuses(canonStatus(String(read.app.status ?? "").trim())).includes("Discarded")) {
     return NextResponse.json({ error: `#${row} is ${read.app.status}, already closed.` }, { status: 409 });
+  }
+  // House rule 25: an applied row closes through /api/exit, which records the phase.
+  if (isOpenApplied(read.app)) {
+    return NextResponse.json({ error: `#${row} was already applied to; use the exit buttons instead.`, code: "use-exit" }, { status: 409 });
   }
 
   const result = await runSetStatus([

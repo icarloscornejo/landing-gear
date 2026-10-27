@@ -9,8 +9,11 @@ export const MAX_TEXT = 8000;
 
 /**
  * @typedef {{kind: "tool"|"status", label: string, ts: number}} RunStep
+ * One stretch of agent narration between two steps, stamped when it started, so
+ * the run page can lay narration and tool calls out on one timeline.
+ * @typedef {{text: string, ts: number}} RunNote
  * @typedef {{id: string, kind: string, input: string, title: string, subtitle: string, source: string,
- *   status: "queued"|"running"|"done"|"error", steps: RunStep[], text: string, verdictLine: string,
+ *   status: "queued"|"running"|"done"|"error", steps: RunStep[], notes: RunNote[], text: string, verdictLine: string,
  *   startedAt: number, endedAt: number|null, tokens: number|null, costUsd: number|null,
  *   reportN: number|null, error: string|null}} RunSnapshot
  */
@@ -30,6 +33,7 @@ export function newRunSnapshot(meta, now) {
     source: meta.source ?? "web",
     status: "queued",
     steps: [{ kind: "status", label: "Queued", ts: now }],
+    notes: [],
     text: "",
     verdictLine: "",
     startedAt: now,
@@ -52,6 +56,24 @@ export function addStatus(run, label, now) {
 }
 
 /**
+ * Text arrives as streaming deltas: they extend the current note until a step
+ * lands after it, then the next delta opens a new note.
+ * @param {RunNote[]} notes
+ * @param {RunStep[]} steps
+ * @param {string} text
+ * @param {number} now
+ * @returns {RunNote[]}
+ */
+function appendNote(notes, steps, text, now) {
+  const last = notes[notes.length - 1];
+  const lastStepTs = steps.length ? steps[steps.length - 1].ts : 0;
+  if (last && last.ts >= lastStepTs) {
+    return [...notes.slice(0, -1), { ...last, text: (last.text + text).slice(-MAX_TEXT) }];
+  }
+  return [...notes, { text, ts: now }];
+}
+
+/**
  * Applies one /api/run event (or a terminal completion from readJobStream).
  * @param {RunSnapshot} run
  * @param {Record<string, unknown>} event
@@ -64,7 +86,13 @@ export function applyRunEvent(run, event, now) {
     const full = run.text + event.text;
     // Latched apart from the text tail so a long run cannot drop its verdict.
     const verdict = full.match(/(?:VERDICT|TRIAGE):[^\n]*/gi);
-    return { ...run, status: "running", text: full.slice(-MAX_TEXT), verdictLine: verdict ? verdict[verdict.length - 1] : run.verdictLine };
+    return {
+      ...run,
+      status: "running",
+      notes: appendNote(run.notes ?? [], run.steps, event.text, now),
+      text: full.slice(-MAX_TEXT),
+      verdictLine: verdict ? verdict[verdict.length - 1] : run.verdictLine,
+    };
   }
   if (type === "tool" && typeof event.name === "string") {
     return { ...run, status: "running", steps: [...run.steps, { kind: "tool", label: event.name, ts: now }] };
@@ -96,7 +124,7 @@ export function applyRunEvent(run, event, now) {
  * @param {RunSnapshot} run
  */
 export function runSummary(run) {
-  const { text: _text, steps, ...rest } = run;
+  const { text: _text, notes: _notes, steps, ...rest } = run;
   return { ...rest, lastStep: steps.length ? steps[steps.length - 1].label : "" };
 }
 

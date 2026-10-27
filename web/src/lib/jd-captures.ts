@@ -3,8 +3,31 @@
 // shows "JD saved" on a card), so both agree on what counts as saved.
 import fs from "node:fs";
 import path from "node:path";
-import { careerOpsRoot } from "@/lib/career-ops";
-import { jdSourceLine, resolveWorkerInput } from "@/lib/lifecycle.mjs";
+import { createHash } from "node:crypto";
+import { careerOpsRoot, rootScript } from "@/lib/career-ops";
+import { jdSourceLine, pastedJdMarkdown, resolveWorkerInput } from "@/lib/lifecycle.mjs";
+import { runNodeScript } from "@/lib/set-status-run";
+
+const FETCH_JD_TIMEOUT_MS = 30_000;
+
+/**
+ * Read a posting through root fetch-jd.mjs (Ashby, Greenhouse, Lever, Workday
+ * and the other ATS APIs it knows) and save it as a jds/ capture, so the worker
+ * reads the real JD instead of WebFetching a client-rendered page that shows
+ * only its title. Returns the capture's repo-relative path, or null on a miss
+ * (fetch-jd exits 1 with empty stdout), and the worker falls back as before.
+ */
+export async function fetchJdCapture(url: string, date: string): Promise<string | null> {
+  const result = await runNodeScript(rootScript("fetch-jd"), [url], FETCH_JD_TIMEOUT_MS);
+  const text = result.stdout.trim();
+  if (result.code !== 0 || !text) return null;
+  const relative = path.join("jds", `fetched-${createHash("sha1").update(url).digest("hex").slice(0, 10)}.md`);
+  const role = text.split("\n")[0];
+  const markdown = pastedJdMarkdown({ url, company: new URL(url).hostname, role, text, date, how: "read from the ATS API by the web server, live at that time" });
+  fs.mkdirSync(path.join(careerOpsRoot(), "jds"), { recursive: true });
+  fs.writeFileSync(path.join(careerOpsRoot(), relative), markdown);
+  return relative;
+}
 
 export function listJdFiles(): string[] {
   try {

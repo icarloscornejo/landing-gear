@@ -11,6 +11,8 @@
 import type { Application, InboxJob } from "@/lib/career-ops";
 import type { Job } from "@/components/jobs/job-store";
 import { normalizeTextKey } from "@/lib/core/normalize-text-key.mjs";
+import { PIPELINE_TABS } from "@/lib/pipeline-navigation.mjs";
+import { PHASES, isOpenApplied } from "@/lib/lifecycle.mjs";
 import { coercePersonalization, SECTIONS } from "@/lib/personalization.mjs";
 import { formatBatchSpendConfirmation, requiresBatchSpendConfirmation } from "@/lib/run-cost-estimate.mjs";
 
@@ -26,9 +28,10 @@ export const BATCH_CAP = 12; // hard ceiling on a single fan-out
 // Canonical states (templates/states.yml) — the web validates against the same set.
 const CANON_STATUS = ["Evaluated", "Applied", "Responded", "Assessment", "Interview", "Offer", "Hired", "Rejected", "Discarded", "SKIP"];
 
-const TAB_VALUES = [
-  "INBOX", "ALL", "EVALUATED", "APPLIED", "RESPONDED", "ASSESSMENT", "INTERVIEW", "OFFER", "HIRED", "REJECTED", "DISCARDED", "SKIP",
-] as const;
+// The pipeline's tabs (pipeline-navigation.mjs PIPELINE_TABS).
+const TAB_VALUES = PIPELINE_TABS;
+// Statuses that belong to a hiring phase (house rule 25), Applied aside.
+const PHASE_STATUSES = new Set<string>(PHASES.map((phase) => phase.status).filter((status) => status !== "Applied"));
 const SORT_VALUES = ["company", "role", "score", "status", "date"] as const;
 
 export type StartJobInput = {
@@ -275,13 +278,21 @@ const ACTIONS: Record<string, ActionDef> = {
       const canon = CANON_STATUS.find((s) => s.toLowerCase() === status.toLowerCase());
       if (!n || !canon) return { status: "ignored", note: "need an application # and a canonical status" };
       const app = applicationByNumber(ctx.applications, n);
+      // House rule 25: hiring phases and the exits of an applied row record a
+      // phase and round, which only the card buttons write.
+      if (PHASE_STATUSES.has(canon)) {
+        return { status: "ignored", note: `${canon} is a hiring phase; use the phase buttons on #${n}'s card or report so the phase and round are recorded.` };
+      }
+      if ((canon === "Rejected" || canon === "Discarded") && app && isOpenApplied(app)) {
+        return { status: "ignored", note: `#${n} was applied to; use its exit buttons (They rejected me, I withdrew, Ghosted, Posting closed) so the phase it ended at is recorded.` };
+      }
       const label = app ? `${app.company} · ${app.role}` : `#${n}`;
       return {
         status: "confirm",
         summary: `Mark ${label} → ${canon}?`,
         run: () => {
           ctx.writeStatus(n, canon);
-          return { note: `Marked #${n} as ${canon}.` };
+          return { note: `Saving #${n} as ${canon}.` };
         },
       };
     },

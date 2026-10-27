@@ -1,5 +1,6 @@
 import { canonStatus } from "./status-alias.mjs";
 import { isApproved } from "./home/awaiting.mjs";
+import { currentPhase } from "./lifecycle.mjs";
 
 // Carry only the list's own filters through a report URL. Return destinations
 // remain fixed to /pipeline; no arbitrary "returnTo" URL or browser storage.
@@ -35,8 +36,11 @@ export const PIPELINE_TABS = /** @type {const} */ ([
   "APPROVED",
   "APPLIED",
   "RESPONDED",
+  "SCREENING",
   "ASSESSMENT",
-  "INTERVIEW",
+  "TECH_INTERVIEW",
+  "HIRING_MANAGER",
+  "FINAL_INTERVIEW",
   "OFFER",
   "CLOSED",
   "ALL",
@@ -45,24 +49,51 @@ export const PIPELINE_TABS = /** @type {const} */ ([
 /** Tabs that read the pipeline file rather than the tracker. */
 export const INBOX_TABS = /** @type {const} */ (["INBOX", "TRIAGED"]);
 
-/** Mid-process tabs shown only while they hold a row (or are open). */
-export const HIDE_WHEN_EMPTY = /** @type {const} */ (["RESPONDED", "ASSESSMENT", "INTERVIEW", "OFFER"]);
+/** Tabs shown only while they hold a row (or are open). Every phase tab always
+ * shows (house rule 25), so none today. */
+export const HIDE_WHEN_EMPTY = /** @type {readonly string[]} */ ([]);
 
 /** @type {Record<string, string>} */
-export const TAB_LABELS = { INBOX: "DISCOVERED" };
+export const TAB_LABELS = {
+  INBOX: "DISCOVERED",
+  RESPONDED: "REPLIED",
+  TECH_INTERVIEW: "TECH INTERVIEW",
+  HIRING_MANAGER: "HIRING MANAGER",
+  FINAL_INTERVIEW: "FINAL INTERVIEW",
+};
+
+// Tracker tabs shown as cards like Discovered and Triaged, with the report's
+// reason on each card; the other stages stay a table for scanning many rows.
+export const GRID_TABS = /** @type {const} */ ([
+  "EVALUATED", "APPROVED", "RESPONDED", "SCREENING", "ASSESSMENT", "TECH_INTERVIEW", "HIRING_MANAGER", "FINAL_INTERVIEW", "OFFER",
+]);
+
+/** The tab of each hiring phase (lifecycle.mjs PHASES). Hired sits under Offer. */
+const TAB_OF_PHASE = {
+  applied: "APPLIED",
+  replied: "RESPONDED",
+  screening: "SCREENING",
+  assessment: "ASSESSMENT",
+  tech: "TECH_INTERVIEW",
+  manager: "HIRING_MANAGER",
+  final: "FINAL_INTERVIEW",
+  offer: "OFFER",
+  hired: "OFFER",
+};
 
 /**
  * The tracker tab a row belongs to. Approved is an Evaluated row with the
- * APPROVED note; Hired sits under Offer; every closed state under Closed.
+ * APPROVED note; applied rows sit on their hiring phase's tab (house rule 25);
+ * every closed state under Closed.
  * @param {{status?: unknown, notes?: unknown}} app
  * @returns {string}
  */
 export function trackerTabOf(app) {
   const status = canonStatus(String(app.status ?? "").trim());
   if (status === "EVALUATED") return isApproved(app) ? "APPROVED" : "EVALUATED";
-  if (status === "HIRED") return "OFFER";
   if (status === "REJECTED" || status === "DISCARDED" || status === "SKIP") return "CLOSED";
-  return status;
+  const phase = currentPhase(app);
+  return phase ? TAB_OF_PHASE[phase.phase] : status;
 }
 
 /**

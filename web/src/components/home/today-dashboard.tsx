@@ -48,7 +48,7 @@ export function TodayDashboard({
   /** Lifecycle stage counts and the rows in talks (lib/home/today-overview.mjs). */
   overview: {
     stages: { key: string; label: string; count: number; needsAction: boolean; hint: string }[];
-    replies: { n: string; company: string; via: string; role: string; status: string; date: string }[];
+    replies: { n: string; company: string; via: string; role: string; status: string; phase: string; date: string }[];
   };
   linkedinScan: LinkedinScanState;
   dailyScan: DailyScanStatus;
@@ -221,7 +221,7 @@ export function TodayDashboard({
                   <li key={r.n}>
                     <Link href={`/pipeline/${r.n}`} className="flex items-baseline justify-between gap-2 text-sm hover:text-brand">
                       <span className="min-w-0 truncate font-medium text-foreground">{companyPresentation(r).label}</span>
-                      <span className="shrink-0 text-xs text-muted">{r.status.charAt(0) + r.status.slice(1).toLowerCase()}</span>
+                      <span className="shrink-0 text-xs text-muted">{r.phase || r.status.charAt(0) + r.status.slice(1).toLowerCase()}</span>
                     </Link>
                   </li>
                 ))}

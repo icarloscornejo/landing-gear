@@ -521,16 +521,24 @@ export function AssistantConsole() {
         }).catch(() => {});
       },
       writeStatus: (n, status) => {
+        // The confirm step only says "saving"; a refused or failed write is
+        // reported here, so the assistant never claims a change that did not land.
+        const reportFailure = (why: string) =>
+          setMessages((ms) => [...ms, { role: "assistant", parts: [{ type: "text", text: `#${n} was not changed: ${why}` }] }]);
         fetch("/api/status", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ n, status }),
         })
-          .then(() => {
+          .then(async (response) => {
+            if (!response.ok) {
+              const result = (await response.json().catch(() => null)) as { error?: string } | null;
+              reportFailure(result?.error ?? `the server answered ${response.status}`);
+            }
             router.refresh();
             pipelineRef.current.refetch();
           })
-          .catch(() => {});
+          .catch(() => reportFailure("the request did not reach the server"));
       },
       setApplyField: (idOrLabel, value) => applyRef.current.setAnswer(idOrLabel, value),
       startApply: (u) => {

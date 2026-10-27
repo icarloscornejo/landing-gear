@@ -1,4 +1,4 @@
-import { buildPipelineSankey, layoutSankey } from "@/lib/pipeline-sankey.mjs";
+import { buildPipelineSankey, layoutSankey, sankeyWidth } from "@/lib/pipeline-sankey.mjs";
 import { cn } from "@/lib/cn";
 
 const TONE_NODE: Record<string, string> = {
@@ -19,7 +19,7 @@ const TONE_LINK: Record<string, string> = {
   neutral: "fill-brand/30",
 };
 
-type AppRow = { n: string; status: string };
+type AppRow = { n: string; status: string; notes?: string };
 type LogRow = { num: number; from: string; to: string };
 
 export function PipelineSankey({
@@ -32,7 +32,10 @@ export function PipelineSankey({
   if (applications.length === 0) return null;
 
   const graph = buildPipelineSankey(applications, statusLog);
-  const layout = layoutSankey(graph, { width: 920, height: 440, padding: { top: 24, right: 188, bottom: 24, left: 100 } });
+  // One column per phase in use, each wide enough for its side labels.
+  const padding = { top: 24, right: 188, bottom: 24, left: 100 };
+  const width = sankeyWidth(graph, padding);
+  const layout = layoutSankey(graph, { width, height: 440, padding });
   const toneById = new Map(layout.nodes.map((n) => [n.id, n.tone]));
   const labelById = new Map(graph.nodes.map((n) => [n.id, n.label]));
   const firstRank = Math.min(...layout.nodes.map((n) => n.rank));
@@ -44,14 +47,15 @@ export function PipelineSankey({
         Pipeline Sankey
       </h2>
       <p className="mt-2 max-w-2xl text-sm text-muted">
-        Current tracker snapshot. Status-log transitions keep interview-then-reject
-        on the interview path — a later Rejected does not erase the stage.
+        Each role follows the hiring phases it actually went through, so a skipped
+        phase is crossed, not counted. Hover an Out node to see how roles ended there.
       </p>
 
       <div className="mt-4 overflow-x-auto rounded-xl border border-border bg-surface/50 p-3">
         <svg
           viewBox={`0 0 ${layout.width} ${layout.height}`}
-          className="h-auto w-full min-w-[720px]"
+          className="h-auto w-full"
+          style={{ minWidth: `${layout.width}px` }}
           role="img"
           aria-labelledby="sankey-title sankey-desc"
         >
@@ -81,7 +85,7 @@ export function PipelineSankey({
             const anchor = labelOnRight ? "start" : "end";
             return (
               <g key={node.id}>
-                <title>{`${node.label}: ${node.value}`}</title>
+                <title>{node.detail ?? `${node.label}: ${node.value}`}</title>
                 <rect
                   x={node.x}
                   y={node.y}
