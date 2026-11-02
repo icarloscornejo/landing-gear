@@ -1,6 +1,15 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { pipelineQuery, pipelineTab } from "../../src/lib/pipeline-navigation.mjs";
+import { pipelineQuery, pipelineTab, showsBoard } from "../../src/lib/pipeline-navigation.mjs";
+
+test("the board shows only on open-phase tabs with ?view=board, and the view survives a report visit", () => {
+  assert.equal(showsBoard("SCREENING", "board"), true);
+  assert.equal(showsBoard("APPLIED", "board"), true);
+  assert.equal(showsBoard("SCREENING", null), false);
+  assert.equal(showsBoard("EVALUATED", "board"), false);
+  assert.equal(showsBoard("CLOSED", "board"), false);
+  assert.equal(pipelineQuery("tab=SCREENING&view=board"), "tab=SCREENING&view=board");
+});
 
 test("direct report visits retain the default Pipeline destination", () => {
   assert.equal(pipelineQuery({}), "");

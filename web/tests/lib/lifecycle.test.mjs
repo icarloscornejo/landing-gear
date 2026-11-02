@@ -334,4 +334,28 @@ test("exits: the OUTCOME note first, then legacy rules for closed rows without o
   assert.deepEqual(exitOutcome(row("Discarded", "", 10), [{ num: 10, from: "Evaluated", to: "Discarded" }]), { kind: "discarded", phase: null, round: 1 });
   assert.equal(exitOutcome(row("Responded")), null);
 });
+
+test("dates: the @ date sits after the round and never leaks into the round or the next note", async () => {
+  const { currentMark, currentPhase, datedNote, phaseNote, stageMarks } = await import("../../src/lib/lifecycle.mjs");
+  const at = "2026-10-29T10:00-06:00";
+  assert.equal(phaseNote("tech", 2, at), `STAGE: Tech interview 2 @ ${at}`);
+  const dated = row("Interview", `job id 1; STAGE: Tech interview 2 @ ${at}; foo`);
+  assert.deepEqual(currentPhase(dated), { phase: "tech", round: 2 });
+  assert.deepEqual(currentMark(dated), { phase: "tech", round: 2, at, text: `STAGE: Tech interview 2 @ ${at}` });
+  // A following OUTCOME note is its own note, not part of the date.
+  const closed = stageMarks(`STAGE: Screening 1 @ ${at}; OUTCOME: Rejected at Screening 1`);
+  assert.equal(closed[0].at, at);
+  // The note text is the whole note, suffix included, for set-status --replace-note.
+  const suffixed = row("Responded", "STAGE: Screening 1 (call)");
+  assert.equal(currentMark(suffixed).text, "STAGE: Screening 1 (call)");
+  // Dating a suffixed or round-less note reads back the same date.
+  for (const text of ["STAGE: Screening 1 (call)", "STAGE: Screening"]) {
+    const note = datedNote(text, at);
+    assert.equal(currentMark(row("Responded", note)).at, at, note);
+    assert.equal(datedNote(note, null), text);
+  }
+  assert.equal(datedNote("STAGE: Screening 1 (call)", at), `STAGE: Screening 1 @ ${at} (call)`);
+  // A bare status has no mark text.
+  assert.deepEqual(currentMark(row("Assessment")), { phase: "assessment", round: 1, at: null, text: null });
+});
 }

@@ -98,7 +98,7 @@ export async function POST(req: Request) {
       const prompt = buildAnswerPrompt({ title: s.title, fields: s.fields, memory: mem, cvSource });
 
       log(`Form: "${s.title}" · ${s.fields.length} fields · prompt ${prompt.length} chars · memory ${mem.length} chars`);
-      log(`CV source: ${cvSource ?? "none found — answers will come from cv.md"}`);
+      log(`CV source: ${cvSource ?? "none found, answers will come from cv.md"}`);
       log(`Planner: ${cliId} (${binPath})`);
       const result = await runPlanner({
         cliId,
@@ -127,12 +127,12 @@ export async function POST(req: Request) {
       const { obj, truncated } = extractJsonObject(result.buf);
       if (!obj) {
         return fail(
-          result.signal ? "planner was killed mid-answer (form too large/slow) — couldn't recover any fields" : "couldn't parse the planner's answer as JSON",
+          result.signal ? "planner was killed mid-answer (form too large/slow), couldn't recover any fields" : "couldn't parse the planner's answer as JSON",
           result.buf.slice(-300),
         );
       }
       const count = Object.keys(obj).length;
-      log(`Parsed ${count} answers${truncated ? " (RECOVERED from truncated output — some fields may be missing)" : ""}`);
+      log(`Parsed ${count} answers${truncated ? " (RECOVERED from truncated output, some fields may be missing)" : ""}`);
       emit({ t: "done", answers: obj, truncated, count });
       controller.close();
     },

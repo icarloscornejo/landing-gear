@@ -54,7 +54,7 @@ test("filled false leaves the success screen and returns to the editor", () => {
 test("filled true stays on the success screen", () => {
   const outcome = screenForFill({ status: "done", filled: true });
   assert.equal(outcome.status, "done");
-  assert.equal(outcome.issue, "AI filled the form for you — review every answer on the real form, then submit it yourself.");
+  assert.equal(outcome.issue, "AI filled the form for you. Review every answer on the real form, then submit it yourself.");
 });
 
 test("a stream failure keeps its own error on the editor", () => {

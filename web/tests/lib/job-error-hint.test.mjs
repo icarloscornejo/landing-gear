@@ -75,13 +75,13 @@ test("only the TERMINAL step is classified: an earlier auth label is ignored", (
 test("connection error -> connection hint, NOT auth", () => {
   const hint = jobErrorHint(errorJob("Connection error"));
   assert.equal(hint?.kind, "connection");
-  assert.equal(hint?.text, "Lost connection to the local server — re-run.");
+  assert.equal(hint?.text, "Lost connection to the local server. Re-run.");
 });
 
 test("page-reload interruption -> interrupted hint, NOT auth", () => {
   const hint = jobErrorHint(errorJob("Interrupted (page reloaded)"));
   assert.equal(hint?.kind, "interrupted");
-  assert.equal(hint?.text, "The run was interrupted — re-run it.");
+  assert.equal(hint?.text, "The run was interrupted. Re-run it.");
 });
 
 test("connection error with unrelated auth-flavored assistant text -> still connection, NOT auth (the bug this fixes)", () => {

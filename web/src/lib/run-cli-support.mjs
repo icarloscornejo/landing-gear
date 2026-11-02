@@ -452,7 +452,7 @@ export function killMsForKind(kind) {
 // a report": a timeout and a CLI that couldn't write are different failures, and
 // blaming the CLI sends the user to re-check the wrong thing (#3124).
 export function timeoutMessage(killMs, kind) {
-  return `This run passed the ${Math.round(killMs / 1000)}s time limit and was stopped before it could finish — re-run it, or run a very long ${kind} on Claude Code directly. The CLI was working; we cut it off, so it isn't recorded as a result.`;
+  return `This run passed the ${Math.round(killMs / 1000)}s time limit and was stopped before it could finish. Re-run it, or run a very long ${kind} on Claude Code directly. The CLI was working; we cut it off, so it isn't recorded as a result.`;
 }
 
 /**

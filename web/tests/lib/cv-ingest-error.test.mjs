@@ -25,7 +25,7 @@ test("an error body without a usable `error` string also falls back", async () =
 
 test("404 keeps pointing at Config (no CLI connected)", async () => {
   const msg = await ingestErrorMessage(json({ error: "whatever the route says" }, 404));
-  assert.equal(msg, "Connect an AI CLI in Config first — it parses your CV locally.");
+  assert.equal(msg, "Connect an AI CLI in Config first. It parses your CV locally.");
 });
 
 test("an OK response is not an error, and its stream is left unread", async () => {

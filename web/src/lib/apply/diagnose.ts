@@ -151,13 +151,13 @@ export async function classifyEmpty(page: Page, url: string): Promise<ApplyIssue
     return { level: "block", code: "login-wall", message: "This page wants you to sign in or create an account first. Open it directly, log in, then paste the actual application-form URL here." };
   }
   if (/no longer accepting|position has been filled|posting is closed|no longer available|this (job|position|posting) (is |has )?(closed|expired|been filled)/.test(sig.body) || /not found|no longer|removed|closed/.test(sig.t)) {
-    return { level: "block", code: "expired", message: "This job posting is closed or expired — it's no longer accepting applications." };
+    return { level: "block", code: "expired", message: "This job posting is closed or expired. It's no longer accepting applications." };
   }
   if (/myworkdayjobs\.com$/i.test(host)) {
     return { level: "block", code: "workday", message: "Workday forms aren't supported for in-app fill yet (multi-step, account-gated). Open the posting and apply there directly." };
   }
   if (/^(jobs|careers|empleos|empregos|all jobs|open (positions|roles)|search jobs|current openings)/i.test(sig.t) || /\/(jobs|careers|search|positions)\/?(\?|$)/.test(u)) {
-    return { level: "block", code: "listing-page", message: "This looks like the careers listing, not a single application — the posting may have moved or closed. Open the specific job and paste its “Apply” URL." };
+    return { level: "block", code: "listing-page", message: "This looks like the careers listing, not a single application. The posting may have moved or closed. Open the specific job and paste its “Apply” URL." };
   }
   return { level: "block", code: "no-form", message: "Couldn't find a fillable form on this page. If it's a job description, open its “Apply” form and paste that URL." };
 }
@@ -185,7 +185,7 @@ export async function captchaWarning(page: Page): Promise<ApplyIssue | null> {
       );
     })
     .catch(() => false);
-  return interactive ? { level: "warn", code: "captcha-present", message: "This form has a captcha you'll need to tick — do it yourself on the real form at the end." } : null;
+  return interactive ? { level: "warn", code: "captcha-present", message: "This form has a captcha you'll need to tick. Do it yourself on the real form at the end." } : null;
 }
 
 /** Conservatively detect a multi-STEP form (we only read/fill page 1) so we can
@@ -204,7 +204,7 @@ export async function multiStepInfo(page: Page): Promise<ApplyIssue | null> {
       return (stepText || hasNext) && !hasSubmit;
     })
     .catch(() => false);
-  return ms ? { level: "info", code: "multi-step", message: "This form has more than one step — after this page, you'll continue on the real form." } : null;
+  return ms ? { level: "info", code: "multi-step", message: "This form has more than one step. After this page, you'll continue on the real form." } : null;
 }
 
 /** READ THE REAL FORM BACK after filling: did every answer land? required fields
@@ -268,8 +268,8 @@ export async function verifyFill(frame: Frame, fields: ApplyField[], answers: Re
     .catch(() => ({ mismatches: [], requiredEmpty: [], valErrors: [] }) as R);
 
   const out: ApplyIssue[] = [];
-  if (res.mismatches.length) out.push({ level: "warn", code: "fill-mismatch", message: `These answers didn't seem to land on the real form — check them: ${res.mismatches.slice(0, 4).join(", ")}${res.mismatches.length > 4 ? "…" : ""}.` });
-  if (res.requiredEmpty.length) out.push({ level: "warn", code: "required-empty", message: `Required and still empty — you'll need to fill ${res.requiredEmpty.length > 1 ? "these" : "this"}: ${res.requiredEmpty.slice(0, 4).join(", ")}${res.requiredEmpty.length > 4 ? "…" : ""}.` });
+  if (res.mismatches.length) out.push({ level: "warn", code: "fill-mismatch", message: `These answers didn't seem to land on the real form. Check them: ${res.mismatches.slice(0, 4).join(", ")}${res.mismatches.length > 4 ? "…" : ""}.` });
+  if (res.requiredEmpty.length) out.push({ level: "warn", code: "required-empty", message: `Required and still empty. You'll need to fill ${res.requiredEmpty.length > 1 ? "these" : "this"}: ${res.requiredEmpty.slice(0, 4).join(", ")}${res.requiredEmpty.length > 4 ? "…" : ""}.` });
   for (const v of res.valErrors) out.push({ level: "warn", code: "validation", message: `The form flagged: “${v}”.` });
   return out;
 }

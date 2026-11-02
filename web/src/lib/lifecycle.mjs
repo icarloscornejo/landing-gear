@@ -325,7 +325,11 @@ export const EXIT_KINDS = Object.freeze({
 const EXIT_BY_LABEL = { rejected: "rejected", withdrawn: "withdrawn", ghosted: "ghosted", "posting closed": "closed" };
 
 const PHASE_LABELS = "Applied|Replied|Screening|Assessment|Tech interview|Hiring manager|Final interview|Offer|Hired";
-const STAGE_RE = new RegExp(`STAGE:\\s*(${PHASE_LABELS})(?:\\s+(\\d+))?`, "gi");
+// The interview date sits right after the label and round, strict ISO with an
+// offset, so a following "; OUTCOME: ..." or "(call)" never leaks into it.
+const STAGE_AT = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}[+-]\\d{2}:\\d{2}";
+const STAGE_RE = new RegExp(`STAGE:\\s*(${PHASE_LABELS})(?:\\s+(\\d+))?(?:\\s*@\\s*(${STAGE_AT}))?`, "gi");
+const STAGE_HEAD_RE = new RegExp(`(STAGE:\\s*(?:${PHASE_LABELS})(?:\\s+\\d+)?)(?:\\s*@\\s*${STAGE_AT})?`, "i");
 const OUTCOME_RE = new RegExp(`OUTCOME:\\s*(Rejected|Withdrawn|Ghosted|Posting closed)\\s+at\\s+(${PHASE_LABELS})(?:\\s+(\\d+))?`, "gi");
 
 /** @param {string} raw */
@@ -350,25 +354,51 @@ export function phaseLabel(key, round = 1) {
 
 /**
  * Every STAGE note in the cell, in the order written. A legacy note with no
- * number ("STAGE: Screening") is round 1.
+ * number ("STAGE: Screening") is round 1. `at` is the interview date, if set;
+ * `text` is the whole "; "-separated note holding the mark, the unit
+ * set-status --replace-note matches.
  * @param {unknown} notes
- * @returns {{phase: PhaseKey, round: number}[]}
+ * @returns {StageMark[]}
  */
 export function stageMarks(notes) {
-  return [...String(notes ?? "").matchAll(STAGE_RE)].map((match) => ({
-    phase: PHASE_BY_LABEL[match[1].toLowerCase()],
-    round: match[2] ? Number(match[2]) : 1,
-  }));
+  const cell = String(notes ?? "");
+  return [...cell.matchAll(STAGE_RE)].map((match) => {
+    const start = cell.lastIndexOf("; ", match.index) + 1;
+    const end = cell.indexOf("; ", match.index);
+    return {
+      phase: PHASE_BY_LABEL[match[1].toLowerCase()],
+      round: match[2] ? Number(match[2]) : 1,
+      at: match[3] ?? null,
+      text: cell.slice(start, end === -1 ? undefined : end).trim(),
+    };
+  });
 }
+
+/** @typedef {{phase: PhaseKey, round: number, at: string|null, text: string|null}} StageMark */
 
 /**
  * The note set-status.mjs appends for a phase, or null for a phase without one.
  * @param {PhaseKey} key
  * @param {number} [round]
+ * @param {string|null} [at] interview date, canonical ISO with offset
  * @returns {string|null}
  */
-export function phaseNote(key, round = 1) {
-  return PHASE_BY_KEY[key].noted ? `STAGE: ${phaseLabel(key, round)}` : null;
+export function phaseNote(key, round = 1, at = null) {
+  if (!PHASE_BY_KEY[key].noted) return null;
+  return at ? `STAGE: ${phaseLabel(key, round)} @ ${at}` : `STAGE: ${phaseLabel(key, round)}`;
+}
+
+/** Phases that are a meeting, so a date makes sense. */
+export const DATED_PHASES = Object.freeze(["screening", "assessment", "tech", "manager", "final"]);
+
+/**
+ * A STAGE note with its date set, replaced or removed (`at` null), keeping
+ * any text after the round: "STAGE: Screening 1 (call)" -> "STAGE: Screening 1 @ <ISO> (call)".
+ * @param {string} text
+ * @param {string|null} at
+ */
+export function datedNote(text, at) {
+  return text.replace(STAGE_HEAD_RE, (_whole, head) => (at ? `${head} @ ${at}` : head));
 }
 
 /**
@@ -387,13 +417,24 @@ export function exitNote(kind, key, round = 1) {
  * @returns {{phase: PhaseKey, round: number}|null}
  */
 export function currentPhase(app) {
+  const mark = currentMark(app);
+  return mark ? { phase: mark.phase, round: mark.round } : null;
+}
+
+/**
+ * The mark behind currentPhase, with its date and note text; a phase read from
+ * the status alone has neither.
+ * @param {{status?: unknown, notes?: unknown}} app
+ * @returns {StageMark|null}
+ */
+export function currentMark(app) {
   const canon = canonOf(app.status);
   const marks = stageMarks(app.notes);
   for (let index = marks.length - 1; index >= 0; index -= 1) {
     if (PHASE_BY_KEY[marks[index].phase].status.toUpperCase() === canon) return marks[index];
   }
   const phase = PHASE_OF_STATUS[canon];
-  return phase ? { phase, round: 1 } : null;
+  return phase ? { phase, round: 1, at: null, text: null } : null;
 }
 
 /**

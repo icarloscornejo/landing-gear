@@ -161,7 +161,7 @@ function Row({ c }: { c: QuietCompany }) {
       )}
       {fallback && (
         <div className="w-full">
-          <p className="text-xs text-muted">Couldn&apos;t reach the clipboard — select and copy:</p>
+          <p className="text-xs text-muted">Couldn&apos;t reach the clipboard. Select and copy:</p>
           <code className="mt-1 block w-full select-all overflow-x-auto rounded-lg border border-border bg-surface px-2.5 py-1.5 text-[11px] text-foreground">
             {fallback}
           </code>

@@ -34,7 +34,7 @@ export function evaluateRunOutcome({ envelope, noOutputMessage, sawError, cleanE
     const why = envelope && envelope.ok === false ? ` (${envelope.error})` : "";
     return {
       ok: false,
-      message: `This evaluation didn't produce a report to save, so it isn't in your tracker — re-run it to verify.${why}`,
+      message: `This evaluation didn't produce a report to save, so it isn't in your tracker. Re-run it to verify.${why}`,
     };
   }
   return { ok: true };
@@ -189,7 +189,7 @@ function spawnScript({ spawnFn, execPath, root, script, args = [], input = null 
  */
 export async function persistEvaluation({ spawnFn, execPath, root, markdown, url, today, postedAt, jdPath = null, jdText = "" }) {
   if (!ISO_DATE_RE.test(String(today ?? ""))) {
-    return { ok: false, error: `Invalid evaluation date "${today}" — expected YYYY-MM-DD.` };
+    return { ok: false, error: `Invalid evaluation date "${today}", expected YYYY-MM-DD.` };
   }
   const meta = parseReportMeta(markdown);
   if (!meta.ok) return meta;
@@ -240,7 +240,7 @@ export async function persistEvaluation({ spawnFn, execPath, root, markdown, url
   // non-alphanumerics) but a report written outside reports/ would be the
   // original hole this module exists to close — refuse rather than join.
   if (path.basename(reportFile) !== reportFile || reportFile.includes("..")) {
-    return finish(`Refusing to write report "${reportFile}" — the filename is not a single path segment.`);
+    return finish(`Refusing to write report "${reportFile}": the filename is not a single path segment.`);
   }
 
   const reportsDir = path.join(root, "reports");

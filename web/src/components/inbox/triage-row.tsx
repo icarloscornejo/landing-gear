@@ -12,6 +12,7 @@ import { CompanyLogo } from "@/components/company-logo";
 import { cn } from "@/lib/cn";
 import { inboxScoreTarget } from "@/lib/inbox-score-target.mjs";
 import { splitTriageLabel } from "@/lib/lifecycle.mjs";
+import { readReach } from "@/lib/location-reach.mjs";
 import { PasteJd } from "@/components/paste-jd";
 
 export type RowScore = { score: number | null; tone: "good" | "warn" | "bad" | "muted"; jobId: string; running: boolean; reportN?: number | null };
@@ -62,6 +63,8 @@ export function TriageRow({
   failedRun: { id: string; error: string } | null;
 }) {
   const ago = agoLabel(age);
+  // House rule 10 label: where Carlos can work from, read from the location text.
+  const reach = readReach(job.location, job.url);
   const target = inboxScoreTarget(scored);
   const evaluated = target.evaluated;
   const postingHref = unscoredInboxHref(job.url, evaluated);
@@ -99,6 +102,7 @@ export function TriageRow({
           </p>
           <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-faint">
             {job.location && <span className="break-words">{job.location}</span>}
+            {job.location && <Badge tone={reach.tone}>{reach.label}</Badge>}
             {source && <span className="rounded bg-surface-hover px-1.5 py-px font-medium text-muted">{ATS_LABEL[source]}</span>}
             {ago && <span>{ago}</span>}
             {/* Honest "not scored": no fabricated match%. */}
@@ -106,6 +110,11 @@ export function TriageRow({
             {job.pretriaged && !job.triage && (
               <span title="Passed the free pre-triage: ready for Triage or Evaluate" className="inline-flex items-center gap-1 rounded bg-sky-500/15 px-1.5 py-px font-medium text-sky-700 dark:text-sky-400">
                 <Check className="size-3" /> Pre-triaged
+              </span>
+            )}
+            {job.pretriageNoJd && !job.jdSaved && !job.triage && (
+              <span title="Pre-triage could not read the JD for free; Triage may SKIP it. Paste the JD or open it in Chrome." className="rounded bg-amber-500/15 px-1.5 py-px font-medium text-amber-700 dark:text-amber-400">
+                no JD
               </span>
             )}
             {job.jdSaved && (
@@ -211,7 +220,7 @@ export function TriageRow({
           <button
             type="button"
             onClick={onSkip}
-            title="Skip — hide from the inbox"
+            title="Skip: hide from the inbox"
             className="inline-flex items-center justify-center rounded-md p-1 text-faint transition-colors hover:bg-surface-hover hover:text-foreground max-sm:min-h-[44px] max-sm:min-w-[44px]"
           >
             <X className="size-4" />

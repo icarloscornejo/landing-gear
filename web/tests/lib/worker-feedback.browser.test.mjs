@@ -128,7 +128,7 @@ test("workers expose task-specific state and notify once without moving focus", 
     assert.ok(await treeHas('status', 'Worker task status', ['atomic', true]));
 
     const alpha = await launch('Alpha', 'Alpha · Engineer');
-    const runningName = 'Open worker: Alpha · Engineer — Running';
+    const runningName = 'Open worker: Alpha · Engineer, Running';
     const runningLink = tray.getByRole('link', { name: runningName, exact: true });
     await runningLink.waitFor(); await tabTo(runningLink);
     assert.ok(await treeHas('link', runningName, ['focused', true]));
@@ -148,7 +148,7 @@ test("workers expose task-specific state and notify once without moving focus", 
     assert.deepEqual(await notices(), ['Alpha · Engineer: completed.']);
     assert.equal(await focused(input), true);
     assert.equal(await input.inputValue(), 'Keep this draft');
-    const completedName = 'Open worker: Alpha · Engineer — Completed';
+    const completedName = 'Open worker: Alpha · Engineer, Completed';
     assert.ok(await treeHas('link', completedName));
     assert.ok(await treeHas('group', 'Alpha · Engineer'));
     assert.equal(await latest.getByRole('link', { name: completedName, exact: true }).count(), 1);
@@ -160,7 +160,7 @@ test("workers expose task-specific state and notify once without moving focus", 
     finish(beta, { type: 'error', msg: 'Fictional evaluation failed' });
     await until(async () => (await notices()).length === 2);
     assert.equal((await notices()).at(-1), 'Beta · Analyst: failed.');
-    assert.ok(await treeHas('link', 'Open worker: Beta · Analyst — Failed'));
+    assert.ok(await treeHas('link', 'Open worker: Beta · Analyst, Failed'));
     assert.equal(await focused(input), true);
 
     await send('Batch', 'Review this fictional batch.\n<<act:evaluateCompany {"company":"FixtureCo"}>>');
@@ -171,8 +171,8 @@ test("workers expose task-specific state and notify once without moving focus", 
     await until(() => workers.has('https://example.com/batch-platform') && workers.has('https://example.com/batch-design'));
     await tabTo(input);
     await latest.getByText('2 running', { exact: true }).waitFor();
-    assert.ok(await treeHas('link', 'Open worker: Evaluate · FixtureCo · Platform Engineer — Running'));
-    assert.ok(await treeHas('link', 'Open worker: Evaluate · FixtureCo · Product Designer — Running'));
+    assert.ok(await treeHas('link', 'Open worker: Evaluate · FixtureCo · Platform Engineer, Running'));
+    assert.ok(await treeHas('link', 'Open worker: Evaluate · FixtureCo · Product Designer, Running'));
     assert.equal(await latest.getByText('Platform Engineer · Running', { exact: true }).count(), 1);
     finish('https://example.com/batch-platform', { type: 'done', tokens: 200 });
     finish('https://example.com/batch-design', { type: 'error', msg: 'Fictional evaluation failed' });
@@ -180,7 +180,7 @@ test("workers expose task-specific state and notify once without moving focus", 
     assert.equal((await notices()).at(-1), 'Evaluate · FixtureCo · Platform Engineer: completed. Evaluate · FixtureCo · Product Designer: failed.');
     await latest.getByText('1 completed, 1 failed', { exact: true }).waitFor();
     await snapshot('mixed-batch-settled');
-    assert.ok(await treeHas('link', 'Open worker: Evaluate · FixtureCo · Product Designer — Failed'));
+    assert.ok(await treeHas('link', 'Open worker: Evaluate · FixtureCo · Product Designer, Failed'));
     assert.equal(await focused(input), true);
 
     // Global worker feedback survives closing the Assistant; it never steals focus.
@@ -228,9 +228,9 @@ test("workers expose task-specific state and notify once without moving focus", 
     await opener.waitFor(); await tabTo(opener); await page.keyboard.press('Enter'); await input.waitFor();
     await pause(650); assert.deepEqual(await notices(), []);
 
-    const failedLink = tray.getByRole('link', { name: 'Open worker: Gamma · Researcher — Failed', exact: true });
+    const failedLink = tray.getByRole('link', { name: 'Open worker: Gamma · Researcher, Failed', exact: true });
     await tabTo(failedLink);
-    assert.ok(await treeHas('link', 'Open worker: Gamma · Researcher — Failed', ['focused', true]));
+    assert.ok(await treeHas('link', 'Open worker: Gamma · Researcher, Failed', ['focused', true]));
     await page.keyboard.press('Enter'); await page.waitForURL('**/jobs/job-*');
     await page.locator('h1').waitFor();
     assert.deepEqual(await notices(), [], 'client navigation/mounts do not replay history');
@@ -293,7 +293,7 @@ test("worker dismiss stays discoverable without hover and by keyboard", { skip: 
           await dismiss.tap();
         } else {
           await until(async () => (await opacity()) === "0", "desktop default stays hidden");
-          await tray.getByRole("link", { name: "Open worker: Fictional evaluation · Engineer — Completed", exact: true }).hover();
+          await tray.getByRole("link", { name: "Open worker: Fictional evaluation · Engineer, Completed", exact: true }).hover();
           await until(async () => (await opacity()) === "1", "pointer hover reveals dismiss");
           await page.mouse.move(1100, 850);
           await until(async () => (await opacity()) === "0", "leaving hover hides dismiss");

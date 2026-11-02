@@ -54,7 +54,7 @@ const RESPONSIVENESS = {
   },
   mixed: {
     kind: "finding",
-    headline: "Mixed — replied to some, not others",
+    headline: "Mixed: replied to some, not others",
     detail: null,
   },
   "no-history": {

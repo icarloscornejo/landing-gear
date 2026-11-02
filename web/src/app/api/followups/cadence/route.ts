@@ -138,7 +138,7 @@ export async function POST(req: Request) {
     try {
       parsed = yaml.load(fs.readFileSync(file, "utf8"));
     } catch {
-      return Response.json({ error: "config/profile.yml exists but could not be read as YAML — refusing to overwrite it." }, { status: 409 });
+      return Response.json({ error: "config/profile.yml exists but could not be read as YAML; refusing to overwrite it." }, { status: 409 });
     }
     // A parseable list/scalar is still an invalid profile. Never replace its
     // contents with a document containing only the cadence patch.

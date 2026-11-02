@@ -22,6 +22,7 @@ import { FollowupsDueSectionSkeleton } from "@/components/page-loading-skeletons
 import { scoreNum } from "@/lib/format";
 import { pickAwaitingDecision, pickApproved, groupAwaiting } from "@/lib/home/awaiting.mjs";
 import { companyPresentation } from "@/lib/company-presentation.mjs";
+import { formatInterviewDate } from "@/lib/interview-date.mjs";
 import { resolveHeroState, mayClaimAllClear, missingSourceLabel } from "@/lib/home/hero-state.mjs";
 
 // The retention "Today": a dual-loop action queue (the maintainer's
@@ -49,6 +50,7 @@ export function TodayDashboard({
   overview: {
     stages: { key: string; label: string; count: number; needsAction: boolean; hint: string }[];
     replies: { n: string; company: string; via: string; role: string; status: string; phase: string; date: string }[];
+    upcoming: { n: string; company: string; role: string; phase: string; at: string; soon: boolean }[];
   };
   linkedinScan: LinkedinScanState;
   dailyScan: DailyScanStatus;
@@ -203,6 +205,32 @@ export function TodayDashboard({
           </div>
         </Section>
       ) : null}
+
+      {overview.upcoming.length > 0 && (
+        <Section icon={CalendarClock} title="Upcoming interviews" hint="dated rounds, soonest first">
+          <ul className="grid gap-2 sm:grid-cols-2">
+            {overview.upcoming.map((u) => (
+              <li key={u.n}>
+                <Link
+                  href={`/pipeline/${u.n}`}
+                  className={cn(
+                    "flex items-baseline justify-between gap-3 rounded-xl border px-4 py-3 text-sm transition-colors hover:bg-surface-hover",
+                    u.soon ? "border-amber-500/40 bg-amber-500/5" : "border-border bg-surface/40",
+                  )}
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate font-medium text-foreground">{companyPresentation(u).label}</span>
+                    <span className="block truncate text-xs text-muted">{u.phase} · {u.role}</span>
+                  </span>
+                  <span className={cn("shrink-0 text-xs", u.soon ? "font-semibold text-amber-700 dark:text-amber-400" : "text-muted")}>
+                    {u.soon ? "Soon · " : ""}{formatInterviewDate(u.at)}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Section>
+      )}
 
       {(nextBatch || overview.replies.length > 0 || waiting.length > 0) && (
         <div className="mt-8 grid gap-3 lg:grid-cols-3">

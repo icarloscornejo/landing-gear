@@ -75,13 +75,15 @@ test("the chain follows each row's phases and ends in Active or Out", () => {
   assert.equal(v.tech, 2);
   assert.equal(v.hired, 1);
   assert.equal(still(g, "applied"), 1);
-  assert.equal(flow(g, "applied", "out:applied"), 1);
+  assert.equal(flow(g, "applied", "out:applied:ghosted"), 1);
   assert.equal(still(g, "screening"), 1);
-  assert.equal(flow(g, "screening", "out:screening"), 1);
+  assert.equal(flow(g, "screening", "out:screening:rejected"), 1);
   assert.equal(still(g, "tech"), 1);
   // Open rows leave no ribbon: there are no "still" side nodes.
   assert.equal(g.nodes.some((n) => n.id.startsWith("active:")), false);
-  assert.match(g.nodes.find((n) => n.id === "out:applied").detail, /1 ghosted/);
+  // Each exit kind is its own node, so how a role ended is on the label.
+  assert.equal(g.nodes.find((n) => n.id === "out:applied:ghosted").label, "Ghosted at Applied");
+  assert.equal(g.nodes.find((n) => n.id === "out:screening:rejected").label, "Rejected at Screening");
   assertConserved(g);
 });
 
@@ -121,7 +123,7 @@ test("ledger evidence never pushes a row past its tab or its exit", () => {
     [{ num: 3, from: "Applied", to: "Interview" }, { num: 3, from: "Interview", to: "Rejected" }],
   );
   assert.equal(values(closed).tech, undefined);
-  assert.equal(flow(closed, "replied", "out:replied"), 1);
+  assert.equal(flow(closed, "replied", "out:replied:rejected"), 1);
   assertConserved(closed);
 });
 
@@ -140,10 +142,10 @@ test("bare Interview reads as Tech interview; legacy closed rows land at their l
     ],
   );
   assert.equal(still(g, "tech"), 1);
-  assert.equal(flow(g, "replied", "out:replied"), 1);
-  assert.equal(flow(g, "applied", "out:applied"), 1);
+  assert.equal(flow(g, "replied", "out:replied:rejected"), 1);
+  assert.equal(flow(g, "applied", "out:applied:repeated"), 1);
   assert.equal(flow(g, "tracked", "discardedEarly"), 1);
-  assert.match(g.nodes.find((n) => n.id === "out:applied").detail, /1 repeated/);
+  assert.equal(g.nodes.find((n) => n.id === "out:applied:repeated").label, "Repeated at Applied");
   assertConserved(g);
 });
 

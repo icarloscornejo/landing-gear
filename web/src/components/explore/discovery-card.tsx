@@ -91,13 +91,13 @@ export function DiscoveryCard({ offer, inPipeline, evaluatedN }: { offer: Discov
         {unverified && (
           <span
             className="inline-flex items-center gap-1 rounded border border-amber-500/25 bg-amber-500/10 px-1.5 py-0.5 font-medium text-amber-600 dark:text-amber-300"
-            title="Found by AI on the public web — we can't confirm it's still live without opening it. Evaluating runs a real browser check and sets the verdict."
+            title="Found by AI on the public web. We can't confirm it's still live without opening it. Evaluating runs a real browser check and sets the verdict."
           >
             <ShieldQuestion className="size-3" /> unverified
           </span>
         )}
         {offer.matchedKeyword && (
-          <span className="text-faint" title="Keyword match — not yet scored. Evaluate to get an A–F fit score.">
+          <span className="text-faint" title="Keyword match, not yet scored. Evaluate to get an A–F fit score.">
             · matched <span className="text-brand/80">{offer.matchedKeyword}</span>
           </span>
         )}
@@ -109,7 +109,7 @@ export function DiscoveryCard({ offer, inPipeline, evaluatedN }: { offer: Discov
                 ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                 : "text-faint",
             )}
-            title="Free keyword-level estimate: posting title vs your profile's target roles (config/profile.yml). Not an evaluation — Evaluate still gives the real A–F fit score."
+            title="Free keyword-level estimate: posting title vs your profile's target roles (config/profile.yml). Not an evaluation; Evaluate still gives the real A–F fit score."
           >
             · {offer.fit.band} fit
           </span>
@@ -154,7 +154,7 @@ export function DiscoveryCard({ offer, inPipeline, evaluatedN }: { offer: Discov
             <button
               type="button"
               onClick={evaluate}
-              title={unverified ? "Runs a real evaluation — and verifies the posting is live. Uses tokens." : "Runs a real A–F evaluation. Uses tokens."}
+              title={unverified ? "Runs a real evaluation and verifies the posting is live. Uses tokens." : "Runs a real A–F evaluation. Uses tokens."}
               className="inline-flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-brand/30 px-2.5 py-2 text-xs font-medium text-brand transition-colors hover:bg-brand-soft max-sm:min-h-[44px]"
             >
               Evaluate <Coins className="size-3.5 opacity-80" />

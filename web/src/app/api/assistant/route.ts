@@ -260,7 +260,7 @@ export async function POST(req: Request) {
       });
       child.on("close", () => {
         if (!emitted) {
-          safeEnqueue("_(no output — is the CLI authenticated?)_");
+          safeEnqueue("_(no output: is the CLI authenticated?)_");
         }
         safeClose();
       });

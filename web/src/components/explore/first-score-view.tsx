@@ -32,7 +32,7 @@ function extractWhy(job: Job): string {
     .split(/\n{2,}/)
     .map((p) => p.replace(/[#*>`-]/g, "").replace(/\s+/g, " ").trim())
     .find((p) => p.length > 60 && /\b(you|your|fit|match|strong|experience|background)\b/i.test(p));
-  return para ? para.slice(0, 240) : "You're a strong match for this role — open the full report for the breakdown.";
+  return para ? para.slice(0, 240) : "You're a strong match for this role. Open the full report for the breakdown.";
 }
 
 export function FirstScoreView() {
@@ -124,7 +124,7 @@ export function FirstScoreView() {
 
         <div className="relative px-7 pb-7 pt-8">
           <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-brand">
-            <span className="text-faint">//</span> the job we found you — scored
+            <span className="text-faint">//</span> the job we found you, scored
           </p>
 
           <div className="mt-4 flex items-start gap-4">
@@ -164,7 +164,7 @@ export function FirstScoreView() {
           )}
 
           <p className="mt-5 flex items-center gap-1.5 text-[12px] text-faint">
-            <Coins className="size-3.5" /> That ran on your own AI. Everything before it — finding this job — was free.
+            <Coins className="size-3.5" /> That ran on your own AI. Everything before it (finding this job) was free.
           </p>
 
           <div className="mt-3 flex flex-wrap gap-2">

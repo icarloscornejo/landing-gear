@@ -132,7 +132,7 @@ export async function POST(req: Request) {
   if (required && !fs.existsSync(/* turbopackIgnore: true */ requiredPath)) {
     return new Response(
       JSON.stringify({
-        error: `This needs a complete career-ops checkout (${required}). CAREER_OPS_ROOT has data only — point it at a full checkout.`,
+        error: `This needs a complete career-ops checkout (${required}). CAREER_OPS_ROOT has data only. Point it at a full checkout.`,
       }),
       { status: 400, headers: { "Content-Type": "application/json" } },
     );
@@ -144,7 +144,7 @@ export async function POST(req: Request) {
   // wrong portal.
   if (kind === "fix-portal" && !isShellSafeCompanyName(input)) {
     return new Response(
-      JSON.stringify({ error: "That company name has characters I can't safely pass to the portal checker — rename it in portals.yml first." }),
+      JSON.stringify({ error: "That company name has characters I can't safely pass to the portal checker. Rename it in portals.yml first." }),
       { status: 400, headers: { "Content-Type": "application/json" } },
     );
   }
@@ -153,7 +153,7 @@ export async function POST(req: Request) {
   // hallucinate a fit narrative and still emit a VERDICT. Require cv.md first.
   if ((kind === "evaluate" || kind === "pdf" || kind === "cover" || kind === "triage") && !fs.existsSync(path.join(careerOpsRoot(), "cv.md"))) {
     return new Response(
-      JSON.stringify({ error: "Add your CV first so I can score this against you — drop it on the home page." }),
+      JSON.stringify({ error: "Add your CV first so I can score this against you. Drop it on the home page." }),
       { status: 400, headers: { "Content-Type": "application/json" } },
     );
   }
@@ -631,9 +631,9 @@ export async function POST(req: Request) {
         const noOutputError = (): string | null => {
           if (!emittedText && !sawError && !cleanExit) {
             const detail = stderrErrorSnippet ? ` (${stderrErrorSnippet})` : "";
-            return `The CLI exited with an error — is it installed and authenticated?${detail}`;
+            return `The CLI exited with an error. Is it installed and authenticated?${detail}`;
           }
-          if (!emittedText && !sawError) return "The CLI produced no output — is it installed and authenticated? (career-ops is best on Claude Code.)";
+          if (!emittedText && !sawError) return "The CLI produced no output. Is it installed and authenticated? (career-ops is best on Claude Code.)";
           return null;
         };
 
@@ -660,7 +660,7 @@ export async function POST(req: Request) {
             // Kept for narrowing, but it must REPORT rather than fall through to a
             // bare close() — a stream that ends with neither error nor done is the
             // one outcome this handler exists to prevent.
-            send({ type: "error", msg: "Internal error: the pdf run passed its gate with no CV to save — please report this." });
+            send({ type: "error", msg: "Internal error: the pdf run passed its gate with no CV to save. Please report this." });
           } else {
             sendWarnings(envelope.warnings);
             if (saveCv(pdfPaths, envelope)) {
@@ -687,7 +687,7 @@ export async function POST(req: Request) {
           if (!outcome.ok) {
             send({ type: "error", msg: outcome.message });
           } else if (envelope?.ok !== true) {
-            send({ type: "error", msg: "Internal error: the evaluate run passed its gate with no report to save — please report this." });
+            send({ type: "error", msg: "Internal error: the evaluate run passed its gate with no report to save. Please report this." });
           } else {
             if (envelope.recovered) sendWarnings(["The agent forgot the report markers; the complete report was taken from its text."]);
             evaluatePersistPromise = persistEval(envelope.markdown);
@@ -738,7 +738,7 @@ export async function POST(req: Request) {
           // message above; a bare non-clean exit gets the stderr snippet instead,
           // when the heuristic classifier found one.
           const detail = !sawError && stderrErrorSnippet ? ` (${stderrErrorSnippet})` : "";
-          send({ type: "error", msg: `This run hit an error before finishing, so it isn't recorded as a confident result — re-run it to verify.${detail}`.slice(0, 200) });
+          send({ type: "error", msg: `This run hit an error before finishing, so it isn't recorded as a confident result. Re-run it to verify.${detail}`.slice(0, 200) });
         } else {
           send({ type: "done", tokens: lastTokens, costUsd: lastCostUsd });
         }

@@ -240,7 +240,7 @@ export function JobsProvider({ children }: { children: React.ReactNode }) {
         // choice without a record.
         const cliId = await resolveCliId((stale, replacement) => {
           const label = replacement
-            ? `Saved CLI '${stale}' is not installed — using '${replacement}'`
+            ? `Saved CLI '${stale}' is not installed, using '${replacement}'`
             : `Saved CLI '${stale}' is not installed`;
           const step: JobStep = { kind: "status", label, ts: Date.now() };
           steps.push(step);
@@ -252,7 +252,7 @@ export function JobsProvider({ children }: { children: React.ReactNode }) {
             ...j,
             status: "error",
             endedAt: Date.now(),
-            steps: [...j.steps, { kind: "status", label: "No CLI configured — open Config and click Save config", ts: Date.now() }],
+            steps: [...j.steps, { kind: "status", label: "No CLI configured. Open Config and click Save config", ts: Date.now() }],
           }));
           return;
         }

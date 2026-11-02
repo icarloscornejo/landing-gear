@@ -18,7 +18,7 @@ test("task identity includes role; detail names exclude ticking progress", () =>
   const task = { ...job("a", "running"), steps: ["WebFetch"], elapsed: 1 };
   assert.equal(workerIdentity(task), "Evaluate · FixtureCo · Engineer");
   assert.equal(workerIdentity({ title: "Draft CV" }), "Draft CV");
-  assert.equal(workerDetailsLabel(task), "Open worker: Evaluate · FixtureCo · Engineer — Running");
+  assert.equal(workerDetailsLabel(task), "Open worker: Evaluate · FixtureCo · Engineer, Running");
   assert.equal(workerDetailsLabel({ ...task, elapsed: 60, steps: ["Write"] }), workerDetailsLabel(task));
   assert.equal(workerState("done"), "Completed");
   assert.equal(workerState("error"), "Failed");

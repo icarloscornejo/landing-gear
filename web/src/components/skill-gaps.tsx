@@ -112,7 +112,7 @@ export function SkillGaps() {
       </div>
 
       <p className="mt-4 text-xs text-faint">
-        Weighted by fit — a low-scoring role says more about a gap than a high-scoring one. Nothing here is added to your
+        Weighted by fit: a low-scoring role says more about a gap than a high-scoring one. Nothing here is added to your
         CV; close the gap first, then write it.{" "}
         <Link href="/pipeline" className="text-muted underline-offset-2 hover:underline">
           See the reports

@@ -57,7 +57,7 @@ export function resolvePdfPaths(input, today, root, findReportFile) {
   }
   const reportFile = findReportFile(input);
   if (!reportFile) {
-    return { ok: false, error: `No report #${input} found — evaluate this posting first.` };
+    return { ok: false, error: `No report #${input} found. Evaluate this posting first.` };
   }
   const reportName = path.basename(reportFile);
   // A tracker application can point to a differently numbered report. Use

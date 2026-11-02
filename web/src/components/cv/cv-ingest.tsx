@@ -68,7 +68,7 @@ export function CvIngest({ onSaved }: { onSaved?: () => void }) {
         buf += dec.decode(value, { stream: true });
         const parsed = parseCvStream(buf);
         if (parsed.error) {
-          setErr(parsed.error === "unreadable" ? "I couldn't read text from that file (it may be a scanned image). Paste the text instead." : "Couldn't parse the CV — paste the text instead.");
+          setErr(parsed.error === "unreadable" ? "I couldn't read text from that file (it may be a scanned image). Paste the text instead." : "Couldn't parse the CV. Paste the text instead.");
           setPhase("error");
           return;
         }
@@ -78,7 +78,7 @@ export function CvIngest({ onSaved }: { onSaved?: () => void }) {
       }
       const final = parseCvStream(buf);
       if (!final.markdown.trim()) {
-        setErr("Couldn't read a CV there — paste the text instead.");
+        setErr("Couldn't read a CV there. Paste the text instead.");
         setPhase("error");
         return;
       }
@@ -94,7 +94,7 @@ export function CvIngest({ onSaved }: { onSaved?: () => void }) {
   const ingestText = (text: string) => {
     const trimmed = text.trim();
     if (!trimmed) {
-      setErr("That looks empty — paste your CV instead.");
+      setErr("That looks empty. Paste your CV instead.");
       setPhase("error");
       return;
     }
@@ -117,7 +117,7 @@ export function CvIngest({ onSaved }: { onSaved?: () => void }) {
         .text()
         .then((t) => {
           if (!t.trim()) {
-            setErr("That file looks empty — paste your CV instead.");
+            setErr("That file looks empty. Paste your CV instead.");
             setPhase("error");
             return;
           }
@@ -126,7 +126,7 @@ export function CvIngest({ onSaved }: { onSaved?: () => void }) {
           setPhase("review");
         })
         .catch(() => {
-          setErr("Couldn't read that file — paste your CV instead.");
+          setErr("Couldn't read that file. Paste your CV instead.");
           setPhase("error");
         });
       return;
@@ -147,7 +147,7 @@ export function CvIngest({ onSaved }: { onSaved?: () => void }) {
   const [saveErr, setSaveErr] = useState("");
   const save = async () => {
     if (!md.trim()) {
-      setSaveErr("Your CV looks empty — paste it again.");
+      setSaveErr("Your CV looks empty. Paste it again.");
       return;
     }
     setSaveErr("");
@@ -156,12 +156,12 @@ export function CvIngest({ onSaved }: { onSaved?: () => void }) {
       const r = await fetch("/api/cv", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ content: md }) });
       if (!r.ok) {
         const d = await r.json().catch(() => ({}));
-        setSaveErr(d.error || "Couldn't save your CV — try again.");
+        setSaveErr(d.error || "Couldn't save your CV. Try again.");
         setPhase("review"); // keep the parsed CV so they don't lose it
         return;
       }
     } catch {
-      setSaveErr("Couldn't save your CV — check your connection and try again.");
+      setSaveErr("Couldn't save your CV. Check your connection and try again.");
       setPhase("review");
       return;
     }
@@ -203,7 +203,7 @@ export function CvIngest({ onSaved }: { onSaved?: () => void }) {
             onKeyDown={(e) => {
               if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && paste.trim()) ingestText(paste.trim());
             }}
-            placeholder="Paste your CV here — or drop a PDF / .md file below. Even a rough paste works; we'll clean it up."
+            placeholder="Paste your CV here, or drop a PDF / .md file below. Even a rough paste works; we'll clean it up."
             className="h-32 w-full resize-none bg-transparent text-[14px] leading-relaxed outline-none placeholder:text-faint"
           />
           <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-border pt-3">
@@ -269,7 +269,7 @@ export function CvIngest({ onSaved }: { onSaved?: () => void }) {
       <style>{STYLE}</style>
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <FileText className="size-4 text-brand" />
-        <h3 className={`${instrumentSerif.className} text-lg text-foreground`}>Here&apos;s your CV — review and save</h3>
+        <h3 className={`${instrumentSerif.className} text-lg text-foreground`}>Here&apos;s your CV: review and save</h3>
         {readiness && (
           <span
             className={cn(

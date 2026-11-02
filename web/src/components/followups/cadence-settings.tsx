@@ -120,12 +120,12 @@ export function CadenceSettings() {
       <div className="rounded-xl border border-border bg-surface/50 p-4">
         <p className="text-xs leading-relaxed text-faint">
           When the <span className="text-muted">Follow-ups</span> tracker nudges you. Saved to{" "}
-          <span className="font-mono text-muted">config/profile.yml</span> — the CLI uses the same values.
+          <span className="font-mono text-muted">config/profile.yml</span>; the CLI uses the same values.
         </p>
         {loadError ? (
           <div className="mt-3 text-sm text-muted">
             <p className="text-red-500">
-              Couldn&apos;t read your current cadence settings — not showing defaults, to avoid overwriting real values in{" "}
+              Couldn&apos;t read your current cadence settings. Not showing defaults, to avoid overwriting real values in{" "}
               <span className="font-mono">config/profile.yml</span>.
             </p>
             <button

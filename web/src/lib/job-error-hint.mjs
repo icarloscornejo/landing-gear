@@ -29,8 +29,8 @@ const AUTH_PATTERN =
 
 const HINTS = {
   auth: { kind: "auth", text: "Sign your CLI in from Config, then re-run." },
-  connection: { kind: "connection", text: "Lost connection to the local server — re-run." },
-  interrupted: { kind: "interrupted", text: "The run was interrupted — re-run it." },
+  connection: { kind: "connection", text: "Lost connection to the local server. Re-run." },
+  interrupted: { kind: "interrupted", text: "The run was interrupted. Re-run it." },
 };
 
 /** The message set on the job's last step — the authoritative terminal cause. */

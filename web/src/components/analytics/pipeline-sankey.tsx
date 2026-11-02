@@ -48,7 +48,8 @@ export function PipelineSankey({
       </h2>
       <p className="mt-2 max-w-2xl text-sm text-muted">
         Each role follows the hiring phases it actually went through, so a skipped
-        phase is crossed, not counted. Hover an Out node to see how roles ended there.
+        phase is crossed, not counted. Closed roles end in a node that says how and where
+        they ended, like Rejected at Tech interview.
       </p>
 
       <div className="mt-4 overflow-x-auto rounded-xl border border-border bg-surface/50 p-3">

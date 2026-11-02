@@ -87,7 +87,7 @@ export function DiscoveringState() {
         <div>
           <div className={`${instrumentSerif.className} co-disc__counter text-foreground`}>{shown}</div>
           <p className="mt-1 text-sm text-muted">
-            {phase === "revealing" ? "fresh roles found — free" : matchCount > 0 ? "fresh roles and counting…" : "scanning the network…"}
+            {phase === "revealing" ? "fresh roles found, free" : matchCount > 0 ? "fresh roles and counting…" : "scanning the network…"}
           </p>
         </div>
 

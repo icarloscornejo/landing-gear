@@ -365,7 +365,7 @@ export function fencingReport({ cliId, cliName, capabilities }) {
   if (!Object.hasOwn(FENCERS, cliId)) {
     return {
       level: "none",
-      notice: `${cliName} ${UNFENCED_MARKER} — this agent runs with its default access`,
+      notice: `${cliName} ${UNFENCED_MARKER}: this agent runs with its default access`,
     };
   }
   // Codex only. Claude expresses both axes as tool flags, so it is never partial:
@@ -378,7 +378,7 @@ export function fencingReport({ cliId, cliName, capabilities }) {
     return {
       level: "partial",
       notice: `${cliName} ${PARTIAL_MARKER}: this worker has to open urls it is handed, which its sandbox ` +
-        "only allows alongside write access — its writes are confined to the project folder, not blocked",
+        "only allows alongside write access, so its writes are confined to the project folder, not blocked",
     };
   }
   return { level: "full", notice: null };

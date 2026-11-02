@@ -88,7 +88,7 @@ export async function POST(req: Request) {
     try {
       parsed = yaml.load(fs.readFileSync(file, "utf8"));
     } catch {
-      return Response.json({ error: "config/profile.yml exists but is not valid YAML — refusing to overwrite it." }, { status: 409 });
+      return Response.json({ error: "config/profile.yml exists but is not valid YAML; refusing to overwrite it." }, { status: 409 });
     }
     // Valid YAML can still be a list, scalar, or null. Treating those as an
     // empty profile would discard the existing document on this partial write.

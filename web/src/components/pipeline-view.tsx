@@ -17,9 +17,11 @@ import { PipelineTableRowsSkeleton } from "@/components/page-loading-skeletons";
 import { startRouteProgress } from "@/components/route-progress";
 import { sortRows } from "@/lib/core/pipeline-sort.mjs";
 import { PageFrame } from "@/components/page-frame";
-import { GRID_TABS, HIDE_WHEN_EMPTY, INBOX_TABS, PIPELINE_TABS, TAB_LABELS, pipelineQuery, pipelineTab, trackerTabOf } from "@/lib/pipeline-navigation.mjs";
+import { BOARD_TABS, GRID_TABS, HIDE_WHEN_EMPTY, INBOX_TABS, PIPELINE_TABS, TAB_LABELS, pipelineQuery, pipelineTab, showsBoard, trackerTabOf } from "@/lib/pipeline-navigation.mjs";
+import { PipelineBoard } from "@/components/pipeline-board";
 import type { CardReason } from "@/lib/machine-summary.mjs";
 import { LifecycleActions } from "@/components/lifecycle-actions";
+import { InterviewDate } from "@/components/interview-date";
 import { currentPhase, outcomeText, phaseLabel, type PhaseLogRow } from "@/lib/lifecycle.mjs";
 
 /** The table's status cell: how a closed row ended, the phase and round of an open one. */
@@ -139,6 +141,21 @@ export function PipelineView({
     ) as Application[];
   }, [visibleApplications, tab, q, sort, minFilter]);
 
+  // The board shows every open phase at once, so it skips the tab filter but
+  // keeps the score and search filters.
+  const board = showsBoard(tab, params.get("view"));
+  const boardRows = useMemo(() => {
+    if (!board) return [];
+    const needle = q.trim().toLowerCase();
+    return visibleApplications.filter((r) => {
+      if (minFilter != null) {
+        const n = scoreNum(r.score);
+        if (Number.isNaN(n) || n < minFilter) return false;
+      }
+      return !needle || companySearchText(r).toLowerCase().includes(needle);
+    });
+  }, [board, visibleApplications, q, minFilter]);
+
   const filteredKeys = filtered.map(applicationKey);
   const selectedRows = filtered.filter((r) => selected.has(applicationKey(r)));
   const allSelected = filteredKeys.length > 0 && filteredKeys.every((k) => selected.has(k));
@@ -210,6 +227,24 @@ export function PipelineView({
         })}
       </div>
 
+      {(BOARD_TABS as readonly string[]).includes(visibleTab) && (
+        <div className="mt-3 inline-flex rounded-lg border border-border p-0.5 text-xs" role="group" aria-label="View">
+          {(["list", "board"] as const).map((view) => (
+            <button
+              key={view}
+              type="button"
+              aria-pressed={(view === "board") === board}
+              onClick={() => setParams({ view: view === "board" ? "board" : null })}
+              className={cn(
+                "rounded-md px-3 py-1 font-medium capitalize transition-colors",
+                (view === "board") === board ? "bg-surface-hover text-foreground" : "text-muted hover:text-foreground",
+              )}
+            >
+              {view}
+            </button>
+          ))}
+        </div>
+      )}
 
       {!onInboxTab && minFilter != null && (
         <div className="mt-3 flex items-center gap-2">
@@ -266,6 +301,8 @@ export function PipelineView({
             </>
           )}
         </>
+      ) : board ? (
+        <PipelineBoard rows={boardRows} statusLog={statusLog} detailQuery={detailQuery} />
       ) : !isPending && filtered.length > 0 && (GRID_TABS as readonly string[]).includes(tab) ? (
         // Cards with stage and status buttons cap at 3 columns to fit them.
         <ul className={cn("mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3", (tab === "EVALUATED" || tab === "OFFER") && "2xl:grid-cols-4")}>
@@ -501,6 +538,7 @@ function TrackerCard({
 
       {/* The same buttons as the report page, so a card can Approve, mark Applied
           with CV A/B, or move a Responded row on without opening it. */}
+      <InterviewDate app={row} />
       <LifecycleActions app={row} compact className="mt-auto border-t border-border/60 pt-3" />
 
       <div className="flex flex-wrap items-center justify-end gap-1">

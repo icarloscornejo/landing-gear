@@ -129,11 +129,11 @@ export function BetaBanner() {
               // check is to spare a duplicate, and if we cannot run it the
               // right move is to file anyway rather than to stall.
               <p className="mt-2 text-xs text-muted">
-                Couldn&apos;t reach GitHub to check — file it anyway, a duplicate is cheaper than a lost report.
+                Couldn&apos;t reach GitHub to check. File it anyway, a duplicate is cheaper than a lost report.
               </p>
             )}
             <details className="mt-3 rounded-lg border border-border bg-surface/40">
-              <summary className="cursor-pointer select-none px-3 py-2 text-xs font-medium text-muted">Exactly what gets attached — review before sending ↓</summary>
+              <summary className="cursor-pointer select-none px-3 py-2 text-xs font-medium text-muted">Exactly what gets attached: review before sending ↓</summary>
               <pre className="max-h-52 overflow-auto whitespace-pre-wrap border-t border-border px-3 py-2 font-mono text-[11px] leading-relaxed text-muted">{issueBody(diag, desc)}</pre>
             </details>
             {similar.length > 0 && (
@@ -152,7 +152,7 @@ export function BetaBanner() {
               </div>
             )}
             <p className="mt-2 flex items-start gap-1.5 text-[11px] text-faint">
-              <ShieldCheck className="mt-px size-3.5 shrink-0 text-emerald-500" /> Opens a GitHub issue you confirm — nothing is sent until you click. NEVER includes your CV, profile, application answers, or job URLs.
+              <ShieldCheck className="mt-px size-3.5 shrink-0 text-emerald-500" /> Opens a GitHub issue you confirm. Nothing is sent until you click. NEVER includes your CV, profile, application answers, or job URLs.
             </p>
             <div className="mt-4 flex justify-end gap-2">
               <button onClick={() => setOpen(false)} className="rounded-full px-4 py-2 text-sm text-muted transition-colors hover:text-foreground">

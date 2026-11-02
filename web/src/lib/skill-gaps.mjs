@@ -57,8 +57,8 @@ export function skillGapModel(payload, limit = 8) {
     caveats.push({
       kind: "no-known-skills",
       text:
-        "No skills were recognised in your CV, so nothing could be subtracted as already-held — " +
-        "some of these are probably skills you already have.",
+        "No skills were recognised in your CV, so nothing could be subtracted as already-held. " +
+        "Some of these are probably skills you already have.",
     });
   }
 
@@ -79,8 +79,8 @@ export function skillGapModel(payload, limit = 8) {
       kind: "thin-coverage",
       text:
         withMs === 0
-          ? `None of the ${read} reports carry a Machine Summary — these come from Gap tables alone.`
-          : `Based on ${withMs} of ${read} reports — the rest carry no Machine Summary to read gaps from.`,
+          ? `None of the ${read} reports carry a Machine Summary; these come from Gap tables alone.`
+          : `Based on ${withMs} of ${read} reports; the rest carry no Machine Summary to read gaps from.`,
     });
   }
 

@@ -37,7 +37,7 @@ export function addOffersToPipeline(offers: DiscoveredOffer[]): Promise<AddResul
   // Data-only / pre-scan-ats checkout has no scan.mjs writers → fail with an
   // actionable message instead of a silent added:0.
   if (!fs.existsSync(rootScript("scan"))) {
-    return Promise.resolve({ added: 0, error: "This checkout is data-only — the pipeline writer (scan.mjs) isn't available." });
+    return Promise.resolve({ added: 0, error: "This checkout is data-only; the pipeline writer (scan.mjs) isn't available." });
   }
 
   const scanUrl = pathToFileURL(rootScript("scan")).href;

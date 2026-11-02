@@ -126,7 +126,7 @@ export function FilterBuilder({
         <Label hint={filters.positive.length === 0 ? "empty = every fresh posting" : undefined}>Roles to find</Label>
         <KeywordField ariaLabel="Roles to find" values={filters.positive} tone="inc" placeholder="AI platform, ML infrastructure, staff engineer…" onChange={(v) => set({ positive: v })} />
         {seededFrom.length > 0 && filters.positive.length > 0 && (
-          <p className="mt-1 text-[11px] text-faint">Seeded from your {seededFrom.join(" + ")} — edit freely.</p>
+          <p className="mt-1 text-[11px] text-faint">Seeded from your {seededFrom.join(" + ")}. Edit freely.</p>
         )}
       </div>
 
@@ -220,7 +220,7 @@ export function FilterBuilder({
             </div>
           </div>
           <div>
-            <Label hint="hard reject — overrides Always include">Never include</Label>
+            <Label hint="hard reject, overrides Always include">Never include</Label>
             <KeywordField ariaLabel="Never include" values={filters.blockHard} tone="exc" placeholder="USA, Brazil…" onChange={(v) => set({ blockHard: v })} />
           </div>
           <div>

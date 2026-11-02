@@ -75,7 +75,7 @@ export function parseReportEnvelope(text) {
   const afterOpener = normalized.slice(opener.index + opener[0].length);
   const closers = [...afterOpener.matchAll(CLOSER_ALL)];
   if (closers.length === 0) {
-    return { ok: false, error: "The <<report-md>> envelope was never closed — the report output is incomplete." };
+    return { ok: false, error: "The <<report-md>> envelope was never closed; the report output is incomplete." };
   }
   if (closers.length !== 1) {
     return { ok: false, error: `Found ${closers.length} <<report-md>> closers; refusing to guess where the report ends.` };
@@ -84,13 +84,13 @@ export function parseReportEnvelope(text) {
 
   const markdown = afterOpener.slice(0, closer.index).replace(/^\n/, "").replace(/\n$/, "");
   if (!markdown.trim()) {
-    return { ok: false, error: "The <<report-md>> envelope was empty — no report was written." };
+    return { ok: false, error: "The <<report-md>> envelope was empty; no report was written." };
   }
   if (!/^#\s/m.test(markdown)) {
-    return { ok: false, error: "The report has no markdown title — the output is incomplete." };
+    return { ok: false, error: "The report has no markdown title; the output is incomplete." };
   }
   if (!/##\s*Machine Summary/i.test(markdown)) {
-    return { ok: false, error: "The report has no Machine Summary — the tracker row cannot be built from it." };
+    return { ok: false, error: "The report has no Machine Summary, so the tracker row cannot be built from it." };
   }
 
   return { ok: true, markdown };

@@ -304,7 +304,7 @@ export async function openSession(url: string, cliId?: string, forceAgent?: bool
   const issues: ApplyIssue[] = [...consentIssues];
   if (cap) issues.push(cap);
   if (multi) issues.push(multi);
-  if (aiInterpreted) issues.push({ level: "info", code: "ai-interpreted", message: "This form had an uncommon layout, so AI read its fields live — give them an extra check before submitting." });
+  if (aiInterpreted) issues.push({ level: "info", code: "ai-interpreted", message: "This form had an uncommon layout, so AI read its fields live. Give them an extra check before submitting." });
   // agentInterpretForm just ran the user's chosen CLI over this form. If that
   // runtime has no verified fencing mechanism it read the page with its default
   // access, and the user should know — agent-interpret.ts has no stream of its
@@ -315,7 +315,7 @@ export async function openSession(url: string, cliId?: string, forceAgent?: bool
   // it (no CLI, no controls, refused argv) owes no warning.
   const interpretFencing = agentSpawned && cliId ? fencingReport({ cliId, cliName: resolveCli(cliId)?.spec.name ?? cliId, capabilities: CAPS.localReadOnly }) : null;
   if (interpretFencing?.notice) issues.push({ level: "warn", code: "cli-unfenced", message: interpretFencing.notice });
-  if (unlabeled > 0) issues.push({ level: "warn", code: "unlabeled-fields", message: `${unlabeled} field${unlabeled > 1 ? "s" : ""} couldn't be labelled cleanly — double-check ${unlabeled > 1 ? "them" : "it"} before submitting.` });
+  if (unlabeled > 0) issues.push({ level: "warn", code: "unlabeled-fields", message: `${unlabeled} field${unlabeled > 1 ? "s" : ""} couldn't be labelled cleanly. Double-check ${unlabeled > 1 ? "them" : "it"} before submitting.` });
 
   const id = `apply-${crypto.randomUUID()}`;
   SESSIONS.set(id, { id, url, title: form.title, fields: form.fields, context, page, frame, createdAt: Date.now(), formShot: shots[shots.length - 1] });
@@ -383,8 +383,8 @@ export async function finalizeDrivenSession(id: string, cliId?: string): Promise
   s.frame = frame;
   s.fields = form.fields;
   if (form.title) s.title = form.title;
-  const issues: ApplyIssue[] = [{ level: "info", code: "ai-navigated", message: "AI navigated to reach this application form on your machine — review the fields before submitting." }];
-  if (aiInterpreted) issues.push({ level: "info", code: "ai-interpreted", message: "AI also read the fields live (uncommon layout) — give them an extra check." });
+  const issues: ApplyIssue[] = [{ level: "info", code: "ai-navigated", message: "AI navigated to reach this application form on your machine. Review the fields before submitting." }];
+  if (aiInterpreted) issues.push({ level: "info", code: "ai-interpreted", message: "AI also read the fields live (uncommon layout). Give them an extra check." });
   // agentInterpretForm just ran the user's chosen CLI over this form. If that
   // runtime has no verified fencing mechanism it read the page with its default
   // access, and the user should know — agent-interpret.ts has no stream of its
@@ -481,7 +481,7 @@ export async function fillSession(
     // human must affirmatively accept. (The planner already flags these
     // needs_confirmation; this guarantees it even if it slips.)
     if (meta.type === "checkbox" && /\b(i (have )?read|i agree|i consent|i accept|consent to|privacy notice|terms|gdpr|data protection)\b/i.test(meta.label || "")) {
-      steps.push({ fieldId: fid, label: `${meta.label} — you confirm`, ok: false, thumb: undefined });
+      steps.push({ fieldId: fid, label: `${meta.label} (you confirm)`, ok: false, thumb: undefined });
       continue;
     }
     let ok = false;

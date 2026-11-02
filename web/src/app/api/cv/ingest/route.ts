@@ -93,7 +93,7 @@ export async function POST(req: Request) {
       // Judged on the CLI that will actually run: a stale saved id falls back to
       // the sole installed CLI, and that may well be Claude.
       if (resolved.spec.id !== "claude" && /\.(pdf|docx)$/i.test(file.name)) {
-        return Response.json({ error: "PDF upload needs Claude Code — paste your CV text instead." }, { status: 400 });
+        return Response.json({ error: "PDF upload needs Claude Code. Paste your CV text instead." }, { status: 400 });
       }
       const ext = (file.name.match(/\.[a-z0-9]+$/i)?.[0] || ".pdf").toLowerCase();
       const dir = fs.mkdtempSync(path.join(os.tmpdir(), "career-ops-cv-"));

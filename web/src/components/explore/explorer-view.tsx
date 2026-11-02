@@ -135,15 +135,15 @@ export function ExplorerView({
         {!isResults && (
           <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-muted">
             {isAi
-              ? "Describe the role in plain language — an AI hunts the open web for it, on your own AI. Candidates are unverified until you evaluate."
-              : "Scan the public ATS network — Greenhouse, Lever, Ashby, Workday. Fresh postings matched to you, zero tokens. You only spend when you choose to evaluate one."}
+              ? "Describe the role in plain language. An AI hunts the open web for it, on your own AI. Candidates are unverified until you evaluate."
+              : "Scan the public ATS network: Greenhouse, Lever, Ashby, Workday. Fresh postings matched to you, zero tokens. You only spend when you choose to evaluate one."}
           </p>
         )}
       </header>
 
       {!rootExists && (
         <div className="mb-5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-300">
-          Your career-ops home isn’t set up yet — discovery needs a checkout with a profile to seed from.
+          Your career-ops home isn’t set up yet. Discovery needs a checkout with a profile to seed from.
         </div>
       )}
 
@@ -164,7 +164,7 @@ export function ExplorerView({
             {phase === "empty-loose" && (
               <EmptyState
                 tone="loose"
-                title="No public matches — yet."
+                title="No public matches, yet."
                 body="AI search reads what's public. Try broader intent, or run the free Scan over the ATS network."
                 onRerun={() => setMode("scan")}
                 rerunLabel="Run the free Scan"
@@ -201,7 +201,7 @@ export function ExplorerView({
             <div className="mb-4 flex items-start gap-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3">
               <Sparkles className="mt-0.5 size-4 shrink-0 text-emerald-500" />
               <p className="text-[13px] leading-relaxed text-foreground">
-                These are live roles that match your CV. <span className="text-emerald-600 dark:text-emerald-400">Nothing here cost you a token.</span> Pick the one you&apos;re most curious about — Evaluate it and I&apos;ll tell you exactly how you score, and why.
+                These are live roles that match your CV. <span className="text-emerald-600 dark:text-emerald-400">Nothing here cost you a token.</span> Pick the one you&apos;re most curious about. Evaluate it and I&apos;ll tell you exactly how you score, and why.
               </p>
             </div>
           )}
@@ -226,7 +226,7 @@ export function ExplorerView({
             <EmptyState
               tone="good"
               title="You're all caught up."
-              body="Nothing new since your last scan. Your pipeline is current — that's the goal."
+              body="Nothing new since your last scan. Your pipeline is current, and that's the goal."
               note={scanNote}
               onRerun={() => {
                 setFilters({ ...filters, sinceDays: Math.max(filters.sinceDays, 30) });
@@ -238,8 +238,8 @@ export function ExplorerView({
           {phase === "empty-loose" && (
             <EmptyState
               tone="loose"
-              title="No fresh matches — yet."
-              body="Discovery is free — loosen and re-cast as often as you want."
+              title="No fresh matches, yet."
+              body="Discovery is free: loosen and re-cast as often as you want."
               note={scanNote}
               onRerun={() => {
                 setFilters({ ...filters, sinceDays: 30, block: [], allow: [] });
@@ -321,16 +321,16 @@ function DegradedCard({
   // is available; otherwise the 0-companies fallback).
   let title = "The scan ran, but couldn’t reach any sources.";
   let body =
-    "The public ATS directories didn’t respond — usually a transient network hiccup or rate-limit, so nothing could be searched. This isn’t “all caught up”; a retry in a moment usually clears it.";
+    "The public ATS directories didn’t respond, usually a transient network hiccup or rate-limit, so nothing could be searched. This isn’t “all caught up”; a retry in a moment usually clears it.";
   if (companiesScanned > 0 && capHit) {
     title = "No matches in the slice we searched.";
-    body = `The scan is capped, so it only searched ${companiesScanned.toLocaleString()}${companiesAvailable > companiesScanned ? ` of ${companiesAvailable.toLocaleString()}` : ""} companies — not the whole network. Raise scan depth (Refine search) or narrow your roles, then re-cast to look deeper.`;
+    body = `The scan is capped, so it only searched ${companiesScanned.toLocaleString()}${companiesAvailable > companiesScanned ? ` of ${companiesAvailable.toLocaleString()}` : ""} companies, not the whole network. Raise scan depth (Refine search) or narrow your roles, then re-cast to look deeper.`;
   } else if (companiesScanned > 0 && droppedNoDate > 0) {
     title = "Fresh-looking roles were skipped for missing dates.";
     body = `${droppedNoDate.toLocaleString()} posting${droppedNoDate === 1 ? "" : "s"} matched but had no clear publish date, so the freshness filter dropped them. Widening the time window often brings dated equivalents back.`;
   } else if (companiesScanned > 0 && partial) {
     title = "Some job boards were unreachable.";
-    body = `The scan searched ${companiesScanned.toLocaleString()} companies, but one or more sources didn’t respond — so this is a partial result, not “all caught up”. A retry usually clears it.`;
+    body = `The scan searched ${companiesScanned.toLocaleString()} companies, but one or more sources didn’t respond, so this is a partial result, not “all caught up”. A retry usually clears it.`;
   }
   return (
     <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-5 text-center">
@@ -350,7 +350,7 @@ function CappedBanner({ companiesScanned, companiesAvailable, onRefine }: { comp
   return (
     <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-xl border border-amber-500/25 bg-amber-500/[0.07] px-4 py-2.5 text-[13px]">
       <span className="text-foreground">
-        Showing a capped slice — searched {companiesScanned.toLocaleString()}
+        Showing a capped slice: searched {companiesScanned.toLocaleString()}
         {companiesAvailable > companiesScanned ? ` of ${companiesAvailable.toLocaleString()}` : ""} companies.
       </span>
       <button onClick={onRefine} className="font-medium text-brand hover:underline">
@@ -376,7 +376,7 @@ function FailedCard({ msg, scannerMissing, onRetry }: { msg: string; scannerMiss
         </div>
         <h2 className={`${instrumentSerif.className} mt-4 text-2xl text-foreground`}>Discovery needs the full toolkit</h2>
         <p className="mx-auto mt-1.5 max-w-md text-sm text-muted">
-          Your career-ops home looks data-only or is on an older version. The free scanner ships with a complete checkout —
+          Your career-ops home looks data-only or is on an older version. The free scanner ships with a complete checkout:
           update career-ops, or paste a job URL on the pipeline to evaluate it directly.
         </p>
         <div className="mt-4 flex flex-wrap justify-center gap-2">
@@ -410,7 +410,7 @@ function BlockedCard() {
       </div>
       <h2 className={`${instrumentSerif.className} mt-4 text-2xl text-foreground`}>AI search needs a CLI</h2>
       <p className="mx-auto mt-1.5 max-w-md text-sm text-muted">
-        Connect Claude Code, Gemini, or any agent CLI — your key, your tokens, your machine. The free Scan stays available without one.
+        Connect Claude Code, Gemini, or any agent CLI: your key, your tokens, your machine. The free Scan stays available without one.
       </p>
       <Link href="/config" className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-brand px-3.5 py-2 text-sm font-semibold text-brand-foreground transition hover:brightness-110">
         <Settings className="size-4" /> Open Config

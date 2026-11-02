@@ -4,7 +4,7 @@ import { currentPhase } from "./lifecycle.mjs";
 
 // Carry only the list's own filters through a report URL. Return destinations
 // remain fixed to /pipeline; no arbitrary "returnTo" URL or browser storage.
-const FILTER_KEYS = ["tab", "min", "sort", "dir", "q"];
+const FILTER_KEYS = ["tab", "min", "sort", "dir", "q", "view"];
 
 /**
  * @param {string | Record<string, string | string[] | undefined>} params
@@ -67,6 +67,21 @@ export const TAB_LABELS = {
 export const GRID_TABS = /** @type {const} */ ([
   "EVALUATED", "APPROVED", "RESPONDED", "SCREENING", "ASSESSMENT", "TECH_INTERVIEW", "HIRING_MANAGER", "FINAL_INTERVIEW", "OFFER",
 ]);
+
+// The open hiring-phase tabs, where the List/Board switch shows (?view=board):
+// the board puts all of them side by side as columns.
+export const BOARD_TABS = /** @type {const} */ ([
+  "APPLIED", "RESPONDED", "SCREENING", "ASSESSMENT", "TECH_INTERVIEW", "HIRING_MANAGER", "FINAL_INTERVIEW", "OFFER",
+]);
+
+/**
+ * Whether the board shows for this tab and ?view value.
+ * @param {string} tab
+ * @param {string|null|undefined} view
+ */
+export function showsBoard(tab, view) {
+  return view === "board" && /** @type {readonly string[]} */ (BOARD_TABS).includes(tab);
+}
 
 /** The tab of each hiring phase (lifecycle.mjs PHASES). Hired sits under Offer. */
 const TAB_OF_PHASE = {

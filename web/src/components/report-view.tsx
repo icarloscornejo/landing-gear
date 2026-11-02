@@ -13,6 +13,7 @@ import {
 } from "@/lib/report-sections.mjs";
 import { isApproved } from "@/lib/home/awaiting.mjs";
 import { LifecycleActions } from "@/components/lifecycle-actions";
+import { InterviewDate } from "@/components/interview-date";
 import { CompanyLogo } from "@/components/company-logo";
 import { ScoreLevers } from "@/components/score-levers";
 import { readMachineSummary } from "@/lib/machine-summary.mjs";
@@ -139,6 +140,7 @@ export function ReportView({
             {facts.nextAction}
           </p>
         )}
+        {app && <InterviewDate app={app} className="mt-4" />}
         {app && <LifecycleActions app={app} className="mt-4" />}
       </section>
 

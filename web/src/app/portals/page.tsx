@@ -26,10 +26,10 @@ export default function PortalsPage() {
       </div>
       <p className="mt-1.5 max-w-xl text-sm text-muted">
         The companies career-ops watches for new roles. Run a health check to catch company boards that have quietly
-        broken — a broken link means that company silently disappears from every future scan.
+        broken: a broken link means that company silently disappears from every future scan.
       </p>
       <p className="mt-1.5 text-xs text-faint">
-        Backed by <code className="text-muted">portals.yml</code> — edit it directly or ask the assistant.
+        Backed by <code className="text-muted">portals.yml</code>. Edit it directly or ask the assistant.
       </p>
       {error && (
         <p role="alert" className="mt-4 rounded-xl border border-rose-500/40 bg-rose-500/10 p-3 text-sm text-rose-600 dark:text-rose-400">

@@ -102,21 +102,21 @@ export function parseCvEnvelope(text) {
   const afterOpener = normalized.slice(opener.index + opener[0].length);
   const closer = CLOSER.exec(afterOpener);
   if (!closer) {
-    return { ok: false, error: "The <<cv-html>> envelope was never closed — the CV output is incomplete." };
+    return { ok: false, error: "The <<cv-html>> envelope was never closed; the CV output is incomplete." };
   }
 
   // The opener match stops before its newline and the closer starts on its own
   // line, so exactly one delimiting newline sits on each side of the body.
   const html = afterOpener.slice(0, closer.index).replace(/^\n/, "").replace(/\n$/, "");
   if (!html.trim()) {
-    return { ok: false, error: "The <<cv-html>> envelope was empty — no CV was tailored." };
+    return { ok: false, error: "The <<cv-html>> envelope was empty; no CV was tailored." };
   }
   // A closing </html> is what distinguishes a whole document from one the agent
   // cut off mid-emission — the realistic failure when emitting 15-25 KB inline.
   // This belongs here, not in the caller: the caller reports THIS error string, so
   // splitting the rule out would leave the user with a generic message.
   if (!/<\/html\s*>/i.test(html)) {
-    return { ok: false, error: "The CV was cut off before its closing </html> tag — the output is incomplete." };
+    return { ok: false, error: "The CV was cut off before its closing </html> tag; the output is incomplete." };
   }
 
   const warnings = [];

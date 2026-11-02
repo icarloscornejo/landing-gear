@@ -98,7 +98,7 @@ export function ShortlistTray({
           {/* cost line — always visible on mobile (where it doesn't fit in the button) */}
           <div className="flex items-center gap-2 border-t border-border/60 px-3 py-1.5 text-[11px] text-muted sm:hidden">
             <CostBadge kind="spend" size="xs" />
-            <span>{costText} — the only step that spends</span>
+            <span>{costText}, the only step that spends</span>
           </div>
         </div>
       </div>

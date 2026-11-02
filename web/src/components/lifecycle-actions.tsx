@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useLifecyclePost } from "@/lib/use-lifecycle-post";
 import { Check, Copy, Loader2, ThumbsUp, X } from "lucide-react";
 import { EXIT_KINDS, currentPhase, isOpenApplied, nextPhases, nextRound, nextStatuses, phaseInfo, phaseLabel, type ExitKind } from "@/lib/lifecycle.mjs";
 import { cn } from "@/lib/cn";
@@ -13,7 +13,7 @@ import type { Application } from "@/lib/career-ops";
 type Busy = string;
 
 /** What each exit button says, in Carlos's voice. */
-const EXIT_LABELS: Record<ExitKind, string> = {
+export const EXIT_LABELS: Record<ExitKind, string> = {
   rejected: "They rejected me",
   withdrawn: "I withdrew",
   ghosted: "Ghosted",
@@ -28,14 +28,9 @@ const EXIT_LABELS: Record<ExitKind, string> = {
 // `onDone` runs after every answer, success or not, so a page that loads its
 // rows client-side (Follow-ups) refetches and never keeps stale buttons.
 export function LifecycleActions({ app, className, onDone, compact = false }: { app: Pick<Application, "n" | "status" | "notes">; className?: string; onDone?: () => void; compact?: boolean }) {
-  const router = useRouter();
-  const [busy, setBusy] = useState<Busy>("");
-  const [error, setError] = useState<string | null>(null);
-  const [needsCvRetry, setNeedsCvRetry] = useState(false);
-  const [note, setNote] = useState<string | null>(null);
+  const { busy, error, note, needsCvRetry, post: send } = useLifecyclePost(onDone);
   const [confirmExit, setConfirmExit] = useState<ExitKind | "discard" | null>(null);
   const [repeatOpen, setRepeatOpen] = useState(false);
-  const submitting = useRef(false);
 
   const approved = isApproved(app);
   const status = canonStatus(String(app.status ?? "").trim());
@@ -51,30 +46,9 @@ export function LifecycleActions({ app, className, onDone, compact = false }: { 
   const canDiscard = !applied && nextStatuses(status).includes("Discarded");
 
   const post = async (kind: Busy, url: string, payload: Record<string, unknown>) => {
-    if (submitting.current) return;
-    submitting.current = true;
-    setBusy(kind);
-    setError(null);
-    let cvLogFailed = false;
-    try {
-      const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-      const result = (await response.json().catch(() => null)) as { ok?: boolean; error?: string; warnings?: string[]; warning?: string; steps?: { outcome?: { ok: boolean } } } | null;
-      if (!response.ok || !result?.ok) {
-        setError(result?.error ?? "Could not save the change. Check the pipeline and retry.");
-        return;
-      }
-      cvLogFailed = result.steps?.outcome?.ok === false;
-      setNeedsCvRetry(cvLogFailed);
-      setNote(result.warnings?.join(" ") ?? result.warning ?? null);
+    if (await send(kind, url, payload)) {
       setConfirmExit(null);
       setRepeatOpen(false);
-      router.refresh();
-    } catch {
-      setError("Could not confirm the change. Check your connection, then retry.");
-    } finally {
-      submitting.current = false;
-      setBusy("");
-      if (!cvLogFailed) onDone?.();
     }
   };
 

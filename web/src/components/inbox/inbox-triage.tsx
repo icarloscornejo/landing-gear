@@ -249,13 +249,15 @@ export function InboxTriage({ inbox }: { inbox: InboxJob[] }) {
     visible.filter((e) => (kind === "evaluate" || !e.job.triage) && !runningFor(kind, e.job.url) && !scoreByUrl.get(e.job.url)?.running);
   // Zero-token pre-triage: closes plainly-out rows, marks the rest so it never reruns on them.
   const pretriageCount = inbox.filter((job) => !job.done && !job.pretriaged && !job.triage).length;
+  // Re-check runs the current rules again on rows already pre-triaged (but not triaged).
+  const recheckCount = inbox.filter((job) => !job.done && job.pretriaged && !job.triage).length;
   const [pretriaging, setPretriaging] = useState(false);
-  const [pretriageResult, setPretriageResult] = useState<{ passed: number; dropped: { company: string; role: string; reason: string }[]; failed: string[] } | null>(null);
-  const runPretriage = async () => {
+  const [pretriageResult, setPretriageResult] = useState<{ passed: number; withoutJd?: number; dropped: { company: string; role: string; reason: string }[]; failed: string[] } | null>(null);
+  const runPretriage = async (recheck = false) => {
     setPretriaging(true);
     setWriteError("");
     try {
-      const response = await fetch("/api/pretriage", { method: "POST" });
+      const response = await fetch("/api/pretriage", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ recheck }) });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error ?? `HTTP ${response.status}`);
       setPretriageResult(body);
@@ -303,10 +305,22 @@ export function InboxTriage({ inbox }: { inbox: InboxJob[] }) {
             onClick={() => void runPretriage()}
             disabled={pretriaging}
             aria-busy={pretriaging}
-            title="Free check by title, location and tracker: closes what is plainly out, marks the rest as pre-triaged"
+            title="Free check (no tokens) by title, location, tracker and, when it can be read for free, the JD: closes what is plainly out, marks the rest as pre-triaged"
             className="rounded-md border border-brand/40 bg-brand-soft px-2.5 py-1 text-xs font-medium text-brand-text transition-colors hover:bg-brand/15 disabled:opacity-50 max-sm:min-h-[44px]"
           >
             {pretriaging ? "Pre-triaging…" : `Pre-triage all (${pretriageCount})`}
+          </button>
+        )}
+        {recheckCount > 0 && (
+          <button
+            type="button"
+            onClick={() => void runPretriage(true)}
+            disabled={pretriaging}
+            aria-busy={pretriaging}
+            title="Run the current pre-triage rules again on rows already pre-triaged but not triaged"
+            className="rounded-md border border-border px-2.5 py-1 text-xs font-medium text-muted transition-colors hover:border-brand/40 hover:text-brand disabled:opacity-50 max-sm:min-h-[44px]"
+          >
+            {pretriaging ? "Checking…" : `Re-check (${recheckCount})`}
           </button>
         )}
         {(["triage", "evaluate"] as const).map((kind) => {
@@ -341,7 +355,7 @@ export function InboxTriage({ inbox }: { inbox: InboxJob[] }) {
         <div className="mt-2 rounded-lg border border-border bg-surface/40 px-4 py-3 text-xs text-muted">
           <div className="flex items-start justify-between gap-3">
             <p>
-              <span className="font-medium text-foreground">Pre-triage:</span> {pretriageResult.passed} kept, {pretriageResult.dropped.length} closed
+              <span className="font-medium text-foreground">Pre-triage:</span> {pretriageResult.passed} kept{pretriageResult.withoutJd ? ` (${pretriageResult.withoutJd} without a readable JD)` : ""}, {pretriageResult.dropped.length} closed
               {pretriageResult.failed.length > 0 && <span className="text-red-600 dark:text-red-400">, {pretriageResult.failed.length} not written ({pretriageResult.failed.join("; ")})</span>}
             </p>
             <button type="button" onClick={() => setPretriageResult(null)} className="shrink-0 text-faint hover:text-foreground">Dismiss</button>
@@ -399,7 +413,7 @@ export function InboxTriage({ inbox }: { inbox: InboxJob[] }) {
 
       {/* empty-shortlist guidance (only once there's nothing saved) */}
       {shortlist.length === 0 && (
-        <p className="mt-4 text-center text-xs text-faint">Save roles worth a look, then score them together — one token spend.</p>
+        <p className="mt-4 text-center text-xs text-faint">Save roles worth a look, then score them together: one token spend.</p>
       )}
       </div>
 

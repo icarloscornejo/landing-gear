@@ -7,7 +7,7 @@ function intervalMs(every, unit) {
   return null;
 }
 
-function localParts(epochMs, timezone) {
+export function localParts(epochMs, timezone) {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: timezone,
     year: "numeric", month: "2-digit", day: "2-digit",
@@ -17,7 +17,7 @@ function localParts(epochMs, timezone) {
   return { year: values.year, month: values.month, day: values.day, hour: values.hour, minute: values.minute, second: values.second };
 }
 
-function localToEpochMs(parts, timezone) {
+export function localToEpochMs(parts, timezone) {
   const wall = Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, parts.second);
   let guess = wall;
   for (let i = 0; i < 3; i += 1) {

@@ -204,7 +204,7 @@ export function ExploreProvider({ children }: { children: React.ReactNode }) {
       switch (ev.kind) {
         case "atsStart":
           setPhase("scanning");
-          setStatus(`Walking ${ATS_LABEL[ev.ats as AtsSource] ?? ev.ats} — ${ev.companies.toLocaleString()} companies`);
+          setStatus(`Walking ${ATS_LABEL[ev.ats as AtsSource] ?? ev.ats}: ${ev.companies.toLocaleString()} companies`);
           setSources((s) => ({ ...s, [ev.ats]: { ...s[ev.ats as AtsSource], state: "active", companies: ev.companies } }));
           break;
         case "progress":
@@ -302,7 +302,7 @@ export function ExploreProvider({ children }: { children: React.ReactNode }) {
       }
       setMatchCount(acc.length);
       setPhase("revealing");
-      setStatus(`${acc.length} fresh role${acc.length === 1 ? "" : "s"} found — free.`);
+      setStatus(`${acc.length} fresh role${acc.length === 1 ? "" : "s"} found, free.`);
       window.setTimeout(() => {
         if (runs.current.owns(run)) setPhase("results");
       }, 850);
@@ -354,7 +354,7 @@ export function ExploreProvider({ children }: { children: React.ReactNode }) {
       const d = await r.json().catch(() => null);
       if (!runs.current.owns(run)) return;
       if (!d || !Array.isArray(d.offers)) {
-        setError("Couldn't load fresh matches — unexpected response.");
+        setError("Couldn't load fresh matches: unexpected response.");
         setPhase("failed");
         return;
       }

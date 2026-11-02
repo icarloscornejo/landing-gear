@@ -346,7 +346,7 @@ const ACTIONS: Record<string, ActionDef> = {
         run: () => {
           ctx.writeProfile!(p as Record<string, unknown>);
           if (p.roles?.length) ctx.writePortals?.(p.roles, p.location ? [p.location] : undefined);
-          return { note: "Profile saved — your matches will sharpen." };
+          return { note: "Profile saved. Your matches will sharpen." };
         },
       };
     },
@@ -369,7 +369,7 @@ const ACTIONS: Record<string, ActionDef> = {
         summary: `Save your personalization? (${labels.join(", ")})`,
         run: () => {
           ctx.writePersonalization!(p);
-          return { note: "Personalization saved — evaluations now score against YOUR targeting." };
+          return { note: "Personalization saved. Evaluations now score against YOUR targeting." };
         },
       };
     },

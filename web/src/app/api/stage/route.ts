@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import { findApplication } from "@/lib/career-ops";
+import { findApplication, readProfileTimezone } from "@/lib/career-ops";
+import { wallToIso } from "@/lib/interview-date.mjs";
 import { canonStatus } from "@/lib/status-alias.mjs";
 import { parseCliJson, trackerRowArg } from "@/lib/status-cli.mjs";
 import { readJsonObject } from "@/lib/json-body";
 import { readRowWithHash, runSetStatus, setStatusFailure } from "@/lib/set-status-run";
-import { currentPhase, nextPhases, nextRound, phaseInfo, phaseLabel, phaseNote, type PhaseKey } from "@/lib/lifecycle.mjs";
+import { DATED_PHASES, currentPhase, nextPhases, nextRound, phaseInfo, phaseLabel, phaseNote, type PhaseKey } from "@/lib/lifecycle.mjs";
 import { cvPickUrl, recordCvOutcome } from "@/lib/cv-pick-run";
 import { expectedMismatch } from "@/lib/phase-guard";
 
@@ -16,12 +17,19 @@ export const runtime = "nodejs";
 // replayed click cannot write a round that never happened, and --expect-tracker
 // refuses the write if the row changed after it was read.
 export async function POST(req: Request) {
-  const body = await readJsonObject<{ n?: string; phase?: string; expected?: { phase?: string; round?: number } }>(req);
+  const body = await readJsonObject<{ n?: string; phase?: string; at?: string; expected?: { phase?: string; round?: number } }>(req);
   if (!body) return NextResponse.json({ error: "bad json" }, { status: 400 });
   const row = trackerRowArg(body.n);
   if (!row) return NextResponse.json({ error: "n must be a tracker row number" }, { status: 400 });
   const phase = body.phase as PhaseKey;
   if (typeof body.phase !== "string" || !phaseInfo(phase)) return NextResponse.json({ error: "unknown phase" }, { status: 400 });
+  // Optional interview date: a datetime-local wall time, rebuilt as ISO here so no client text reaches the tracker.
+  let at: string | null = null;
+  if (body.at) {
+    if (!(DATED_PHASES as readonly string[]).includes(phase)) return NextResponse.json({ error: `${phaseInfo(phase).label} takes no date` }, { status: 400 });
+    at = wallToIso(body.at, readProfileTimezone());
+    if (!at) return NextResponse.json({ error: "at must be a date and time (YYYY-MM-DDTHH:MM)" }, { status: 400 });
+  }
 
   const read = readRowWithHash(row);
   if (!read) return NextResponse.json({ error: "tracker not found" }, { status: 404 });
@@ -37,7 +45,7 @@ export async function POST(req: Request) {
 
   const round = nextRound(read.app, phase);
   const status = phaseInfo(phase).status;
-  const note = phaseNote(phase, round);
+  const note = phaseNote(phase, round, at);
   const result = await runSetStatus([
     "--row", row, status, ...(note ? [`--note=${note}`] : []),
     // A move into Interview archives the JD; detached, so it cannot outlast the web's 30 s timeout.
@@ -63,6 +71,7 @@ export async function POST(req: Request) {
     phase,
     round,
     label: phaseLabel(phase, round),
+    at,
     ...(parsed?.jdArchiveTriggered ? { jdArchiveTriggered: parsed.jdArchiveTriggered } : {}),
     ...(warning ? { warning } : {}),
   });

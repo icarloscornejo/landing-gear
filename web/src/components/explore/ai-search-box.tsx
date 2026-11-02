@@ -52,7 +52,7 @@ export function AiSearchBox({
       <style>{STYLE}</style>
       <div className="co-aibox p-4">
         <div className="mb-2 flex items-center gap-2 text-[12px] font-medium text-brand">
-          <Sparkles className="size-3.5" /> Describe the role — an AI hunts the open web for it
+          <Sparkles className="size-3.5" /> Describe the role, an AI hunts the open web for it
         </div>
         <textarea
           ref={ref}
@@ -68,13 +68,13 @@ export function AiSearchBox({
               if (intent.trim()) onSubmit();
             }
           }}
-          placeholder="“AI infra at climate startups, remote EU, not staff-level” — plain language, your words"
+          placeholder="“AI infra at climate startups, remote EU, not staff-level” (plain language, your words)"
         />
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
           <span className="text-[12px] text-muted">
             {cliConfigured ? (
               <>
-                Reads the public web with <span className="text-foreground">{cliName || "your CLI"}</span> — it costs your tokens.
+                Reads the public web with <span className="text-foreground">{cliName || "your CLI"}</span>. It costs your tokens.
               </>
             ) : (
               "Connect an AI CLI in Config to use AI search."

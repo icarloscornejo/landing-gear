@@ -21,3 +21,17 @@ test("the lifecycle strip counts each stage and flags the ones waiting on Carlos
   ]);
   assert.deepEqual(replies.map((r) => [r.n, r.status]), [["4", "RESPONDED"]]);
 });
+
+test("upcoming lists dated current rounds from two hours ago on, soonest first, soon within a day", () => {
+  const now = Date.parse("2026-10-28T12:00-06:00");
+  const apps = [
+    { n: "1", status: "Interview", company: "Later", notes: "STAGE: Tech interview 1 @ 2026-11-03T10:00-06:00" },
+    { n: "2", status: "Responded", company: "Tomorrow", notes: "STAGE: Screening 2 @ 2026-10-29T09:00-06:00" },
+    { n: "3", status: "Responded", company: "Past", notes: "STAGE: Screening 1 @ 2026-10-27T10:00-06:00" },
+    // A dated note from an earlier phase is not the current round.
+    { n: "4", status: "Interview", company: "Moved on", notes: "STAGE: Screening 1 @ 2026-10-30T10:00-06:00; STAGE: Final interview 1" },
+    { n: "5", status: "Responded", company: "Undated", notes: "STAGE: Screening 1" },
+  ];
+  const { upcoming } = todayOverview(apps, [], now);
+  assert.deepEqual(upcoming.map((u) => [u.n, u.phase, u.soon]), [["2", "Screening 2", true], ["1", "Tech interview 1", false]]);
+});

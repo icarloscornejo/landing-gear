@@ -63,7 +63,7 @@ export function withFollowupsWrite<T>(fn: () => T | Promise<T>): Promise<T> {
 export function followupsWriteError(e: unknown, fallback = "write failed"): Response {
   if (e instanceof FollowupsBusyError) {
     return Response.json(
-      { error: "follow-ups file is busy — try again in a moment" },
+      { error: "follow-ups file is busy, try again in a moment" },
       { status: 409, headers: { "Retry-After": "1" } },
     );
   }

@@ -200,7 +200,7 @@ export function ApplyView() {
               <MousePointerClick className="size-4" /> Let the AI fill it
             </button>
             <p className="inline-flex items-center gap-1.5 text-xs text-muted">
-              <ShieldCheck className="size-3.5 text-emerald-500" /> Never submits — you click Submit yourself.
+              <ShieldCheck className="size-3.5 text-emerald-500" /> Never submits: you click Submit yourself.
             </p>
           </div>
 
@@ -230,7 +230,7 @@ export function ApplyView() {
               <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-emerald-500" />
               <div>
                 <span className="font-medium text-emerald-700 dark:text-emerald-400">The real form is now in front, pre-filled.</span>{" "}
-                <span className="text-muted">Review it and click Submit yourself — career-ops never submits for you.</span>
+                <span className="text-muted">Review it and click Submit yourself. career-ops never submits for you.</span>
               </div>
             </div>
           )}
@@ -299,7 +299,7 @@ function ApplyExitBar() {
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
         if (!onPage.current) return; // moved on already; the row is unchanged
-        setError(d.error || "Couldn't mark it applied — the tracker row is unchanged.");
+        setError(d.error || "Couldn't mark it applied; the tracker row is unchanged.");
         setMarking(false);
         return;
       }
@@ -309,7 +309,7 @@ function ApplyExitBar() {
       // The route writes the tracker before it answers, so a connection that
       // drops on the way back leaves the write's fate genuinely unknown —
       // claiming the row is untouched here would be a guess.
-      setError("Couldn't confirm the update — check the row in your tracker before relying on it.");
+      setError("Couldn't confirm the update. Check the row in your tracker before relying on it.");
       setMarking(false);
     }
   }
@@ -387,7 +387,7 @@ function DrivePanel({ steps, filling }: { steps: DriveStep[]; filling?: boolean 
           <MousePointerClick className="size-6 text-brand" />
         </span>
         <div className="font-display text-2xl text-landing">{filling ? "AI is filling the form…" : "Reaching your form…"}</div>
-        <p className="max-w-sm text-sm text-muted">{filling ? "The AI is driving the real form field-by-field on your machine — it never submits; you review and submit." : "The AI is navigating the real application on your machine to reach the form — it never submits."}</p>
+        <p className="max-w-sm text-sm text-muted">{filling ? "The AI is driving the real form field-by-field on your machine. It never submits; you review and submit." : "The AI is navigating the real application on your machine to reach the form. It never submits."}</p>
       </div>
       {last?.thumb ? (
         // eslint-disable-next-line @next/next/no-img-element
@@ -619,7 +619,7 @@ function FieldRow({
       ) : f.type === "file" ? (
         isResumeLabel(f.label) ? (
           <div className="flex items-center gap-2 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400">
-            <FileCheck2 className="size-4 shrink-0" /> Your tailored CV (PDF) will be attached automatically — you can swap it on the real form.
+            <FileCheck2 className="size-4 shrink-0" /> Your tailored CV (PDF) will be attached automatically. You can swap it on the real form.
           </div>
         ) : (
           <div className="flex items-center gap-2 rounded-lg border border-dashed border-border px-3 py-2 text-sm text-muted">

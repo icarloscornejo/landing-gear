@@ -6,7 +6,7 @@
  * Screening -> Assessment -> Tech interview -> Hiring manager -> Final interview
  * -> Offer -> Hired. A row's ribbon goes from one phase of its path to the next,
  * so a skipped phase is crossed, not counted. A closed row leaves through
- * "Out at <phase>" (rejected, withdrew, ghosted, posting closed); an open row
+ * "<How> at <phase>" (Rejected, Withdrew, Ghosted, Posting closed); an open row
  * simply stops at its phase, so a node is taller than its outgoing ribbons by
  * the rows still in it (the tooltip counts them). Counts match the pipeline
  * tabs and the Closed tab, which read the same helpers.
@@ -35,7 +35,8 @@ export const NODE_DEFS = [
 /** Phase key -> column. Applied is the "Submitted" column right after Tracked. */
 const RANK = Object.fromEntries(PHASES.map((phase, index) => [phase.key, index + 1]));
 const PHASE_TONE = { applied: "info", replied: "info", screening: "info", assessment: "info", tech: "success", manager: "success", final: "success", offer: "success", hired: "success" };
-const OUT_WORDS = { rejected: "rejected", withdrawn: "withdrew", ghosted: "ghosted", closed: "posting closed", repeated: "repeated", discarded: "discarded" };
+// One exit node per phase and kind, in this order, so how a role ended is on the label.
+const OUT_LABELS = { rejected: "Rejected", withdrawn: "Withdrew", ghosted: "Ghosted", closed: "Posting closed", repeated: "Repeated", discarded: "Discarded" };
 
 /**
  * Canonical status token via the shared alias table.
@@ -91,8 +92,6 @@ export function buildPipelineSankey(apps, log = []) {
   const ledger = Array.isArray(log) ? log : [];
   /** @type {Map<string, number>} */
   const flows = new Map();
-  /** @type {Map<string, Record<string, number>>} why rows left at each phase */
-  const outKinds = new Map();
   /** @type {Map<string, number>} open rows whose last phase is this one */
   const stillHere = new Map();
   const add = (source, target) => flows.set(`${source}>${target}`, (flows.get(`${source}>${target}`) ?? 0) + 1);
@@ -118,10 +117,7 @@ export function buildPipelineSankey(apps, log = []) {
       stillHere.set(last, (stillHere.get(last) ?? 0) + 1);
       continue;
     }
-    add(last, `out:${last}`);
-    const kinds = outKinds.get(last) ?? {};
-    kinds[outcome.kind] = (kinds[outcome.kind] ?? 0) + 1;
-    outKinds.set(last, kinds);
+    add(last, `out:${last}:${outcome.kind}`);
   }
 
   const links = [...flows].map(([key, value]) => {
@@ -145,16 +141,16 @@ export function buildPipelineSankey(apps, log = []) {
       // The rows still in this phase have no ribbon out; the tooltip counts them.
       detail: `${label}: ${reached} reached, ${stillHere.get(phase.key) ?? 0} still here`,
     });
-    const kinds = outKinds.get(phase.key) ?? {};
-    const out = inflow(`out:${phase.key}`);
-    nodes.push({
-      id: `out:${phase.key}`,
-      label: `Out at ${phaseInfo(phase.key).label}`,
-      rank: rank + 1,
-      tone: "danger",
-      value: out,
-      detail: `Out at ${phaseInfo(phase.key).label}: ${Object.entries(kinds).map(([kind, count]) => `${count} ${OUT_WORDS[kind] ?? kind}`).join(", ")}`,
-    });
+    for (const [kind, word] of Object.entries(OUT_LABELS)) {
+      const outLabel = `${word} at ${phaseInfo(phase.key).label}`;
+      nodes.push({
+        id: `out:${phase.key}:${kind}`,
+        label: outLabel,
+        rank: rank + 1,
+        tone: kind === "rejected" ? "danger" : "muted",
+        value: inflow(`out:${phase.key}:${kind}`),
+      });
+    }
   }
   const live = nodes.filter((node) => node.value > 0);
   const liveIds = new Set(live.map((node) => node.id));

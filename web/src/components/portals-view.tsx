@@ -67,13 +67,13 @@ export function PortalsView({ watched }: { watched: WatchedCompany[] }) {
 
       {res && !res.available && !res.error && (
         <p className="mt-4 rounded-xl border border-dashed border-border bg-surface/30 p-4 text-sm text-muted">
-          <code className="text-foreground">verify-portals.mjs</code> not found — this needs a complete career-ops
+          <code className="text-foreground">verify-portals.mjs</code> not found. This needs a complete career-ops
           checkout (the web orchestrates the core&apos;s validator).
         </p>
       )}
       {res && !res.available && res.error && (
         <p className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-muted">
-          <span className="font-medium text-red-700 dark:text-red-400">The portal check did not finish</span> — no
+          <span className="font-medium text-red-700 dark:text-red-400">The portal check did not finish</span>. No
           portal was verified, so none is shown as healthy. Try again, or run{" "}
           <code className="text-foreground">node verify-portals.mjs</code> to see why.{" "}
           <code className="break-all font-mono text-xs text-faint">{res.error}</code>
@@ -81,7 +81,7 @@ export function PortalsView({ watched }: { watched: WatchedCompany[] }) {
       )}
       {res && res.available && !res.configured && (
         <p className="mt-4 rounded-xl border border-dashed border-border bg-surface/30 p-4 text-sm text-muted">
-          No <code className="text-foreground">portals.yml</code> yet — ask the assistant to set up the companies to scan.
+          No <code className="text-foreground">portals.yml</code> yet. Ask the assistant to set up the companies to scan.
         </p>
       )}
 
@@ -96,10 +96,10 @@ export function PortalsView({ watched }: { watched: WatchedCompany[] }) {
             <div className="mt-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm">
               <span className="font-medium text-red-700 dark:text-red-400">
                 {broken.length} {broken.length === 1 ? "company silently drops" : "companies silently drop"} from every
-                scan
+                scan:
               </span>{" "}
               <span className="text-muted">
-                — their careers link is broken. Fix the <code>careers_url</code> in <code>portals.yml</code> (or ask the
+                their careers link is broken. Fix the <code>careers_url</code> in <code>portals.yml</code> (or ask the
                 assistant to repair them).
               </span>
             </div>

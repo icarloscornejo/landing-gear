@@ -88,7 +88,7 @@ export function FollowUpCard({ followup, onLogged }: { followup: FollowUp; onLog
           )}
         >
           {state === "logging" ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}{" "}
-          <span className="hidden max-w-48 truncate sm:inline">{state === "error" ? `${errorMsg ?? "Failed"} — retry` : "Mark followed up"}</span>
+          <span className="hidden max-w-48 truncate sm:inline">{state === "error" ? `${errorMsg ?? "Failed"}. Retry` : "Mark followed up"}</span>
           <span className="sm:hidden">{state === "error" ? "Retry" : "Followed up"}</span>
         </button>
         {followup.num != null && (

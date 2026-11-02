@@ -94,7 +94,7 @@ export function screenForFill(result) {
   if (result.status === "done" && result.filled) {
     return {
       status: /** @type {const} */ ("done"),
-      issue: "AI filled the form for you — review every answer on the real form, then submit it yourself.",
+      issue: "AI filled the form for you. Review every answer on the real form, then submit it yourself.",
     };
   }
   if (result.status === "done") {

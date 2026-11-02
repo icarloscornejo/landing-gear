@@ -49,7 +49,7 @@ export function splitTiers(result) {
     {
       key: "thin",
       label: "Thin",
-      hint: "mentioned once — consider reinforcing",
+      hint: "mentioned once, consider reinforcing",
       terms: thin,
     },
     {

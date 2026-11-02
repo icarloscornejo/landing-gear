@@ -53,7 +53,7 @@ export function pdfRunOutcome({ envelope, noOutputMessage, sawError, cleanExit, 
     const why = envelope && envelope.ok === false ? ` (${envelope.error})` : "";
     return {
       ok: false,
-      message: `This run didn't produce a tailored CV to render, so no PDF was generated — re-run it to verify.${why}`,
+      message: `This run didn't produce a tailored CV to render, so no PDF was generated. Re-run it to verify.${why}`,
     };
   }
   return { ok: true };
@@ -235,7 +235,7 @@ export async function renderAndMarkPdf({ spawnFn, execPath, root, pdfPaths, form
     warnings.push(
       mark.data?.error
         ? `PDF rendered, but the tracker wasn't updated: ${mark.data.error}`
-        : `PDF rendered, but the tracker's PDF column wasn't updated automatically — run \`node mark-pdf-ready.mjs ${reportNum}\` manually.`,
+        : `PDF rendered, but the tracker's PDF column wasn't updated automatically. Run \`node mark-pdf-ready.mjs ${reportNum}\` manually.`,
     );
   }
 

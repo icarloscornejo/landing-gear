@@ -246,7 +246,7 @@ export function ApplyProvider({ children }: { children: React.ReactNode }) {
       const r = await fetch("/api/apply/prefill", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId: sessionId.current, cliId: cliId(), company: companyRef.current, application: nRef.current }) });
       if (generation.current !== gen) return; // left mid-prefill
       if (!r.body) {
-        setError("Couldn't pre-fill — no response stream.");
+        setError("Couldn't pre-fill: no response stream.");
         setStatus("ready");
         return;
       }
@@ -276,17 +276,17 @@ export function ApplyProvider({ children }: { children: React.ReactNode }) {
           } else if (ev.t === "done") {
             got = true;
             applyAnswers(ev.answers ?? {});
-            if ((ev.count ?? 0) === 0) setError("The planner returned 0 answers — see the diagnostics log below.");
-            else if (ev.truncated) setError("The planner was cut off — some fields were recovered, others may be blank. See diagnostics.");
+            if ((ev.count ?? 0) === 0) setError("The planner returned 0 answers. See the diagnostics log below.");
+            else if (ev.truncated) setError("The planner was cut off. Some fields were recovered, others may be blank. See diagnostics.");
           } else if (ev.t === "error") {
             sawError = true;
             setError(ev.m ? `Couldn't pre-fill: ${ev.m}` : "Couldn't pre-fill from your CV.");
-            setPrefillLog((p) => [...p, `✗ ${ev.m ?? "error"}${ev.raw ? ` — raw tail: ${ev.raw.slice(0, 160)}` : ""}`]);
+            setPrefillLog((p) => [...p, `✗ ${ev.m ?? "error"}${ev.raw ? `. Raw tail: ${ev.raw.slice(0, 160)}` : ""}`]);
           }
         }
       }
       if (generation.current !== gen) return; // left mid-prefill
-      if (!got && !sawError) setError("Pre-fill ended without answers — see the diagnostics log below.");
+      if (!got && !sawError) setError("Pre-fill ended without answers. See the diagnostics log below.");
       setStatus("ready");
     } catch (e) {
       if (generation.current !== gen) return; // left mid-prefill
@@ -337,7 +337,7 @@ export function ApplyProvider({ children }: { children: React.ReactNode }) {
           return [...prev, ...(d.issues as ApplyIssue[]).filter((i) => !seen.has(i.message))];
         });
       }
-      if (d.navigated) setError("Heads up: the form's page changed during fill — review it carefully before submitting (career-ops never submits for you).");
+      if (d.navigated) setError("Heads up: the form's page changed during fill. Review it carefully before submitting (career-ops never submits for you).");
       setStatus("done");
       // ESCALATION ("si no va, full agente"): if deterministic fill clearly
       // didn't land (most fields failed / mismatched), let the agent fill it.

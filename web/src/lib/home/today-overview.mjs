@@ -3,7 +3,8 @@
  * Pure; the page passes the tracker rows and the pending pipeline jobs.
  */
 import { inboxTabHas, trackerTabOf } from "../pipeline-navigation.mjs";
-import { currentPhase, phaseLabel } from "../lifecycle.mjs";
+import { currentMark, currentPhase, phaseLabel } from "../lifecycle.mjs";
+import { isoEpoch } from "../interview-date.mjs";
 
 // Every open hiring phase from Replied to Offer (house rule 25).
 const IN_TALKS = new Set(["RESPONDED", "SCREENING", "ASSESSMENT", "TECH_INTERVIEW", "HIRING_MANAGER", "FINAL_INTERVIEW", "OFFER"]);
@@ -17,8 +18,9 @@ function phaseText(app) {
 /**
  * @param {{n: string, status?: unknown, notes?: unknown, company?: string, via?: string, role?: string, date?: string}[]} applications
  * @param {{triage?: string}[]} pending pending pipeline jobs (pendingInbox)
+ * @param {number} [nowMs]
  */
-export function todayOverview(applications, pending) {
+export function todayOverview(applications, pending, nowMs = Date.now()) {
   const byTab = (tab) => applications.filter((app) => trackerTabOf(app) === tab).length;
   const talks = applications.filter((app) => IN_TALKS.has(trackerTabOf(app)));
   const discovered = pending.filter((job) => inboxTabHas("INBOX", job)).length;
@@ -35,5 +37,20 @@ export function todayOverview(applications, pending) {
   const replies = talks
     .map((app) => ({ n: app.n, company: app.company ?? "", via: app.via ?? "", role: app.role ?? "", status: trackerTabOf(app), phase: phaseText(app), date: app.date ?? "" }))
     .sort((a, b) => b.date.localeCompare(a.date));
-  return { stages, replies };
+  // Dated rounds from two hours ago on (a call in progress still shows), soonest first.
+  const upcoming = talks
+    .map((app) => ({ app, mark: currentMark(app) }))
+    .filter(({ mark }) => mark?.at && isoEpoch(mark.at) >= nowMs - 2 * HOUR)
+    .map(({ app, mark }) => ({
+      n: app.n,
+      company: app.company ?? "",
+      role: app.role ?? "",
+      phase: phaseLabel(mark.phase, mark.round),
+      at: /** @type {string} */ (mark.at),
+      soon: isoEpoch(mark.at) - nowMs <= 24 * HOUR,
+    }))
+    .sort((a, b) => isoEpoch(a.at) - isoEpoch(b.at));
+  return { stages, replies, upcoming };
 }
+
+const HOUR = 3_600_000;

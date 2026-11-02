@@ -77,6 +77,8 @@ export function parseInbox(md) {
       ...(labels.get("triage") ? { triage: labels.get("triage") } : {}),
       // zero-token pre-triage passed (`pretriage: pass`), written by /api/pretriage
       ...(labels.has("pretriage") ? { pretriaged: true } : {}),
+      // passed, but its JD could not be read for free (`pretriage: pass, no JD`)
+      ...(/no JD/i.test(labels.get("pretriage") ?? "") ? { pretriageNoJd: true } : {}),
     });
   }
   return jobs;

@@ -21,7 +21,7 @@ export function QuickEvaluate() {
     }
     startJob({ title: "Evaluate · pasted URL", subtitle: u, kind: "evaluate", input: u, page: "/" });
     setUrl("");
-    setHint("Evaluating — watch it in the Workers tray.");
+    setHint("Evaluating. Watch it in the Workers tray.");
   }
 
   return (
@@ -49,7 +49,7 @@ export function QuickEvaluate() {
       </div>
       <div className="mt-2 flex items-center gap-2">
         <CostBadge kind="spend" size="xs" />
-        <span className="text-xs text-faint">Evaluation runs on your own AI — your key, your machine.</span>
+        <span className="text-xs text-faint">Evaluation runs on your own AI: your key, your machine.</span>
       </div>
       {hint && <p className="mt-1 text-xs text-faint">{hint}</p>}
     </div>

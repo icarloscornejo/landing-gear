@@ -56,7 +56,7 @@ export function CvEditor() {
           <h1 className="font-display text-2xl tracking-tight text-landing">CV editor</h1>
           <p className="mt-1 text-sm text-muted">
             Edit <code className="text-foreground">cv.md</code> with live preview.
-            {!exists && loaded && <span className="ml-1 text-faint">No cv.md yet — start typing to create it.</span>}
+            {!exists && loaded && <span className="ml-1 text-faint">No cv.md yet. Start typing to create it.</span>}
           </p>
         </div>
         <button

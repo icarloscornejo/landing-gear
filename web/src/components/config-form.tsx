@@ -141,9 +141,9 @@ export function ConfigForm() {
         {mode === "cli" && (
           <div>
             <p className="mb-1 text-sm text-muted">
-              career-ops uses an AI tool you already have — signed in, your own usage, nothing to paste.
+              career-ops uses an AI tool you already have: signed in, your own usage, nothing to paste.
             </p>
-            <p className="mb-3 text-xs text-faint">Works with Claude Code, Codex, OpenCode and more — free ones work great.</p>
+            <p className="mb-3 text-xs text-faint">Works with Claude Code, Codex, OpenCode and more. Free ones work great.</p>
             {clis === null ? (
               <div className="flex items-center gap-2 text-sm text-muted">
                 <Loader2 className="size-4 animate-spin" /> Checking what&apos;s on your computer…
@@ -270,7 +270,7 @@ export function ConfigForm() {
                 className="w-full rounded-xl border border-border bg-surface/60 px-4 py-2.5 font-mono text-sm outline-none transition-colors placeholder:text-faint focus:border-brand/50"
               />
               <p className="mt-2 text-xs text-faint">
-                Stored only in this browser — never sent anywhere but your chosen provider.
+                Stored only in this browser, never sent anywhere but your chosen provider.
               </p>
             </div>
           </div>
@@ -278,7 +278,7 @@ export function ConfigForm() {
 
         {mode === "manual" && (
           <div className="rounded-xl border border-dashed border-border bg-surface/30 p-4 text-sm text-muted">
-            The easiest way in — no keys, nothing to set up. On the roadmap.
+            The easiest way in: no keys, nothing to set up. On the roadmap.
           </div>
         )}
       </div>
@@ -296,7 +296,7 @@ export function ConfigForm() {
           <span className="block text-sm font-medium text-foreground">Company logos</span>
           <span className="mt-0.5 block text-xs text-faint">
             Show each company&apos;s real logo. Fetched once through your local server and cached on
-            disk — only the employer domain is sent to a third party. Off = colored monograms only.
+            disk. Only the employer domain is sent to a third party. Off = colored monograms only.
           </span>
         </span>
         <span

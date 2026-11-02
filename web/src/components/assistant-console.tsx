@@ -56,7 +56,7 @@ const NAV_RE = /<<\s*go:\s*(\/[a-z0-9/_-]*)\s*>>/gi;
 const REMEMBER_RE = /<<\s*remember:\s*([^>]+?)\s*>>/gi;
 
 const GREETING =
-  "Hi — I'm your career-ops assistant. I can walk you through onboarding, answer questions about your pipeline, or take you where you need to go. What would you like to do?";
+  "Hi, I'm your career-ops assistant. I can walk you through onboarding, answer questions about your pipeline, or take you where you need to go. What would you like to do?";
 
 // ── envelope parsing: act ONLY on complete <<act:ID {json}>> envelopes ────────
 function codeRanges(s: string): [number, number][] {
@@ -713,7 +713,7 @@ export function AssistantConsole() {
       // action-only response still counts, without approving its confirmation.
       if (!display.trim() && !hasActionOutput) {
         failed = true;
-        setStreamText("_(no output — is the CLI authenticated?)_");
+        setStreamText("_(no output: is the CLI authenticated?)_");
       }
     } catch (error) {
       failed = true;
@@ -746,7 +746,7 @@ export function AssistantConsole() {
     const chips: { label: string; send: string }[] = [];
     const rep = pathname.match(/^\/pipeline\/(.+)$/);
     if (rep) {
-      chips.push({ label: "Why this score?", send: "Walk me through why this offer scored the way it did — strengths and red flags." });
+      chips.push({ label: "Why this score?", send: "Walk me through why this offer scored the way it did: strengths and red flags." });
       chips.push({ label: "Should I apply?", send: "Given my profile, should I apply to this one? Be honest." });
       chips.push({ label: "Draft a cover letter", send: "Draft a short, sharp cover letter for this role." });
       return chips;
@@ -754,7 +754,7 @@ export function AssistantConsole() {
     const pending = pipeline.inbox.filter((j) => !j.done);
     if (!pipeline.applications.length && !pending.length) {
       return [
-        { label: "Help me get set up", send: "Help me get started with career-ops — what do you need from me?" },
+        { label: "Help me get set up", send: "Help me get started with career-ops. What do you need from me?" },
         { label: "Improve my CV", send: "Look at my CV and suggest the highest-impact improvements." },
       ];
     }
@@ -763,7 +763,7 @@ export function AssistantConsole() {
       for (const j of pending) counts.set(j.company, (counts.get(j.company) ?? 0) + 1);
       const top = [...counts.entries()].sort((a, b) => b[1] - a[1])[0];
       if (top && top[1] > 1) chips.push({ label: `Evaluate all ${top[0]} (${top[1]})`, send: `Evaluate all the pending ${top[0]} postings in my inbox.` });
-      chips.push({ label: `Triage inbox (${pending.length})`, send: `I have ${pending.length} postings in my inbox — which should I evaluate first, and why?` });
+      chips.push({ label: `Triage inbox (${pending.length})`, send: `I have ${pending.length} postings in my inbox. Which should I evaluate first, and why?` });
     }
     const strong = pipeline.applications.filter((a) => scoreNum(a.score) >= 4.5).length;
     if (strong) chips.push({ label: "Strong matches to act on", send: "Show me my strongest matches (4.5+) I haven't applied to yet, and tell me which to prioritise." });
@@ -982,7 +982,7 @@ function PartView({
     if (!job)
       return (
         <Link href={`/jobs/${part.jobId}`} className="block rounded-xl border border-border bg-surface/40 p-2.5 text-xs text-faint hover:text-foreground">
-          Worker finished earlier — open log →
+          Worker finished earlier. Open log →
         </Link>
       );
     return (

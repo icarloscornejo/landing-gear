@@ -12,7 +12,7 @@ export function workerState(status) {
 
 /** Stable during timer/tool updates; includes the visible task identity. @param {Worker} job */
 export function workerDetailsLabel(job) {
-  return `Open worker: ${workerIdentity(job)} — ${workerState(job.status)}`;
+  return `Open worker: ${workerIdentity(job)}, ${workerState(job.status)}`;
 }
 
 /** @param {Worker[]} jobs @param {number} total */

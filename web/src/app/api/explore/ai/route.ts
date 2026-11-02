@@ -65,7 +65,7 @@ export async function POST(req: Request) {
   try {
     mode = fs.readFileSync(path.join(careerOpsRoot(), "modes", "discover.md"), "utf8");
   } catch {
-    return Response.json({ code: "MODE_MISSING", error: "AI search needs a newer career-ops — update to enable it." }, { status: 400 });
+    return Response.json({ code: "MODE_MISSING", error: "AI search needs a newer career-ops. Update to enable it." }, { status: 400 });
   }
 
   const { lines } = assembleDedupContext();
@@ -408,7 +408,7 @@ export async function POST(req: Request) {
           return;
         }
 
-        if (!emitted) safeEnqueue("_(no output — is the CLI authenticated?)_");
+        if (!emitted) safeEnqueue("_(no output: is the CLI authenticated?)_");
         safeClose();
       });
     },

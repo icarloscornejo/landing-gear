@@ -45,7 +45,7 @@ export function AiHuntView({ cliName }: { cliName?: string }) {
             {matchCount > 0 ? `${shown} candidate${shown === 1 ? "" : "s"}` : "Hunting the open web"}
           </h2>
           <p className="mt-1 text-sm text-muted">
-            {revealing ? "found — review them below" : matchCount > 0 ? "found so far · streaming in" : "casting across the public web…"}
+            {revealing ? "found, review them below" : matchCount > 0 ? "found so far · streaming in" : "casting across the public web…"}
           </p>
         </div>
 

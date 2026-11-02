@@ -20,7 +20,7 @@ type Section = { id: string; heading: string; state: "filled" | "template" | "mi
 // sections are all "missing", and the personalization line below asks for them.
 const PREREQS: { key: string; label: string; ask?: string }[] = [
   { key: "cv.md", label: "Your CV", ask: "my CV" },
-  { key: "config/profile.yml", label: "Profile — target roles, comp, location", ask: "my profile (target roles, comp, location)" },
+  { key: "config/profile.yml", label: "Profile: target roles, comp, location", ask: "my profile (target roles, comp, location)" },
   { key: "modes/_profile.md", label: "Personalization file" },
   { key: "portals.yml", label: "Companies and roles to scan", ask: "the roles and companies to scan" },
 ];
@@ -69,7 +69,7 @@ export function OnboardingProgress({ compact = false }: { compact?: boolean }) {
     ...PREREQS.filter((p) => missing.has(p.key)).flatMap((p) => (p.ask ? [p.ask] : [])),
     ...(generic.length ? [`my personalization (${generic.map((s) => s.heading.replace(/^## Your /, "").toLowerCase()).join(", ")})`] : []),
   ];
-  const kickoff = `Let's finish setting me up. Still to do: ${asks.join("; ")}. Walk me through it like a recruiter building my brief — one or two things at a time, propose what you infer from my CV, and let me confirm each piece. Don't ask for anything already on file.`;
+  const kickoff = `Let's finish setting me up. Still to do: ${asks.join("; ")}. Walk me through it like a recruiter building my brief: one or two things at a time, propose what you infer from my CV, and let me confirm each piece. Don't ask for anything already on file.`;
 
   return (
     <aside className={`rounded-2xl border border-border bg-surface/40 ${compact ? "p-4" : "p-5"}`} aria-label="Setup progress">
@@ -85,7 +85,7 @@ export function OnboardingProgress({ compact = false }: { compact?: boolean }) {
         {PREREQS.map((p) => (
           <Row key={p.key} state={missing.has(p.key) ? "missing" : "filled"} label={p.label} />
         ))}
-        <li className="pt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-faint">personalization — what evaluations score against</li>
+        <li className="pt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-faint">personalization: what evaluations score against</li>
         {sections.map((s) => (
           <Row key={s.id} state={s.state} label={s.heading.replace(/^## Your /, "")} />
         ))}
