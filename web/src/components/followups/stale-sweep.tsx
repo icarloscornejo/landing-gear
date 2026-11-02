@@ -7,12 +7,13 @@ import type { CadenceEntry } from "@/lib/followups";
 import { currentPhase } from "@/lib/lifecycle.mjs";
 import { STALE_DAYS, staleSweep } from "@/lib/stale-sweep.mjs";
 
-// Applied rows silent for 60+ days (lib/stale-sweep.mjs). "Mark all ghosted" closes only the
+// Applied rows silent for `days` (profile.yml followup_cadence.ghosted_after_days, default 60;
+// lib/stale-sweep.mjs). "Mark all ghosted" closes only the
 // bulk group, through the same /api/exit write as a row's own Ghosted button, one row at a
 // time with the phase guard: a row that moved since the page loaded is refused, and the sweep
 // stops there. Pinned and estimated rows are listed for one-by-one action only.
-export function StaleSweep({ entries, retired, onChanged }: { entries: CadenceEntry[]; retired: CadenceEntry[]; onChanged: () => void }) {
-  const { bulk, pinned, estimated } = staleSweep(entries, retired);
+export function StaleSweep({ entries, retired, days = STALE_DAYS, onChanged }: { entries: CadenceEntry[]; retired: CadenceEntry[]; days?: number; onChanged: () => void }) {
+  const { bulk, pinned, estimated } = staleSweep(entries, retired, days);
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -58,8 +59,8 @@ export function StaleSweep({ entries, retired, onChanged }: { entries: CadenceEn
     <section className="mt-8 rounded-2xl border border-border bg-surface/40 px-5 py-4">
       <div className="flex flex-wrap items-center gap-2">
         <Archive className="size-4 text-brand" />
-        <h2 className="font-display text-base text-landing">Quiet {STALE_DAYS}+ days</h2>
-        <span className="text-xs text-faint">Applied, no reply and no follow-up in {STALE_DAYS} days</span>
+        <h2 className="font-display text-base text-landing">Quiet {days}+ days</h2>
+        <span className="text-xs text-faint">Applied, no reply and no follow-up in {days} days</span>
       </div>
       {bulk.length > 0 && (
         <>

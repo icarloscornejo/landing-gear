@@ -17,6 +17,7 @@ const FIELDS: { key: ProfileCadenceKey; label: string; hint: string }[] = [
   { key: "responded_initial_days", label: "Reply window", hint: "answer a company response within this many days" },
   { key: "responded_subsequent_days", label: "Responded / assessment cadence", hint: "days between touches while in Responded or Assessment" },
   { key: "interview_thankyou_days", label: "Thank-you note", hint: "due within this many days of reaching Interview" },
+  { key: "ghosted_after_days", label: "Ghosted after", hint: "days of silence before an Applied row is offered to close as ghosted" },
 ];
 
 export function CadenceSettings() {

@@ -122,7 +122,7 @@ function readExact(file) {
 
 function readTemplate(codeRoot) {
   const tpl = readExact(templatePath(codeRoot));
-  if (tpl === null || !tpl.trim()) throw new Error("modes/_profile.template.md is missing from the career-ops checkout");
+  if (tpl === null || !tpl.trim()) throw new Error("modes/_profile.template.md is missing from the landing-gear checkout");
   return tpl;
 }
 

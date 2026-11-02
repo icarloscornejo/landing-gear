@@ -53,9 +53,10 @@ function Section({ title, preview, children }: { title: string; preview?: string
   );
 }
 
+// The report's URL header is written by a model and sometimes carries a remark after
+// the link ("https://... (the post; no employer page found)"); only the link itself counts.
 function httpUrl(url?: string | null): string | undefined {
-  if (!url) return undefined;
-  return /^https?:\/\//i.test(url) ? url : undefined;
+  return /^\s*<?(https?:\/\/[^\s<>]+)/i.exec(url ?? "")?.[1];
 }
 
 export function ReportView({

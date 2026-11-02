@@ -245,6 +245,7 @@ eq(
     responded_initial: 2,
     responded_subsequent: 9,
     interview_thankyou: 4,
+    ghosted_after: 60,
   },
 );
 eq(

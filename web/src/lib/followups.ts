@@ -14,6 +14,7 @@ export const PROFILE_CADENCE_KEYS = [
   "responded_initial_days",
   "responded_subsequent_days",
   "interview_thankyou_days",
+  "ghosted_after_days",
 ] as const;
 export type ProfileCadenceKey = (typeof PROFILE_CADENCE_KEYS)[number];
 

@@ -132,7 +132,7 @@ export async function POST(req: Request) {
   if (required && !fs.existsSync(/* turbopackIgnore: true */ requiredPath)) {
     return new Response(
       JSON.stringify({
-        error: `This needs a complete career-ops checkout (${required}). CAREER_OPS_ROOT has data only. Point it at a full checkout.`,
+        error: `This needs a complete landing-gear checkout (${required}). CAREER_OPS_ROOT has data only. Point it at a full checkout.`,
       }),
       { status: 400, headers: { "Content-Type": "application/json" } },
     );

@@ -174,7 +174,8 @@ export function PipelineView({
   }
 
   return (
-    <PageFrame>
+    // The board fills the screen: the frame becomes a full-height column and the board takes what the header leaves.
+    <PageFrame className={board ? "flex h-dvh flex-col sm:pb-4" : undefined}>
       <div className="flex items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-2xl tracking-tight text-landing">Pipeline</h1>
@@ -592,7 +593,7 @@ function InboxEmpty({ tracked }: { tracked: number }) {
           </p>
         )}
         <p className="mx-auto mt-4 max-w-sm text-xs text-muted">
-          Run <code className="rounded bg-surface-hover px-1 py-0.5 font-mono">career-ops scan</code>, or add job URLs to{" "}
+          Run <code className="rounded bg-surface-hover px-1 py-0.5 font-mono">/landing-gear scan</code>, or add job URLs to{" "}
           <code className="rounded bg-surface-hover px-1 py-0.5 font-mono">data/pipeline.md</code>.
         </p>
       </div>

@@ -62,6 +62,9 @@ export const DEFAULT_CADENCE = {
   responded_initial: 1,
   responded_subsequent: 3,
   interview_thankyou: 1,
+  // Days of silence (since applying, and since the last follow-up) before the stale sweep
+  // offers to close an Applied row as ghosted (web/src/lib/stale-sweep.mjs).
+  ghosted_after: 60,
 };
 
 const PROFILE_CADENCE_KEYS = {
@@ -71,6 +74,7 @@ const PROFILE_CADENCE_KEYS = {
   responded_initial_days: 'responded_initial',
   responded_subsequent_days: 'responded_subsequent',
   interview_thankyou_days: 'interview_thankyou',
+  ghosted_after_days: 'ghosted_after',
 };
 
 function positiveInteger(value) {
@@ -1022,7 +1026,7 @@ export function analyzeFromContent(trackerContent, followupsContent = '', { enab
       retired: retiredCount,
     },
     entries: filtered,
-    // Listed apart for the stale sweep (modes/followup.md Step 1c, the web's "Quiet 60+ days"):
+    // Listed apart for the stale sweep (modes/followup.md Step 1c, the web's "Quiet N+ days"):
     // a retired application is usually the long-silent one that should be closed as ghosted.
     retiredEntries: entries.filter(e => e.urgency === 'retired'),
     cadenceConfig: CADENCE,

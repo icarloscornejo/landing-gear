@@ -1,6 +1,6 @@
 {
   "name": "landing-gear",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A local-first AI job search agent for engineers, based on career-ops: scan job boards, pre-triage and evaluate roles, track every hiring phase, tailor your CV",
   "private": true,
   "engines": {

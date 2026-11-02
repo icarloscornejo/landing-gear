@@ -21,7 +21,7 @@ import { cn } from "@/lib/cn";
 // due rows first. The verdict is the core's followup-cadence.mjs (via
 // /api/followups?full=1); this view only groups and records.
 
-type CadenceResponse = { available: boolean; metadata: CadenceMetadata | null; entries: CadenceEntry[]; retiredEntries?: CadenceEntry[] };
+type CadenceResponse = { available: boolean; metadata: CadenceMetadata | null; entries: CadenceEntry[]; retiredEntries?: CadenceEntry[]; cadenceConfig?: { ghosted_after?: number } | null };
 
 function dayLabel(date: string): string {
   const parsed = new Date(`${date}T12:00:00`);
@@ -148,7 +148,7 @@ export function FollowupsView() {
         })}
 
       {/* Applications silent long enough to close as ghosted. */}
-      {data?.available && <StaleSweep entries={data.entries} retired={data.retiredEntries ?? []} onChanged={refetch} />}
+      {data?.available && <StaleSweep entries={data.entries} retired={data.retiredEntries ?? []} days={data.cadenceConfig?.ghosted_after} onChanged={refetch} />}
 
       {/* The far end of chasing: companies silent after an interview. */}
       <QuietCompanies />

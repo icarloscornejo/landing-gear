@@ -2,7 +2,10 @@
 
 import { useState, type DragEvent, type ReactNode } from "react";
 import Link from "next/link";
-import { ExternalLink, GripVertical, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Check, ExternalLink, GripVertical, Loader2 } from "lucide-react";
+import { useJobs } from "@/components/jobs/job-store";
+import { splitTriageLabel } from "@/lib/lifecycle.mjs";
 import type { Application, InboxJob } from "@/lib/career-ops";
 import { cn } from "@/lib/cn";
 import { scoreTen } from "@/lib/format";
@@ -53,8 +56,8 @@ const stageOf = (row: Application): Stage | null => (canon(row) === "EVALUATED" 
  * Evaluated to Approved approves it; Approved to Applied asks which CV went
  * (house rule 6); a later phase is a /api/stage move; its own phase asks for
  * another round; Closed asks how it ended (or, before applying, to discard).
- * Discovered and Triaged are read-only here: moving them runs a triage, which
- * lives in the tabs view. Every move is also in the card's Move menu, since
+ * Discovered and Triaged cards are not dragged: they show the same pre-triage,
+ * triage and evaluation state as the tabs and start those runs from buttons. Every move is also in the card's Move menu, since
  * HTML5 drag does not work on touch screens.
  */
 export function PipelineBoard({ rows, inbox, statusLog, detailQuery }: { rows: Application[]; inbox: InboxJob[]; statusLog: PhaseLogRow[]; detailQuery: string }) {
@@ -64,6 +67,8 @@ export function PipelineBoard({ rows, inbox, statusLog, detailQuery }: { rows: A
   // A card just moved into a dated phase offers its date field, drawn for the new round.
   const [justMoved, setJustMoved] = useState<{ n: string; phase: string; round: number } | null>(null);
   const { busy, error, post } = useLifecyclePost();
+  const { jobs, startJob } = useJobs();
+  const router = useRouter();
 
   const staged = new Map<Stage, Application[]>([["evaluated", []], ["approved", []]]);
   const open = new Map<PhaseKey, Application[]>(PHASE_COLUMNS.map((key) => [key, []]));
@@ -237,11 +242,44 @@ export function PipelineBoard({ rows, inbox, statusLog, detailQuery }: { rows: A
     );
   };
 
-  /** A posting not scored yet: read-only here, scored from the tabs view. */
+  // The same worker state the tabs show: the latest triage or evaluate run per posting.
+  const latestRun = (kind: "triage" | "evaluate", url: string) => {
+    let latest: (typeof jobs)[number] | undefined;
+    for (const run of jobs) if (run.kind === kind && run.input === url && (!latest || run.startedAt > latest.startedAt)) latest = run;
+    return latest;
+  };
+  const startRun = (kind: "triage" | "evaluate", job: InboxJob) =>
+    startJob({ title: `${kind === "triage" ? "Triage" : "Score"} · ${job.company}`, subtitle: job.role, kind, input: job.url, page: "/pipeline" });
+
+  const [pretriaging, setPretriaging] = useState(false);
+  const [pretriageNote, setPretriageNote] = useState("");
+  const pretriageCount = discovered.filter((job) => !job.pretriaged && !job.triage).length;
+  const runPretriage = async () => {
+    setPretriaging(true);
+    setPretriageNote("");
+    try {
+      const response = await fetch("/api/pretriage", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ recheck: false }) });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error ?? `HTTP ${response.status}`);
+      setPretriageNote(`Pre-triage: ${body.passed} kept, ${body.dropped?.length ?? 0} closed`);
+      router.refresh();
+    } catch (err) {
+      setPretriageNote(`Pre-triage failed: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setPretriaging(false);
+    }
+  };
+
+  /** A posting not scored yet, with the pre-triage, triage and evaluation state the tabs show. */
   const postingCard = (job: InboxJob) => {
     const reach = job.location ? readReach(job.location, job.url) : null;
     // A local:jds/ row links to the post its capture came from.
     const href = postingUrl(job.url) ?? postingUrl(job.sourceUrl);
+    const triage = job.triage ? splitTriageLabel(job.triage) : null;
+    const triageRun = latestRun("triage", job.url);
+    const evaluateRun = latestRun("evaluate", job.url);
+    const running = triageRun?.status === "running" ? triageRun : evaluateRun?.status === "running" ? evaluateRun : null;
+    const failed = !running && [triageRun, evaluateRun].filter((run) => run?.status === "error").sort((a, b) => b!.startedAt - a!.startedAt)[0];
     return (
       <li key={job.url} className="rounded-xl border border-border bg-surface/40 p-3 text-sm">
         <p className="truncate text-xs text-muted">{job.company}</p>
@@ -252,18 +290,53 @@ export function PipelineBoard({ rows, inbox, statusLog, detailQuery }: { rows: A
         ) : (
           <p className="line-clamp-2 font-medium text-foreground">{job.role}</p>
         )}
-        {reach && <Badge tone={reach.tone} className="mt-1.5">{reach.label}</Badge>}
-        {job.triage && <p className="mt-1.5 line-clamp-2 text-xs text-faint">{job.triage}</p>}
-        {job.jdFile && (
-          <a href={`/api/jd?file=${encodeURIComponent(job.jdFile)}`} target="_blank" rel="noreferrer" className="mt-1.5 inline-block text-xs text-muted hover:text-brand hover:underline">
-            View JD
-          </a>
+        <div className="mt-1.5 flex flex-wrap items-center gap-1 text-xs">
+          {reach && <Badge tone={reach.tone}>{reach.label}</Badge>}
+          {job.pretriaged && !job.triage && (
+            <span title="Passed the free pre-triage" className="inline-flex items-center gap-1 rounded bg-sky-500/15 px-1.5 py-px font-medium text-sky-700 dark:text-sky-400">
+              <Check className="size-3" /> Pre-triaged
+            </span>
+          )}
+          {job.pretriageNoJd && !job.jdSaved && !job.triage && (
+            <span title="Pre-triage could not read the JD for free" className="rounded bg-amber-500/15 px-1.5 py-px font-medium text-amber-700 dark:text-amber-400">no JD</span>
+          )}
+          {job.jdFile && (
+            <a href={`/api/jd?file=${encodeURIComponent(job.jdFile)}`} target="_blank" rel="noreferrer" className="text-muted hover:text-brand hover:underline">
+              View JD
+            </a>
+          )}
+        </div>
+        {triage && (
+          <p className="mt-1.5 line-clamp-3 text-xs text-faint">
+            <span className="font-semibold text-foreground">{triage.verdict}{triage.score !== null ? ` ${scoreTen(triage.score)}` : ""}</span> {triage.reason}
+          </p>
         )}
+        {failed && (
+          <p role="alert" className="mt-1.5 text-xs text-red-600 dark:text-red-400">
+            {failed.kind === "triage" ? "Triage" : "Evaluation"} failed. <Link href={`/jobs/${failed.id}`} className="underline">Details</Link>
+          </p>
+        )}
+        <div className="mt-2 flex items-center justify-end gap-1">
+          {running ? (
+            <Link href={`/jobs/${running.id}`} className="inline-flex items-center gap-1 rounded-md border border-brand/40 px-2 py-0.5 text-xs font-medium text-brand">
+              <Loader2 className="size-3 animate-spin" /> {running.kind === "triage" ? "Triaging…" : "Scoring…"}
+            </Link>
+          ) : (
+            <>
+              <button type="button" onClick={() => startRun("triage", job)} className="rounded-md border border-border px-2 py-0.5 text-xs font-medium text-muted hover:border-brand/40 hover:text-brand">
+                {job.triage ? "Re-triage" : "Triage"}
+              </button>
+              <button type="button" onClick={() => startRun("evaluate", job)} className="rounded-md bg-brand-soft px-2 py-0.5 text-xs font-medium text-brand hover:bg-brand/15">
+                Evaluate
+              </button>
+            </>
+          )}
+        </div>
       </li>
     );
   };
 
-  const shell = (target: Target | "discovered" | "triaged", title: string, count: number, children: ReactNode) => {
+  const shell = (target: Target | "discovered" | "triaged", title: string, count: number, children: ReactNode, action?: ReactNode) => {
     const droppable = target !== "discovered" && target !== "triaged";
     const allowed = droppable && !!dragging && accepts(dragging, target as Target);
     return (
@@ -272,7 +345,7 @@ export function PipelineBoard({ rows, inbox, statusLog, detailQuery }: { rows: A
         aria-label={`${title}, ${count}`}
         {...(droppable ? zone(target as Target) : {})}
         className={cn(
-          "flex h-full w-64 flex-none flex-col rounded-2xl border p-2 transition-colors",
+          "flex min-h-0 w-64 flex-none flex-col rounded-2xl border p-2 transition-colors",
           over === target ? "border-brand bg-brand/10" : allowed ? "border-dashed border-brand/50 bg-surface/30" : "border-border bg-surface/20",
           dragging && !allowed && "opacity-60",
         )}
@@ -280,6 +353,7 @@ export function PipelineBoard({ rows, inbox, statusLog, detailQuery }: { rows: A
         <h2 className="flex items-center justify-between px-1.5 pb-2 pt-1 text-xs font-semibold uppercase tracking-wide text-muted">
           {title} <span className="tabular-nums text-faint">{count}</span>
         </h2>
+        {action}
         {count ? (
           <ul className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">{children}</ul>
         ) : (
@@ -291,12 +365,36 @@ export function PipelineBoard({ rows, inbox, statusLog, detailQuery }: { rows: A
   const column = (target: Target, title: string, cards: Application[]) => shell(target, title, cards.length, cards.map(card));
 
   return (
-    // Fills the window below the page header; each column scrolls on its own.
-    <div className="mt-4 flex h-[calc(100dvh-11rem)] min-h-96 flex-col">
+    // Takes the height the page header leaves (PageFrame is a full-height column here); each column scrolls on its own.
+    <div className="mt-4 flex min-h-0 flex-1 flex-col">
       {error && <p role="alert" className="mb-2 text-xs text-red-600 dark:text-red-400">{error}</p>}
-      <div className="min-h-0 flex-1 overflow-x-auto pb-3">
-        <div className="flex h-full w-max items-stretch gap-3">
-          {shell("discovered", "Discovered", discovered.length, discovered.map(postingCard))}
+      {/* Heights come from flex stretching only, never h-full: a percentage height inside
+          a flex item does not resolve in every browser, and the columns then grow with their cards. */}
+      <div className="flex min-h-0 flex-1 overflow-x-auto pb-1">
+        <div className="flex min-h-0 w-max items-stretch gap-3">
+          {shell(
+            "discovered",
+            "Discovered",
+            discovered.length,
+            discovered.map(postingCard),
+            (pretriageCount > 0 || pretriageNote) && (
+              <div className="mb-2 px-1.5 text-xs">
+                {pretriageCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={runPretriage}
+                    disabled={pretriaging}
+                    aria-busy={pretriaging}
+                    title="Free first pass: closes postings that clearly do not fit, no tokens"
+                    className="w-full rounded-md border border-border px-2 py-1 font-medium text-muted hover:border-brand/40 hover:text-brand disabled:opacity-60"
+                  >
+                    {pretriaging ? "Pre-triaging…" : `Pre-triage all (${pretriageCount})`}
+                  </button>
+                )}
+                {pretriageNote && <p role="status" className="mt-1 text-faint">{pretriageNote}</p>}
+              </div>
+            ),
+          )}
           {shell("triaged", "Triaged", triaged.length, triaged.map(postingCard))}
           {column("evaluated", "Evaluated", staged.get("evaluated") ?? [])}
           {column("approved", "Approved", staged.get("approved") ?? [])}
