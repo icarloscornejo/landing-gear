@@ -2,7 +2,7 @@ import Link from "next/link";
 import { FileText } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { CompanyLogo } from "@/components/company-logo";
-import { scoreNum, scoreTone } from "@/lib/format";
+import { scoreNum, scoreTen, scoreTone } from "@/lib/format";
 import { companyPresentation } from "@/lib/company-presentation.mjs";
 import type { Application } from "@/lib/career-ops";
 import type { CardReason } from "@/lib/machine-summary.mjs";
@@ -37,7 +37,7 @@ export function DecisionCard({ app, reason }: { app: Application; reason?: CardR
               tone === "good" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : tone === "warn" ? "bg-amber-500/10 text-amber-600 dark:text-amber-400" : "bg-surface-hover text-muted",
             )}
           >
-            {app.score}
+            {scoreTen(app.score)}
           </span>
         )}
       </div>

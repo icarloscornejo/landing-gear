@@ -68,12 +68,30 @@ export function readJdSources(files: string[]): { file: string; source: string }
   return sources;
 }
 
-/** A checker for "this posting URL already has a saved JD" (pasted, Chrome or LinkedIn capture). */
-export function savedJdChecker(): (url: string) => boolean {
+export type JdLinks = { jdSaved: boolean; jdFile?: string; sourceUrl?: string };
+
+/**
+ * For each inbox row: whether a JD is saved for its posting URL (pasted, Chrome or
+ * LinkedIn capture), the capture file to show, and, for a `local:jds/` row, the
+ * posting link from the capture's "Source:" header (LinkedIn post captures write it
+ * without the leading dash), since such a row has no URL of its own.
+ */
+export function jdLinksChecker(): (url: string) => JdLinks {
   const jdFiles = listJdFiles();
   const jdSources = readJdSources(jdFiles);
   return (url) => {
     const target = resolveWorkerInput(url, { jdFiles, needsChromeHosts: [], jdSources });
-    return target.ok && target.jdPath !== null && !String(url).startsWith("local:");
+    if (!target.ok || !target.jdPath) return { jdSaved: false };
+    const local = String(url).startsWith("local:");
+    const jdFile = path.basename(target.jdPath);
+    if (!local) return { jdSaved: true, jdFile };
+    let sourceUrl: string | undefined;
+    try {
+      const head = fs.readFileSync(path.join(careerOpsRoot(), target.jdPath), "utf8").slice(0, 1500);
+      sourceUrl = /^-?\s*Source:\s*(https?:\/\/\S+)/im.exec(head)?.[1];
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
+    }
+    return { jdSaved: false, jdFile, ...(sourceUrl ? { sourceUrl } : {}) };
   };
 }

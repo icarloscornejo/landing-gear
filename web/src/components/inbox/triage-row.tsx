@@ -7,6 +7,7 @@ import type { InboxJob } from "@/lib/career-ops";
 import type { AtsSource } from "@/lib/explore";
 import { ATS_LABEL } from "@/lib/explore";
 import { unscoredInboxHref } from "@/lib/posting-url.mjs";
+import { scoreTen } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { CompanyLogo } from "@/components/company-logo";
 import { cn } from "@/lib/cn";
@@ -67,7 +68,8 @@ export function TriageRow({
   const reach = readReach(job.location, job.url);
   const target = inboxScoreTarget(scored);
   const evaluated = target.evaluated;
-  const postingHref = unscoredInboxHref(job.url, evaluated);
+  // A local:jds/ row (a LinkedIn post, a pasted JD) links to the post its capture came from.
+  const postingHref = unscoredInboxHref(job.url, evaluated) ?? (job.sourceUrl ? unscoredInboxHref(job.sourceUrl, evaluated) : null);
   const triage = !evaluated && job.triage ? splitTriageLabel(job.triage) : null;
   // "Paste JD": for a posting no worker can read, the engineer pastes its text once.
   const [pasteOpen, setPasteOpen] = useState(false);
@@ -101,7 +103,8 @@ export function TriageRow({
             )}
           </p>
           <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-faint">
-            {job.location && <span className="break-words">{job.location}</span>}
+            {/* Long country lists stop at 3 lines so the grid cards keep one height; the tooltip has the rest. */}
+            {job.location && <span title={job.location} className="line-clamp-3 max-w-full break-words">{job.location}</span>}
             {job.location && <Badge tone={reach.tone}>{reach.label}</Badge>}
             {source && <span className="rounded bg-surface-hover px-1.5 py-px font-medium text-muted">{ATS_LABEL[source]}</span>}
             {ago && <span>{ago}</span>}
@@ -117,10 +120,16 @@ export function TriageRow({
                 no JD
               </span>
             )}
-            {job.jdSaved && (
-              <span className="inline-flex items-center gap-1 rounded bg-emerald-500/15 px-1.5 py-px font-medium text-emerald-700 dark:text-emerald-400">
-                <Check className="size-3" /> JD saved
-              </span>
+            {job.jdFile && (
+              <a
+                href={`/api/jd?file=${encodeURIComponent(job.jdFile)}`}
+                target="_blank"
+                rel="noreferrer"
+                title="Open the saved JD"
+                className="inline-flex items-center gap-1 rounded bg-emerald-500/15 px-1.5 py-px font-medium text-emerald-700 hover:underline dark:text-emerald-400"
+              >
+                <Check className="size-3" /> {job.jdSaved ? "JD saved" : "View JD"}
+              </a>
             )}
           </p>
         </div>
@@ -138,7 +147,7 @@ export function TriageRow({
         <div className="rounded-lg border border-border/70 bg-background/60 px-3 py-2.5">
           <div className="flex items-center gap-2">
             {triage.verdict && <span className={cn("rounded-md px-2 py-0.5 text-xs font-semibold tracking-wide", verdictStyle)}>{triage.verdict}</span>}
-            {triage.score !== null && <span className="text-base font-semibold tabular-nums text-foreground">{triage.score.toFixed(1)}<span className="text-xs font-normal text-faint">/5</span></span>}
+            {triage.score !== null && <span className="text-base font-semibold tabular-nums text-foreground">{scoreTen(triage.score, false)}<span className="text-xs font-normal text-faint">/10</span></span>}
           </div>
           {triage.reason && <p className="mt-1.5 text-sm leading-relaxed text-muted">{triage.reason}</p>}
         </div>
@@ -160,7 +169,7 @@ export function TriageRow({
               <span className="text-brand max-sm:hidden">Scoring…</span>
             </>
           ) : target.showScore ? (
-            <Badge tone={scored!.tone}>{scored!.score}/5</Badge>
+            <Badge tone={scored!.tone}>{scoreTen(scored!.score)}</Badge>
           ) : (
             <span className="text-brand">Report</span>
           )}

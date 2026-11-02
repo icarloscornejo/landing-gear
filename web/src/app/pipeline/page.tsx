@@ -3,7 +3,7 @@ import { pipelineSummary, readReport, readStatusLog } from "@/lib/career-ops";
 import { pendingInbox } from "@/lib/inbox-pending.mjs";
 import { PipelineView } from "@/components/pipeline-view";
 import { GRID_TABS, inboxTabHas, pipelineTab, showsBoard, trackerTabOf } from "@/lib/pipeline-navigation.mjs";
-import { savedJdChecker } from "@/lib/jd-captures";
+import { jdLinksChecker } from "@/lib/jd-captures";
 import { cardReason, type CardReason } from "@/lib/machine-summary.mjs";
 
 export const dynamic = "force-dynamic"; // always read fresh local files
@@ -19,7 +19,7 @@ export default async function PipelinePage({ searchParams }: { searchParams: Pro
   const { inbox, applications } = pipelineSummary();
   const pending = pendingInbox(inbox);
   const triagedCount = pending.filter((job) => inboxTabHas("TRIAGED", job)).length;
-  const hasSavedJd = onInbox ? savedJdChecker() : () => false;
+  const jdLinks = onInbox || board ? jdLinksChecker() : () => ({ jdSaved: false });
   // Only the open grid tab's reports are read, so other tabs pay nothing.
   const reasons: Record<string, CardReason> = {};
   if ((GRID_TABS as readonly string[]).includes(current)) {
@@ -32,8 +32,8 @@ export default async function PipelinePage({ searchParams }: { searchParams: Pro
     <Suspense>
       <PipelineView
         applications={applications}
-        inbox={onInbox ? pending.filter((job) => inboxTabHas(current, job)).map((job) => ({ ...job, jdSaved: hasSavedJd(job.url) })) : null}
-        boardInbox={board ? pending : null}
+        inbox={onInbox ? pending.filter((job) => inboxTabHas(current, job)).map((job) => ({ ...job, ...jdLinks(job.url) })) : null}
+        boardInbox={board ? pending.map((job) => ({ ...job, ...jdLinks(job.url) })) : null}
         inboxCount={pending.length - triagedCount}
         triagedCount={triagedCount}
         reasons={reasons}

@@ -8,7 +8,7 @@ import type { Application, InboxJob } from "@/lib/career-ops";
 import { Badge } from "@/components/ui/badge";
 import { isApproved } from "@/lib/home/awaiting.mjs";
 import { CompanyLogo } from "@/components/company-logo";
-import { scoreNum, scoreTone } from "@/lib/format";
+import { scoreNum, scoreTen, scoreTone } from "@/lib/format";
 import { applicationKey } from "@/lib/pipeline-status.mjs";
 import { InboxTriage } from "@/components/inbox/inbox-triage";
 import { cn } from "@/lib/cn";
@@ -258,7 +258,7 @@ export function PipelineView({
             className="inline-flex items-center gap-1.5 rounded-full border border-brand/40 bg-brand-soft px-2.5 py-1 text-xs font-medium text-brand transition-colors hover:bg-brand/15"
             title="Clear score filter"
           >
-            score ≥ {minFilter.toFixed(1)}
+            score ≥ {scoreTen(minFilter)}
             <X className="size-3" />
           </button>
         </div>
@@ -409,7 +409,7 @@ export function PipelineView({
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <Badge tone={scoreTone(r.score)}>{r.score || "—"}</Badge>
+                    <Badge tone={scoreTone(r.score)}>{scoreTen(r.score) ||"—"}</Badge>
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-muted">
                     {isApproved(r) ? <Badge tone="good">Approved</Badge> : rowStatusText(r, statusLog)}
@@ -515,8 +515,8 @@ function TrackerCard({
           <span className={cn("rounded-md px-2 py-0.5 text-xs font-semibold tracking-wide", labelStyle)}>{label}</span>
           {!Number.isNaN(score) && (
             <span className="text-base font-semibold tabular-nums text-foreground">
-              {score.toFixed(1)}
-              <span className="text-xs font-normal text-faint">/5</span>
+              {scoreTen(score, false)}
+              <span className="text-xs font-normal text-faint">/10</span>
             </span>
           )}
         </div>

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { findApplication, readReport } from "@/lib/career-ops";
-import { legitimacyTone, parseReport, scoreTone } from "@/lib/format";
+import { legitimacyTone, parseReport, scoreTen, scoreTone } from "@/lib/format";
 import { compareIds, summaryFields } from "@/lib/pipeline-compare.mjs";
 import { Badge } from "@/components/ui/badge";
 import { CompanyLogo } from "@/components/company-logo";
@@ -74,7 +74,7 @@ export default async function ComparePage({ searchParams }: { searchParams: Prom
                 <th scope="row" className="px-4 py-2.5 text-left text-xs font-medium text-faint">Score</th>
                 {columns.map((c) => (
                   <td key={c.n} className="px-4 py-2.5">
-                    {c.score && <Badge tone={scoreTone(c.score)}>{c.score}</Badge>}
+                    {c.score && <Badge tone={scoreTone(c.score)}>{scoreTen(c.score)}</Badge>}
                   </td>
                 ))}
               </tr>

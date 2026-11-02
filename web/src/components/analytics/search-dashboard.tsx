@@ -1,4 +1,5 @@
 import { PageFrame } from "@/components/page-frame";
+import { scoreTen } from "@/lib/format";
 
 // The engineer's Analytics: one page, one section per question about the search.
 // Bars are nested on purpose: applied is a subset of evaluated, so the applied
@@ -109,7 +110,7 @@ export function SearchDashboard({
     ["Replied", String(headline.replied), headline.replyRate === null ? undefined : `${headline.replyRate}% of applied`],
     ["Interviews", String(interviews)],
     ["Offers", String(offers)],
-    ["Avg score applied", headline.avgAppliedScore === null ? "-" : headline.avgAppliedScore.toFixed(1)],
+    ["Avg score applied", headline.avgAppliedScore === null ? "-" : scoreTen(headline.avgAppliedScore)],
   ];
 
   return (

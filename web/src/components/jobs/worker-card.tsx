@@ -6,6 +6,7 @@ import type { Job } from "@/components/jobs/job-store";
 import { workerIdentity, workerState } from "@/lib/worker-feedback.mjs";
 import { jobErrorHint } from "@/lib/job-error-hint.mjs";
 import { cn } from "@/lib/cn";
+import { scoreTen } from "@/lib/format";
 import { isFencingNotice } from "@/lib/cli-fencing.mjs";
 
 // Humanize raw agent tool names into what the user actually cares about, so a
@@ -116,7 +117,7 @@ export function WorkerCard({
               tone.chip,
             )}
           >
-            {job.result!.score}
+            {scoreTen(job.result!.score, false)}
           </span>
         )}
         {trailing != null && (

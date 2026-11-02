@@ -5,11 +5,13 @@ import Link from "next/link";
 import { ExternalLink, GripVertical, Loader2 } from "lucide-react";
 import type { Application, InboxJob } from "@/lib/career-ops";
 import { cn } from "@/lib/cn";
+import { scoreTen } from "@/lib/format";
 import { companyPresentation } from "@/lib/company-presentation.mjs";
 import { canonStatus } from "@/lib/status-alias.mjs";
 import { isApproved } from "@/lib/home/awaiting.mjs";
 import { inboxTabHas } from "@/lib/pipeline-navigation.mjs";
 import { readReach } from "@/lib/location-reach.mjs";
+import { postingUrl } from "@/lib/posting-url.mjs";
 import {
   DATED_PHASES,
   EXIT_KINDS,
@@ -135,7 +137,7 @@ export function PipelineBoard({ rows, inbox, statusLog, detailQuery }: { rows: A
 
   const statusLine = (row: Application) => {
     const stage = stageOf(row);
-    if (stage) return `${row.score || "unscored"}${stage === "approved" ? " · Approved" : ""}`;
+    if (stage) return `${scoreTen(row.score) || "unscored"}${stage === "approved" ? " · Approved" : ""}`;
     if (isHired(row)) return "Hired";
     if (isOpenApplied(row)) {
       const phase = currentPhase(row);
@@ -238,12 +240,13 @@ export function PipelineBoard({ rows, inbox, statusLog, detailQuery }: { rows: A
   /** A posting not scored yet: read-only here, scored from the tabs view. */
   const postingCard = (job: InboxJob) => {
     const reach = job.location ? readReach(job.location, job.url) : null;
-    const external = /^https?:\/\//.test(job.url);
+    // A local:jds/ row links to the post its capture came from.
+    const href = postingUrl(job.url) ?? postingUrl(job.sourceUrl);
     return (
       <li key={job.url} className="rounded-xl border border-border bg-surface/40 p-3 text-sm">
         <p className="truncate text-xs text-muted">{job.company}</p>
-        {external ? (
-          <a href={job.url} target="_blank" rel="noreferrer" className="line-clamp-2 font-medium text-foreground hover:text-brand">
+        {href ? (
+          <a href={href} target="_blank" rel="noreferrer" className="line-clamp-2 font-medium text-foreground hover:text-brand">
             {job.role} <ExternalLink className="inline size-3 text-faint" />
           </a>
         ) : (
@@ -251,6 +254,11 @@ export function PipelineBoard({ rows, inbox, statusLog, detailQuery }: { rows: A
         )}
         {reach && <Badge tone={reach.tone} className="mt-1.5">{reach.label}</Badge>}
         {job.triage && <p className="mt-1.5 line-clamp-2 text-xs text-faint">{job.triage}</p>}
+        {job.jdFile && (
+          <a href={`/api/jd?file=${encodeURIComponent(job.jdFile)}`} target="_blank" rel="noreferrer" className="mt-1.5 inline-block text-xs text-muted hover:text-brand hover:underline">
+            View JD
+          </a>
+        )}
       </li>
     );
   };

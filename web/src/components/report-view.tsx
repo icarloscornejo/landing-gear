@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, FileText, ExternalLink, ChevronDown } from "lucide-react";
 import type { Application } from "@/lib/career-ops";
 import { Badge } from "@/components/ui/badge";
-import { scoreTone, legitimacyTone, parseReport } from "@/lib/format";
+import { scoreTen, scoreTone, legitimacyTone, parseReport } from "@/lib/format";
 import {
   applyLineLabel,
   cleanHeading,
@@ -125,7 +125,7 @@ export function ReportView({
       <section className={`mt-6 rounded-2xl border px-5 py-5 ${recommended ? "border-brand/25 bg-brand-soft/50" : "border-border bg-surface/50"}`}>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           {score ? (
-            <span className={`font-display text-4xl tabular-nums tracking-tight ${scoreTone(score) === "bad" ? "text-red-600 dark:text-red-400" : "text-landing"}`}>{score}</span>
+            <span className={`font-display text-4xl tabular-nums tracking-tight ${scoreTone(score) === "bad" ? "text-red-600 dark:text-red-400" : "text-landing"}`}>{scoreTen(score)}</span>
           ) : (
             <span className="text-sm text-muted">No score yet</span>
           )}

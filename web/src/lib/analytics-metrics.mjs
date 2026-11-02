@@ -325,7 +325,7 @@ export function generateInsights(metrics) {
       .filter((row) => row.count >= 3 && row.avgScore > 0 && row.label !== "Unclassified")
       .sort((a, b) => b.avgScore - a.avgScore || b.count - a.count)[0];
     insights.push(best && best.label !== top.label
-      ? `Primary archetype is ${top.label} (${top.count} roles, ${Math.round(top.pct)}%); strongest average fit is ${best.label} (${best.avgScore.toFixed(1)}/5).`
+      ? `Primary archetype is ${top.label} (${top.count} roles, ${Math.round(top.pct)}%); strongest average fit is ${best.label} (${(best.avgScore * 2).toFixed(1)}/10).`
       : `Primary archetype is ${top.label} (${top.count} roles, ${Math.round(top.pct)}% of the evaluated profile).`);
   }
   if (metrics?.workModes?.length) {

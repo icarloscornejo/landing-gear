@@ -41,6 +41,18 @@ export function scoreNum(s: string): number {
   return m ? parseFloat(m[1]) : NaN;
 }
 
+/**
+ * A score as the web shows it: on a 0-10 scale. Reports and the tracker store
+ * 0-5 (`4.2/5`) and every script reads that, so only the display doubles it.
+ * `withScale` adds the "/10". A grade or sentinel ("B", "N/A") passes through.
+ */
+export function scoreTen(score: string | number | null | undefined, withScale = true): string {
+  if (score === null || score === undefined || score === "") return "";
+  const num = typeof score === "number" ? score : scoreNum(score);
+  if (Number.isNaN(num)) return String(score);
+  return `${(num * 2).toFixed(1)}${withScale ? "/10" : ""}`;
+}
+
 /** Score → tone, mirroring the Go TUI thresholds (>=4.2 green, >=3.8 yellow,
  *  >=3.0 normal, <3.0 red). */
 export function scoreTone(score: string): "good" | "warn" | "bad" | "muted" {

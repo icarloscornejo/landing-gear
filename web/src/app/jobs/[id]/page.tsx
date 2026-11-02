@@ -10,6 +10,7 @@ import { ArrowLeft, Loader2, Wrench, CircleDot, Check, X, Sparkles } from "lucid
 import { useJobs } from "@/components/jobs/job-store";
 import { HeroGlow } from "@/components/hero-glow";
 import { Badge } from "@/components/ui/badge";
+import { scoreTen } from "@/lib/format";
 import { buildTimeline, elapsedLabel } from "@/lib/run-timeline.mjs";
 
 type LiveRun = {
@@ -178,7 +179,7 @@ export default function JobPage({ params }: { params: Promise<{ id: string }> })
           {job.source === "chat" && <p className="mt-1 text-xs text-faint">Started from a chat session</p>}
           {job.result?.score != null && (
             <div className="mt-3 flex flex-wrap items-center gap-2.5">
-              <Badge tone={job.result.tone}>{job.result.score}/5</Badge>
+              <Badge tone={job.result.tone}>{scoreTen(job.result.score)}</Badge>
               {job.result.summary && <span className="text-sm text-muted">{job.result.summary}</span>}
             </div>
           )}

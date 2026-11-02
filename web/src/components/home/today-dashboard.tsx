@@ -19,7 +19,7 @@ import { DailyScanCard } from "@/components/home/daily-scan-card";
 import type { DailyScanStatus } from "@/lib/daily-scan";
 import type { CardReason } from "@/lib/machine-summary.mjs";
 import { FollowupsDueSectionSkeleton } from "@/components/page-loading-skeletons";
-import { scoreNum } from "@/lib/format";
+import { scoreNum, scoreTen } from "@/lib/format";
 import { pickAwaitingDecision, pickApproved, groupAwaiting } from "@/lib/home/awaiting.mjs";
 import { companyPresentation } from "@/lib/company-presentation.mjs";
 import { formatInterviewDate } from "@/lib/interview-date.mjs";
@@ -293,7 +293,7 @@ export function TodayDashboard({
               href={`/pipeline/${recommended[0].n}`}
               className="mb-3 inline-flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-foreground transition hover:bg-brand-200 max-sm:min-h-[44px]"
             >
-              Apply next · {companyPresentation(recommended[0]).label} {recommended[0].score} <ArrowRight className="size-4" />
+              Apply next · {companyPresentation(recommended[0]).label} {scoreTen(recommended[0].score)} <ArrowRight className="size-4" />
             </Link>
           )}
           {awaitingGroups.map(([label, group]) => (
