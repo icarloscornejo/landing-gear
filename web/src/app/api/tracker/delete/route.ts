@@ -29,7 +29,7 @@ export async function POST(req: Request) {
 
   if (!trackerCanDelete()) {
     return Response.json(
-      { error: "Removing a tracker row needs a newer career-ops. Update to delete rows from here." },
+      { error: "Removing a tracker row needs a newer landing-gear core. Update to delete rows from here." },
       { status: 400 },
     );
   }

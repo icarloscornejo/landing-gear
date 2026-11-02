@@ -445,9 +445,7 @@ export function findApplication(n: string): Application | null {
   return readApplications().find((a) => parseInt(a.n, 10) === target) ?? null;
 }
 
-/** The CANONICAL user-customization file the CLI/TUI reads. Durable facts the
- *  web assistant learns go HERE (single source of truth) inside a managed marker
- *  block — so the CLI sees them too. No web-only memory store (that would drift). */
+/** The canonical user-customization file the CLI reads (modes/_profile.md). */
 export function profilePath(): string {
   return profileMemoryPath(careerOpsRoot());
 }
@@ -458,36 +456,6 @@ export function readMemory(): string {
   return readProfileMemory(careerOpsRoot());
 }
 
-/** Append a durable fact to the canonical modes/_profile.md (creating the file +
- *  managed block if needed), PRESERVING existing user content. */
-export function rememberFact(fact: string): "ok" | "deduped" | "error" {
-  const f = fact.trim().replace(/\s+/g, " ").slice(0, 300);
-  if (!f) return "deduped";
-  const p = profilePath();
-  try {
-    fs.mkdirSync(path.dirname(p), { recursive: true });
-    let md = "";
-    try {
-      md = fs.readFileSync(p, "utf8");
-    } catch {
-      md = "";
-    }
-    const i = md.indexOf(NOTES_START);
-    const j = md.indexOf(NOTES_END);
-    if (i !== -1 && j !== -1 && j > i) {
-      if (md.slice(i, j).includes(f)) return "deduped";
-      atomicWrite(p, md.slice(0, j) + `- ${f}\n` + md.slice(j));
-      return "ok";
-    }
-    if (md.includes(f)) return "deduped";
-    const section = `\n\n## Notes from the web assistant\n${NOTES_START}\n- ${f}\n${NOTES_END}\n`;
-    const base = md.trim() ? md.replace(/\n*$/, "\n") : "# Profile customization\n";
-    atomicWrite(p, base + section);
-    return "ok";
-  } catch {
-    return "error";
-  }
-}
 
 
 /**

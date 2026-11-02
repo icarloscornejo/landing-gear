@@ -68,7 +68,7 @@ export async function POST(req: Request) {
   if (!fs.existsSync(rootScript("set-status"))) {
     return NextResponse.json(
       {
-        error: "status updates need the career-ops scripts; this root has data only",
+        error: "status updates need the landing-gear core scripts; this root has data only",
         code: "core-script-missing",
       },
       { status: 503 },

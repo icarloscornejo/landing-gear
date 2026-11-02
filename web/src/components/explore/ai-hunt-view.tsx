@@ -2,22 +2,21 @@
 
 import { Sparkles } from "lucide-react";
 import { ApplyBackdrop } from "@/components/apply/apply-backdrop";
-import { instrumentSerif } from "@/lib/fonts";
 import { useCountUp } from "./discovering-state";
 import { AiHuntTrace } from "./ai-hunt-trace";
 import { DiscoveryCard } from "./discovery-card";
 import { useExplore } from "./explore-provider";
 
 // The AI hunt surface — apply-mode polish: an animated orb, a serif headline that
-// folds in the live count (no lonely giant "0"), a brand-orange effort ledger
+// folds in the live count (no lonely giant "0"), a brand-accent effort ledger
 // (NEVER a fake $0), the CONTAINED reasoning panel, and cards materializing below.
 const STYLE = `
 .co-aihunt{position:relative;z-index:1;display:flex;min-height:72vh;flex-direction:column;align-items:center;gap:1.2rem;padding:2.5rem 1rem 2rem;text-align:center}
 .co-aiorb{position:relative;display:grid;place-items:center;width:4rem;height:4rem}
-.co-aiorb__glow{position:absolute;inset:0;border-radius:50%;background:hsl(26 80% 55% /.28);filter:blur(18px);animation:co-aiorb-pulse 2.4s ease-in-out infinite}
-.co-aiorb__ring{position:absolute;inset:0;border-radius:50%;border:2px solid hsl(26 73% 51% /.25);border-top-color:hsl(26 73% 51%);animation:co-aiorb-spin 1.1s linear infinite}
-.co-ailedger{display:inline-flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.45rem;border-radius:999px;border:1px solid hsl(26 73% 51% /.3);background:hsl(26 73% 51% /.1);color:hsl(26 78% 43%);padding:.4rem .9rem;font-size:12.5px;font-weight:600}
-html.dark .co-ailedger{color:hsl(26 86% 67%)}
+.co-aiorb__glow{position:absolute;inset:0;border-radius:50%;background:hsl(211 100% 50% /.28);filter:blur(18px);animation:co-aiorb-pulse 2.4s ease-in-out infinite}
+.co-aiorb__ring{position:absolute;inset:0;border-radius:50%;border:2px solid hsl(211 100% 45% /.25);border-top-color:hsl(211 100% 45%);animation:co-aiorb-spin 1.1s linear infinite}
+.co-ailedger{display:inline-flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.45rem;border-radius:999px;border:1px solid hsl(211 100% 45% /.3);background:hsl(211 100% 45% /.1);color:hsl(211 100% 40%);padding:.4rem .9rem;font-size:12.5px;font-weight:600}
+html.dark .co-ailedger{color:hsl(211 100% 66%)}
 @keyframes co-aiorb-spin{to{transform:rotate(360deg)}}
 @keyframes co-aiorb-pulse{0%,100%{opacity:.6;transform:scale(.92)}50%{opacity:1;transform:scale(1.08)}}
 @media(prefers-reduced-motion:reduce){.co-aiorb__ring,.co-aiorb__glow{animation:none}}
@@ -41,7 +40,7 @@ export function AiHuntView({ cliName }: { cliName?: string }) {
         </span>
 
         <div>
-          <h2 className={`${instrumentSerif.className} text-3xl leading-tight text-foreground`}>
+          <h2 className={`font-display text-3xl leading-tight text-foreground`}>
             {matchCount > 0 ? `${shown} candidate${shown === 1 ? "" : "s"}` : "Hunting the open web"}
           </h2>
           <p className="mt-1 text-sm text-muted">

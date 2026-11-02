@@ -8,7 +8,6 @@ import { pendingInbox } from "@/lib/inbox-pending.mjs";
 import { linkedinScanState } from "@/lib/linkedin-scan";
 import { dailyScanStatus } from "@/lib/daily-scan";
 import { scoreNum, parseReport } from "@/lib/format";
-import { OnboardingBanner } from "@/components/onboarding-banner";
 import { FirstRunHome } from "@/components/home/first-run-home";
 import { TodayDashboard } from "@/components/home/today-dashboard";
 
@@ -16,7 +15,7 @@ export const dynamic = "force-dynamic"; // always read fresh local files at requ
 
 export default function Home() {
   const snapshot = { applications: readApplications(), inbox: readInbox() };
-  const { phase, onboardingNeeded } = doctorState(snapshot);
+  const { phase } = doctorState(snapshot);
   // First run (truly empty install): the CV-upload takeover IS the home — value
   // before commitment. The full dashboard returns once they have a CV or any data.
   if (phase === "first-run") return <FirstRunHome />;
@@ -32,13 +31,9 @@ export default function Home() {
     const tier = parseReport(content).legitimacy;
     if (tier) legitimacy[app.n] = tier;
   }
-  // Established / in-between: the dual-loop retention dashboard. Show the setup
-  // banner whenever ANY prereq is missing (mirrors the core doctor.mjs), so a
-  // portals-missing user is nudged rather than told "all caught up".
+  // Established / in-between: the dual-loop retention dashboard. Missing setup
+  // files are reported by `node doctor.mjs` in the terminal.
   return (
-    <>
-      {onboardingNeeded && <OnboardingBanner />}
-      <TodayDashboard applications={applications} reasons={reasons} legitimacy={legitimacy} inbox={inbox} inBetween={phase === "in-between"} overview={overview} linkedinScan={linkedinScanState()} dailyScan={dailyScanStatus()} />
-    </>
+    <TodayDashboard applications={applications} reasons={reasons} legitimacy={legitimacy} inbox={inbox} inBetween={phase === "in-between"} overview={overview} linkedinScan={linkedinScanState()} dailyScan={dailyScanStatus()} />
   );
 }

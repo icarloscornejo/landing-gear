@@ -1,7 +1,7 @@
 {
-  "name": "career-ops",
+  "name": "landing-gear",
   "version": "1.38.0",
-  "description": "Open-source AI job search that runs locally in your AI coding CLI: scan job portals, evaluate listings into a structured A-H report with a 1-5 score, tailor your CV, track applications",
+  "description": "A local-first AI job search agent for engineers, based on career-ops: scan job boards, pre-triage and evaluate roles, track every hiring phase, tailor your CV",
   "private": true,
   "engines": {
     "node": "^22.13.0 || >=23.4.0"

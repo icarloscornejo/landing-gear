@@ -573,7 +573,7 @@ function InboxEmpty({ tracked }: { tracked: number }) {
         <span className="size-2.5 rounded-full bg-foreground/15" aria-hidden="true" />
         <span className="size-2.5 rounded-full bg-foreground/15" aria-hidden="true" />
         <span className="size-2.5 rounded-full bg-foreground/15" aria-hidden="true" />
-        <span className="ml-3 font-mono text-xs tracking-wide text-muted">career-ops · discovered</span>
+        <span className="ml-3 font-mono text-xs tracking-wide text-muted">landing-gear · discovered</span>
       </div>
       <div className="px-6 py-10 text-center">
         <p className="font-display text-lg">

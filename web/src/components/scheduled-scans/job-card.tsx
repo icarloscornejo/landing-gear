@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { AlertCircle, CheckCircle2, Clock, Edit3, Globe, Loader2, MoreVertical, Pause, Play, Trash2, Zap } from "lucide-react";
 import type { ScheduledJob } from "@/lib/scheduled-jobs";
 import { cn } from "@/lib/cn";
-import { instrumentSerif } from "@/lib/fonts";
 
 export function JobCard({
   job,
@@ -75,7 +74,7 @@ export function JobCard({
             {letter}
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className={`${instrumentSerif.className} truncate text-[17px] leading-tight text-foreground transition-colors group-hover:text-brand`}>
+            <h3 className={`font-display truncate text-[17px] leading-tight text-foreground transition-colors group-hover:text-brand`}>
               {job.name}
             </h3>
             <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-muted">

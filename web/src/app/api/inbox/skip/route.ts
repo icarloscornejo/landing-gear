@@ -41,7 +41,7 @@ export async function POST(req: Request) {
   const lockModule = path.join(root, "pipeline-lock.mjs");
   if (!fs.existsSync(lockModule)) {
     return NextResponse.json(
-      { error: "inbox skip needs the career-ops scripts; this root has data only", code: "core-script-missing" },
+      { error: "inbox skip needs the landing-gear core scripts; this root has data only", code: "core-script-missing" },
       { status: 503 },
     );
   }

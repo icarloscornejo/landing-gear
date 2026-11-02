@@ -633,7 +633,7 @@ export async function POST(req: Request) {
             const detail = stderrErrorSnippet ? ` (${stderrErrorSnippet})` : "";
             return `The CLI exited with an error. Is it installed and authenticated?${detail}`;
           }
-          if (!emittedText && !sawError) return "The CLI produced no output. Is it installed and authenticated? (career-ops is best on Claude Code.)";
+          if (!emittedText && !sawError) return "The CLI produced no output. Is it installed and authenticated? (landing-gear is best on Claude Code.)";
           return null;
         };
 

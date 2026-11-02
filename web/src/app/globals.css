@@ -1,23 +1,19 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* ──────────────────────────────────────────────────────────────────────────
-   Design tokens — inherited from career-ops-docs. Brand burnt-orange #dd7627
-   (mode-invariant), zinc neutrals, light + dark (Fumadocs neutral values).
-   ────────────────────────────────────────────────────────────────────────── */
+/* Design tokens: landing-gear. Monochrome (Apple-like neutrals) with one blue
+   accent; San Francisco on Apple devices, bundled Inter elsewhere. */
 @theme {
-  --color-brand: hsl(26 73% 51%);
-  --color-brand-200: hsl(33 100% 60%); /* hover / lighter */
-  /* Near-black on the brand orange: 5.2:1 on brand, 8.3:1 on brand-200 hover
-     (white was 3.14:1, an AA fail in BOTH themes since the button is the same).
-     The brand orange itself is untouched — only what sits on top of it. */
-  --color-brand-foreground: hsl(24 30% 12%);
-  --color-brand-soft: hsl(26 73% 51% / 0.12);
-  --color-brand-secondary: #fc7744;
+  --color-brand: #0071e3;
+  --color-brand-200: #0077ed; /* hover */
+  /* White on the blue accent is about 4.6:1. */
+  --color-brand-foreground: #ffffff;
+  --color-brand-soft: rgb(0 113 227 / 0.12);
+  --color-brand-secondary: #2997ff;
 
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-serif: var(--font-instrument-serif), ui-serif, Georgia, serif;
-  --font-display: var(--font-instrument-serif), ui-serif, Georgia, serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", var(--font-inter), system-ui, sans-serif;
+  --font-serif: var(--font-sans);
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--font-inter), system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
 }
 
@@ -30,41 +26,39 @@
   --color-foreground: var(--fg);
   --color-muted: var(--muted);
   --color-faint: var(--faint);
-  --color-landing: var(--landing); /* editorial olive (light) / cream (dark) — docs landing-foreground */
-  /* Brand as SMALL TEXT: the raw orange only passes AA in dark (4.95); in light
-     it's 2.6-3.1 on cream/white. brand-text darkens it for light and keeps the
-     raw brand in dark. Use for small text/badges; brand stays for accents,
-     surfaces, icons and large headings (≥24px passes at 3:1). */
+  --color-landing: var(--landing); /* headline color: the foreground in this monochrome theme */
+  /* The accent as small text: a darker blue in light (about 5.6:1 on white),
+     a brighter one in dark (about 7:1 on black). */
   --color-brand-text: var(--brand-text);
 }
 
 :root {
-  --bg: #f7f6f3; /* warm off-white (docs stone tone) */
+  --bg: #f5f5f7;
   --surface: #ffffff;
-  --surface-hover: #efeeea;
-  --border: hsl(40 9% 86%);
-  --fg: hsl(30 10% 11%); /* warm near-black, high legibility */
-  --muted: hsl(35 9% 34%); /* darker than before for readable body text */
-  --faint: hsl(35 7% 42%); /* AA: ~4.6:1 on #fff (was 50% ≈ 3.9:1, failed small text) */
-  --landing: #59592a; /* olive editorial headline */
-  --brand-text: hsl(26 80% 36%); /* darkened brand for small text: 5.5 white / 5.1 cream / 4.7 surface-hover */
-  --dot: 40 8% 42% / 0.09;
-  --pre-bg: #f2f1ed;
+  --surface-hover: #ececf0;
+  --border: #d2d2d7;
+  --fg: #1d1d1f;
+  --muted: #515154;
+  --faint: #6e6e73; /* about 5:1 on white */
+  --landing: #1d1d1f;
+  --brand-text: #0066cc;
+  --dot: 240 3% 46% / 0.09;
+  --pre-bg: #f0f0f2;
   color-scheme: light;
 }
 
 .dark {
-  --bg: #0a0a0a;
-  --surface: #161616;
-  --surface-hover: #232323;
-  --border: #262626;
-  --fg: #fafafa;
-  --muted: #a1a1aa;
-  --faint: #8b8b95; /* AA: ~4.6:1 on #161616 (was #71717a ≈ 3.7:1, failed small text) */
-  --landing: #e4e2d0; /* cream editorial headline */
-  --brand-text: hsl(26 73% 51%); /* raw brand already passes in dark (≥4.95 on bg/surface) */
+  --bg: #000000;
+  --surface: #161617;
+  --surface-hover: #232326;
+  --border: #2c2c2e;
+  --fg: #f5f5f7;
+  --muted: #a1a1a6;
+  --faint: #86868b; /* about 5.2:1 on #161617 */
+  --landing: #f5f5f7;
+  --brand-text: #2997ff;
   --dot: 240 5% 65% / 0.10;
-  --pre-bg: #111111;
+  --pre-bg: #0d0d0e;
   color-scheme: dark;
 }
 
@@ -79,9 +73,10 @@ html {
 }
 
 @layer utilities {
-  .font-serif-italic {
-    font-family: var(--font-instrument-serif-italic), var(--font-serif);
-    font-style: italic;
+  /* Display headings, Apple style: semibold with tight tracking. */
+  .font-display {
+    font-weight: 600;
+    letter-spacing: -0.02em;
   }
   /* Ambient dot grid — adapts to the theme via --dot. Pure CSS, 0 DOM. */
   .dot-bg {
@@ -208,9 +203,11 @@ html {
   letter-spacing: -0.01em;
   line-height: 1.25;
 }
-.report-prose h1 { font-family: var(--font-display); font-size: 1.7rem; margin: 2rem 0 0.75rem; }
+.report-prose h1 { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.02em; font-size: 1.7rem; margin: 2rem 0 0.75rem; }
 .report-prose h2 {
   font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.02em;
   font-size: 1.3rem;
   margin: 2.25rem 0 0.75rem;
   padding-bottom: 0.4rem;

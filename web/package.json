@@ -1,5 +1,5 @@
 {
-  "name": "@career-ops/web",
+  "name": "@landing-gear/web",
   "version": "0.15.0",
   "private": true,
   "description": "Official web experience for career-ops — local-first.",

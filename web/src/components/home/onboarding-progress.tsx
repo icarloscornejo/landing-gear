@@ -1,15 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Sparkles, Check, Circle, CircleDashed } from "lucide-react";
-import { readSavedCliId } from "@/lib/saved-cli";
+import { Check, Circle, CircleDashed } from "lucide-react";
 
-// The "profile that grows while you talk": a live checklist of the four setup
-// prerequisites plus the eight personalization sections, read from the same
-// two signals the assistant gets (/api/doctor and /api/personalization) — never
-// a parallel notion of "done". Refetches after every confirmed write
-// (co-onboarding-changed) and after every finished worker (co-job-done), so a
-// section flips to filled the moment its confirm card is accepted.
+// A live checklist of the four setup prerequisites plus the eight
+// personalization sections, read from /api/doctor and /api/personalization.
+// Refetches after every finished worker (co-job-done). The files are filled in
+// from the terminal (Claude Code), not from this panel.
 
 type Doctor = { available: boolean; onboardingNeeded: boolean; missing: string[] };
 type Section = { id: string; heading: string; state: "filled" | "template" | "missing" };
@@ -18,23 +15,16 @@ type Section = { id: string; heading: string; state: "filled" | "template" | "mi
 // count itself done while doctor still says onboarding is incomplete.
 // modes/_profile.md has no `ask` of its own: when it is absent its eight
 // sections are all "missing", and the personalization line below asks for them.
-const PREREQS: { key: string; label: string; ask?: string }[] = [
-  { key: "cv.md", label: "Your CV", ask: "my CV" },
-  { key: "config/profile.yml", label: "Profile: target roles, comp, location", ask: "my profile (target roles, comp, location)" },
+const PREREQS: { key: string; label: string }[] = [
+  { key: "cv.md", label: "Your CV" },
+  { key: "config/profile.yml", label: "Profile: target roles, comp, location" },
   { key: "modes/_profile.md", label: "Personalization file" },
-  { key: "portals.yml", label: "Companies and roles to scan", ask: "the roles and companies to scan" },
+  { key: "portals.yml", label: "Companies and roles to scan" },
 ];
-
-// Same reader the rest of the app uses, so "configured" cannot mean one thing
-// here and another in Config (an empty-string cliId is not configured).
-function hasCli(): boolean {
-  return !!readSavedCliId();
-}
 
 export function OnboardingProgress({ compact = false }: { compact?: boolean }) {
   const [doctor, setDoctor] = useState<Doctor | null>(null);
   const [sections, setSections] = useState<Section[] | null>(null);
-  const [cli, setCli] = useState(true);
 
   const refetch = useCallback(() => {
     fetch("/api/doctor").then((r) => r.json()).then(setDoctor).catch(() => {});
@@ -44,14 +34,9 @@ export function OnboardingProgress({ compact = false }: { compact?: boolean }) {
   }, []);
 
   useEffect(() => {
-    setCli(hasCli());
     refetch();
-    window.addEventListener("co-onboarding-changed", refetch);
     window.addEventListener("co-job-done", refetch);
-    return () => {
-      window.removeEventListener("co-onboarding-changed", refetch);
-      window.removeEventListener("co-job-done", refetch);
-    };
+    return () => window.removeEventListener("co-job-done", refetch);
   }, [refetch]);
 
   if (!doctor || !sections) return null;
@@ -64,12 +49,6 @@ export function OnboardingProgress({ compact = false }: { compact?: boolean }) {
   const total = PREREQS.length + sections.length;
   const done = prereqDone + (sections.length - generic.length);
   if (done === total) return null; // fully personalized: the panel has done its job
-
-  const asks = [
-    ...PREREQS.filter((p) => missing.has(p.key)).flatMap((p) => (p.ask ? [p.ask] : [])),
-    ...(generic.length ? [`my personalization (${generic.map((s) => s.heading.replace(/^## Your /, "").toLowerCase()).join(", ")})`] : []),
-  ];
-  const kickoff = `Let's finish setting me up. Still to do: ${asks.join("; ")}. Walk me through it like a recruiter building my brief: one or two things at a time, propose what you infer from my CV, and let me confirm each piece. Don't ask for anything already on file.`;
 
   return (
     <aside className={`rounded-2xl border border-border bg-surface/40 ${compact ? "p-4" : "p-5"}`} aria-label="Setup progress">
@@ -91,18 +70,9 @@ export function OnboardingProgress({ compact = false }: { compact?: boolean }) {
         ))}
       </ul>
 
-      {cli ? (
-        <button
-          onClick={() => window.dispatchEvent(new CustomEvent("co-assistant", { detail: { message: kickoff } }))}
-          className="mt-4 inline-flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-foreground transition-colors hover:bg-brand-200"
-        >
-          <Sparkles className="size-4" /> Continue with the assistant
-        </button>
-      ) : (
-        <p className="mt-4 text-xs text-muted">
-          Connect your AI CLI in <a href="/config" className="text-foreground underline-offset-2 hover:underline">Config</a> and the assistant fills this in with you.
-        </p>
-      )}
+      <p className="mt-4 text-xs text-muted">
+        Fill these in from the terminal: run <code className="font-mono text-foreground">/career-ops</code> in Claude Code (or <code className="font-mono text-foreground">node doctor.mjs</code> to see what is missing).
+      </p>
     </aside>
   );
 }

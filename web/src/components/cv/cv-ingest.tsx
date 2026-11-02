@@ -7,7 +7,6 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Upload, FileText, Loader2, Check, AlertTriangle, Lock, ArrowRight, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { instrumentSerif } from "@/lib/fonts";
 import { cvReadiness, parseCvStream, type CvSeed } from "@/lib/cv/quality";
 import { ingestErrorMessage } from "@/lib/cv/ingest-error.mjs";
 import { DEFAULT_FILTERS, filtersToParams } from "@/lib/explore";
@@ -24,7 +23,7 @@ function cliId(): string | null {
 
 const STYLE = `
 .co-cvdrop{position:relative;border:1.5px dashed color-mix(in srgb, var(--fg) 22%, transparent);border-radius:1rem;transition:border-color .2s,background .2s}
-.co-cvdrop[data-over="true"]{border-color:hsl(26 73% 51%);background:hsl(26 73% 51% /.05)}
+.co-cvdrop[data-over="true"]{border-color:hsl(211 100% 45%);background:hsl(211 100% 45% /.05)}
 .co-cvtrace{animation:co-rise .4s ease both}
 `;
 
@@ -253,7 +252,7 @@ export function CvIngest({ onSaved }: { onSaved?: () => void }) {
         <style>{STYLE}</style>
         <div className="flex items-center gap-2.5">
           <Loader2 className="size-4 animate-spin text-brand" />
-          <span className={`${instrumentSerif.className} text-lg text-foreground`}>{trace || "Reading your CV…"}</span>
+          <span className={`font-display text-lg text-foreground`}>{trace || "Reading your CV…"}</span>
         </div>
         <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
           <span className="size-1.5 rounded-full bg-emerald-500" /> 0 tokens · $0.00 · local
@@ -269,7 +268,7 @@ export function CvIngest({ onSaved }: { onSaved?: () => void }) {
       <style>{STYLE}</style>
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <FileText className="size-4 text-brand" />
-        <h3 className={`${instrumentSerif.className} text-lg text-foreground`}>Here&apos;s your CV: review and save</h3>
+        <h3 className={`font-display text-lg text-foreground`}>Here&apos;s your CV: review and save</h3>
         {readiness && (
           <span
             className={cn(

@@ -15,7 +15,7 @@ import { Fragment, useEffect, useId, useRef, useState } from "react";
 const STYLE = `
 @keyframes co-rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 .co-rise{animation:co-rise .55s cubic-bezier(.22,1,.36,1) both}
-@keyframes co-flash{0%{box-shadow:0 0 0 0 hsl(26 82% 55% / 0)}22%{box-shadow:0 0 0 3px hsl(26 82% 55% / .38)}100%{box-shadow:0 0 0 0 hsl(26 82% 55% / 0)}}
+@keyframes co-flash{0%{box-shadow:0 0 0 0 hsl(211 100% 50% / 0)}22%{box-shadow:0 0 0 3px hsl(211 100% 50% / .38)}100%{box-shadow:0 0 0 0 hsl(211 100% 50% / 0)}}
 .co-flash{animation:co-flash 1.15s ease both;border-radius:.6rem}
 @keyframes co-shim{0%{background-position:-200% 0}100%{background-position:200% 0}}
 .co-skel{background:linear-gradient(90deg, color-mix(in srgb,var(--fg) 5%, transparent) 25%, color-mix(in srgb,var(--fg) 12%, transparent) 37%, color-mix(in srgb,var(--fg) 5%, transparent) 63%);background-size:200% 100%;animation:co-shim 1.6s linear infinite;border-radius:.5rem}
@@ -142,7 +142,7 @@ export function ApplyView() {
               {prefilling ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
               {prefilling ? "Drafting from your CV…" : "Pre-fill from my CV"}
             </button>
-            <span className="text-xs text-muted">…or ask the corner assistant to write/revise any answer.</span>
+            <span className="text-xs text-muted">…or edit any answer by hand.</span>
           </div>
 
           {(prefilling || a.prefillLog.length > 0) && (
@@ -166,7 +166,7 @@ export function ApplyView() {
           )}
 
           {/* the questions — float on the blurred form image, cascade in, each
-              flashes brand-orange the instant its drafted answer lands */}
+              flashes brand blue the instant its drafted answer lands */}
           <div className="space-y-1 rounded-2xl border border-border/70 bg-surface/80 p-2 shadow-2xl shadow-black/10 backdrop-blur-md sm:p-3">
             {a.fields.map((f, i) => (
               <div key={f.id} className="co-rise rounded-xl px-3 py-2.5" style={{ animationDelay: `${Math.min(i * 45, 700)}ms` }}>
@@ -230,7 +230,7 @@ export function ApplyView() {
               <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-emerald-500" />
               <div>
                 <span className="font-medium text-emerald-700 dark:text-emerald-400">The real form is now in front, pre-filled.</span>{" "}
-                <span className="text-muted">Review it and click Submit yourself. career-ops never submits for you.</span>
+                <span className="text-muted">Review it and click Submit yourself. landing-gear never submits for you.</span>
               </div>
             </div>
           )}
@@ -567,7 +567,7 @@ function FieldRow({
   };
   const labelText = f.label || "Untitled field";
 
-  // Flash brand-orange the moment a drafted answer first lands (empty → value).
+  // Flash brand blue the moment a drafted answer first lands (empty → value).
   const prev = useRef(value);
   const [flash, setFlash] = useState(false);
   useEffect(() => {

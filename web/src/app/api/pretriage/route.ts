@@ -25,7 +25,7 @@ export async function POST(req: Request) {
   const file = path.join(root, "data", "pipeline.md");
   const lockModule = path.join(root, "pipeline-lock.mjs");
   if (!fs.existsSync(lockModule)) {
-    return NextResponse.json({ error: "pre-triage needs the career-ops scripts", code: "core-script-missing" }, { status: 503 });
+    return NextResponse.json({ error: "pre-triage needs the landing-gear core scripts", code: "core-script-missing" }, { status: 503 });
   }
 
   const tracker = trackerKeys(readApplications());
