@@ -2,7 +2,7 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { preTriage, residencyBlock, trackerKeys, urlKey } from "../../src/lib/pre-triage.mjs";
+import { eligibilityBlock, preTriage, residencyBlock, trackerKeys, urlKey } from "../../src/lib/pre-triage.mjs";
 
 const tracker = trackerKeys([
   { company: "Upgrade", role: "AI Experience Engineer (Conversational AI)", url: "" },
@@ -116,4 +116,39 @@ test("pay: only a structured USD maximum below 4,000 a month drops", () => {
 test("urlKey reads markdown links and ignores query and trailing slash", () => {
   assert.equal(urlKey("[x](https://Jobs.Example.com/a/b/?q=1)"), "jobs.example.com/a/b");
   assert.equal(urlKey("local:jds/x.md"), "");
+});
+
+test("eligibilityBlock: US citizenship, green card, US clearance, US authorization without sponsorship and W-2 as requirements", () => {
+  for (const text of [
+    "Candidates must be a U.S. citizen.",
+    "US citizenship is required for this role.",
+    "Must hold an active TS/SCI clearance.",
+    "Active Secret clearance required.",
+    "You must be authorized to work in the United States without visa sponsorship.",
+    "Green card holders only.",
+    "W-2 only, no C2C.",
+    "Requisito: ser ciudadano estadounidense.",
+  ]) assert.ok(eligibilityBlock(text), text);
+});
+
+test("eligibilityBlock: negated, preferred, non-US clearances and non-US alternatives pass", () => {
+  for (const text of [
+    "No security clearance required.",
+    "US citizenship is not required.",
+    "Security clearance is a plus.",
+    "Ability to obtain a US security clearance.",
+    "Must hold UK SC clearance.",
+    "Applicants must be authorized to work in the US or Canada without sponsorship.",
+    "US citizens only, or remote from LATAM.",
+    "As an American citizen you get benefits.",
+  ]) assert.equal(eligibilityBlock(text), null, text);
+});
+
+test("preTriage runs the eligibility check only when the profile is not US-authorized", () => {
+  const jd = { text: "We're hiring a Senior Android Engineer to build our Kotlin apps. Candidates must be a U.S. citizen." };
+  const role = row("Senior Android Engineer", "Remote");
+  assert.match(preTriage(role, tracker, jd, { usAuthorized: false }).reason, /^eligibility: "Candidates must be a U.S. citizen\."$/);
+  assert.deepEqual(preTriage(role, tracker, jd, { usAuthorized: true }), PASS);
+  assert.deepEqual(preTriage(role, tracker, jd, {}), PASS);
+  assert.deepEqual(preTriage(role, tracker, jd), PASS);
 });

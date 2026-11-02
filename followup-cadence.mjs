@@ -1022,6 +1022,9 @@ export function analyzeFromContent(trackerContent, followupsContent = '', { enab
       retired: retiredCount,
     },
     entries: filtered,
+    // Listed apart for the stale sweep (modes/followup.md Step 1c, the web's "Quiet 60+ days"):
+    // a retired application is usually the long-silent one that should be closed as ghosted.
+    retiredEntries: entries.filter(e => e.urgency === 'retired'),
     cadenceConfig: CADENCE,
     // The EFFECTIVE cadence above is defaults+profile overrides. Consumers that
     // need to show what a value would be WITHOUT the user's override (the web

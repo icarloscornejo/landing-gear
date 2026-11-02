@@ -2,6 +2,8 @@
 cv.md
 article-digest.md
 local/
+# Personal steps for the daily scan, run last by daily-scan.sh when present.
+/daily-scan.local.sh
 # Data-root marker (DATA_CONTRACT.md "Custom Data Directory"). It holds a path
 # on this machine only, so committing it would point every other clone at a
 # directory that does not exist there.

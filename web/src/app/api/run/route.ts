@@ -68,7 +68,7 @@ export async function POST(req: Request) {
   }
   // Server-owned run (lib/live-runs.ts): answer with its id at once and let this
   // process read the stream below to the end. Used by the web for triage and
-  // evaluate, and by chat sessions through my-tools/run-job.mjs.
+  // evaluate, and by chat sessions through run-job.mjs.
   if (body.detach === true) {
     if (!HAIKU_KINDS.includes(kind)) {
       return Response.json({ error: `'${kind}' cannot run detached; only ${HAIKU_KINDS.join(" and ")} can.` }, { status: 400 });

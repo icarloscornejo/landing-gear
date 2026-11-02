@@ -3521,3 +3521,17 @@ job_boards:
     careers_url: https://www.magneto365.com/co/trabajos/buscar/tecnologia
     enabled: false
     notes: "Colombia. 'tecnologia' search; swap the last path segment for another search."
+
+# Extra daily sources (daily-scan.sh). Both are opt-in: uncomment to turn one on.
+# freehire.me (public API, no key): recent postings collected from many ATSs and job boards.
+# freehire:
+#   regions: latam        # or a list; leave out for every region
+#   work_mode: remote
+# JSearch (Google for Jobs): needs JSEARCH_API_KEY in .env. One request per query and country
+# per day, so keep queries x countries x 30 under the plan's monthly quota (200 on the free plan).
+# jsearch:
+#   queries:
+#     - Senior Backend Engineer
+#   countries: [us]
+#   date_posted: 3days
+#   work_from_home: true

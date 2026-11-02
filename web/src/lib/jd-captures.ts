@@ -7,6 +7,7 @@ import { createHash } from "node:crypto";
 import { careerOpsRoot, rootScript } from "@/lib/career-ops";
 import { jdSourceLine, pastedJdMarkdown, resolveWorkerInput } from "@/lib/lifecycle.mjs";
 import { runNodeScript } from "@/lib/set-status-run";
+import { integritySection } from "@/lib/core/posting-guard.mjs";
 
 const FETCH_JD_TIMEOUT_MS = 30_000;
 
@@ -18,15 +19,27 @@ const FETCH_JD_TIMEOUT_MS = 30_000;
  * (fetch-jd exits 1 with empty stdout), and the worker falls back as before.
  */
 export async function fetchJdCapture(url: string, date: string): Promise<string | null> {
-  const result = await runNodeScript(rootScript("fetch-jd"), [url], FETCH_JD_TIMEOUT_MS);
-  const text = result.stdout.trim();
-  if (result.code !== 0 || !text) return null;
   const relative = path.join("jds", `fetched-${createHash("sha1").update(url).digest("hex").slice(0, 10)}.md`);
-  const role = text.split("\n")[0];
-  const markdown = pastedJdMarkdown({ url, company: new URL(url).hostname, role, text, date, how: "read from the ATS API by the web server, live at that time" });
   fs.mkdirSync(path.join(careerOpsRoot(), "jds"), { recursive: true });
-  fs.writeFileSync(path.join(careerOpsRoot(), relative), markdown);
-  return relative;
+  // fetch-jd.mjs already ran the posting guard on the text; its findings land in this file.
+  const integrityFile = path.join(careerOpsRoot(), `${relative}.integrity-${process.pid}.json`);
+  try {
+    const result = await runNodeScript(rootScript("fetch-jd"), [url, "--integrity-file", integrityFile], FETCH_JD_TIMEOUT_MS);
+    const text = result.stdout.trim();
+    if (result.code !== 0 || !text) return null;
+    let findings: { kind: string; sample: string }[] = [];
+    try {
+      findings = JSON.parse(fs.readFileSync(integrityFile, "utf8")).findings ?? [];
+    } catch {
+      // An older fetch-jd without --integrity-file, or nothing written: no findings to add.
+    }
+    const role = text.split("\n")[0];
+    const markdown = pastedJdMarkdown({ url, company: new URL(url).hostname, role, text, date, how: "read from the ATS API by the web server, live at that time" });
+    fs.writeFileSync(path.join(careerOpsRoot(), relative), markdown + integritySection(findings));
+    return relative;
+  } finally {
+    fs.rmSync(integrityFile, { force: true });
+  }
 }
 
 export function listJdFiles(): string[] {

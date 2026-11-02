@@ -1181,6 +1181,14 @@ process_offer() {
         break
       fi
     done
+      # Posting guard (posting-guard.mjs) on the markup, before the strip below turns
+      # hidden elements into ordinary words: it removes them and invisible characters
+      # and records what it found beside the JD file. Paths only as argv; it writes
+      # through a temp file, and any failure leaves the page as it was.
+      if [[ -f "$PROJECT_DIR/posting-guard.mjs" && -s "$jd_file" ]]; then
+        node "$PROJECT_DIR/posting-guard.mjs" --clean "$jd_file" "$jd_file" > "${jd_file}.integrity.json" 2>/dev/null \
+          || rm -f "${jd_file}.integrity.json"
+      fi
       # Keep the bytes curl downloaded: the strip below discards <script> blocks,
       # which is where a JS-rendered board keeps its JD (schema.org JobPosting,
       # hydration payload), so jd-rescue.mjs reads this copy, not the stripped text.
@@ -1244,16 +1252,17 @@ process_offer() {
   if [[ ! -s "$jd_file" && -f "$PROJECT_DIR/fetch-jd.mjs" ]]; then
     local jd_api_tmp
     jd_api_tmp="$(mktemp "${TMPDIR:-/tmp}/batch-jd-api.XXXXXX")"
-    if node "$PROJECT_DIR/fetch-jd.mjs" "$url" > "$jd_api_tmp" 2>/dev/null; then
+    if node "$PROJECT_DIR/fetch-jd.mjs" "$url" --integrity-file "${jd_api_tmp}.integrity" > "$jd_api_tmp" 2>/dev/null; then
       jd_api_words=$(wc -w < "$jd_api_tmp" 2>/dev/null) || jd_api_words=0
       jd_api_words="${jd_api_words//[^0-9]/}"
       jd_api_words="${jd_api_words:-0}"
       if [[ "$jd_api_words" -ge "$prefetch_min_words" ]]; then
         cat "$jd_api_tmp" > "$jd_file"
+        [[ -s "${jd_api_tmp}.integrity" ]] && mv -f "${jd_api_tmp}.integrity" "${jd_file}.integrity.json"
         echo "    ℹ️  JD prefetch: ${jd_api_words} words from the ATS API (fetch-jd.mjs)"
       fi
     fi
-    rm -f "$jd_api_tmp"
+    rm -f "$jd_api_tmp" "${jd_api_tmp}.integrity"
   fi
 
   # --thin-action: no usable JD text after the static fetch and the ATS API
@@ -1271,13 +1280,19 @@ process_offer() {
       be_out="$(mktemp "${TMPDIR:-/tmp}/batch-jd-browser.XXXXXX")"
       be_err="$(mktemp "${TMPDIR:-/tmp}/batch-jd-browser-err.XXXXXX")"
       if node "$PROJECT_DIR/browser-extract.mjs" "$url" --mode jd > "$be_out" 2> "$be_err"; then
+        # The text goes to the JD file and the posting-guard findings beside it.
         node -e '
+          const fs = require("fs");
           let d = "";
           process.stdin.on("data", (c) => d += c);
           process.stdin.on("end", () => {
-            try { const o = JSON.parse(d); process.stdout.write(typeof o.text === "string" ? o.text : ""); } catch { /* empty */ }
+            try {
+              const o = JSON.parse(d);
+              process.stdout.write(typeof o.text === "string" ? o.text : "");
+              fs.writeFileSync(process.argv[1], JSON.stringify({ findings: Array.isArray(o.integrity) ? o.integrity : [] }));
+            } catch { /* empty */ }
           });
-        ' < "$be_out" > "$jd_file" 2>/dev/null || : > "$jd_file"
+        ' "${jd_file}.integrity.json" < "$be_out" > "$jd_file" 2>/dev/null || : > "$jd_file"
         be_words=$(wc -w < "$jd_file" 2>/dev/null) || be_words=0
         be_words="${be_words//[^0-9]/}"; be_words="${be_words:-0}"
         if [[ "$be_words" -ge 200 ]]; then
@@ -1285,6 +1300,7 @@ process_offer() {
           jd_prefetch_words="$be_words"
         else
           : > "$jd_file"
+          rm -f "${jd_file}.integrity.json"
           echo "    🎭 Browser extract: no readable JD (${be_words} words)"
         fi
       else
@@ -1339,7 +1355,7 @@ process_offer() {
     thin_now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
     update_state_retrying "$id" "$url" "$thin_state" "$started_at" "$thin_now" "-" "-" "$jd_thin_note" "$thin_retries" || true
     release_report_num "$report_num"
-    rm -f "$jd_file"
+    rm -f "$jd_file" "${jd_file}.integrity.json"
     echo "    🚫 $jd_thin_note — no worker spawned"
     return 0
   fi
@@ -1354,6 +1370,20 @@ process_offer() {
   fi
   prompt="$prompt URL: $url"
   prompt="$prompt JD file: $jd_file"
+  # Block G inputs, computed here so the worker never puts the untrusted URL in a command.
+  # Both lines come from fixed vocabularies (counts and vendor ids), never posting text;
+  # the samples stay in "<JD file>.integrity.json", which the worker reads as data.
+  local ats_verdict="unchecked" integrity_line="unchecked"
+  if [[ -f "$PROJECT_DIR/ats-vendor.mjs" ]]; then
+    ats_verdict=$(node "$PROJECT_DIR/ats-vendor.mjs" --check "$url" 2>/dev/null) || ats_verdict="unchecked"
+  fi
+  if [[ -f "$PROJECT_DIR/posting-guard.mjs" ]]; then
+    integrity_line=$(node "$PROJECT_DIR/posting-guard.mjs" --summary "${jd_file}.integrity.json" 2>/dev/null) || integrity_line="unchecked"
+  fi
+  ats_verdict="${ats_verdict//[^a-z0-9 -]/}"
+  integrity_line="${integrity_line//[^a-z0-9= -]/}"
+  prompt="$prompt Posting integrity: ${integrity_line:-unchecked}"
+  prompt="$prompt ATS host: ${ats_verdict:-unchecked}"
   prompt="$prompt Report number: $report_num"
   prompt="$prompt Date: $date"
   prompt="$prompt Batch ID: $id"

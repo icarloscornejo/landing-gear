@@ -21,6 +21,8 @@
 (async () => {
   // linkedin-script.mjs replaces this line with the queries from portals.yml; these are only the fallback.
   const QUERIES = ['android remote', 'mobile engineer remote', 'AI engineer remote']; // QUERIES
+  // linkedin-script.mjs fills this from the profile with only {usAuthorized}; nothing else from it reaches LinkedIn.
+  const PROFILE = {}; // PROFILE
   // Always the last 24 hours: the scan is meant to run once a day.
   const DATE_POSTED = 'past-24h';
   // With 24 hours the results run out quickly; the cap only stops a search that never ends. With "Load more"
@@ -223,7 +225,7 @@
       readHere.push(identity);
       counts.containers = readHere.length;
       // People looking for work: skipped quickly, without scrolling to them.
-      const verdict = sameAs(seen, identity) ? null : judgePost({ author, body }, preTriage);
+      const verdict = sameAs(seen, identity) ? null : judgePost({ author, body }, preTriage, PROFILE);
       if (verdict && verdict.kind === 'seeker') {
         seen.push(identity);
         counts.total++;

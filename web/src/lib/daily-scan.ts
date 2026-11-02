@@ -1,4 +1,4 @@
-// Daily zero-token portal scan (my-tools/daily-scan.sh), run by this web server
+// Daily zero-token portal scan (daily-scan.sh), run by this web server
 // instead of launchd: a launchd job cannot read ~/Desktop (macOS privacy), the
 // server started from the terminal can. Runs once a day from 12:00 local time, or
 // at the first check after the server starts if that day has no complete run.
@@ -6,7 +6,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { spawn } from "node:child_process";
-import { careerOpsRoot } from "@/lib/career-ops";
+import { careerOpsRoot, rootScript } from "@/lib/career-ops";
 
 const START_HOUR = 12;
 const CHECK_EVERY_MS = 10 * 60 * 1000;
@@ -83,9 +83,10 @@ export function runDailyScan(): boolean {
   const scan = holder();
   if (scan.running) return false;
   const root = careerOpsRoot();
-  const script = path.join(root, "my-tools", "daily-scan.sh");
+  // The script ships with the code, so it lives in the checkout, not in the data root.
+  const script = path.join(path.dirname(rootScript("scan")), "daily-scan.sh");
   if (!fs.existsSync(script)) {
-    console.warn("daily scan: my-tools/daily-scan.sh not found");
+    console.warn("daily scan: daily-scan.sh not found");
     return false;
   }
   const previous = readState();

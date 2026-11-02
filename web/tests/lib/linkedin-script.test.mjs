@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { buildLinkedinScript, portalQueries, withModules, withQueries } from "../../src/lib/linkedin-script.mjs";
+import { buildLinkedinScript, portalQueries, withModules, withProfile, withQueries } from "../../src/lib/linkedin-script.mjs";
 
 const lib = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../src/lib");
 const read = (name) => fs.readFileSync(path.join(lib, name), "utf8");
@@ -36,6 +36,15 @@ test("the searches come from portals.yml, capped at max_queries_per_run; without
   assert.match(filled, /const QUERIES = \["android remote","kotlin \\"LATAM\\""\]; \/\/ QUERIES/);
   assert.equal(withQueries(script, []), script);
   assert.throws(() => withQueries("no line", ["x"]), /QUERIES line not found/);
+});
+
+test("the PROFILE line carries only usAuthorized, never other profile fields", () => {
+  const script = read("linkedin-posts-scan.js");
+  assert.match(withProfile(script, false), /const PROFILE = \{"usAuthorized":false\}; \/\/ PROFILE/);
+  assert.match(withProfile(script, undefined), /const PROFILE = \{\}; \/\/ PROFILE/);
+  assert.throws(() => withProfile("no line", true), /PROFILE line not found/);
+  const built = buildLinkedinScript(path.resolve(lib, "../../.."));
+  assert.doesNotMatch(built, /authorized_in|full_name|email|phone/);
 });
 
 test("a new import in either module fails loudly instead of breaking in the browser", () => {

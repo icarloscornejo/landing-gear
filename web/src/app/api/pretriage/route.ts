@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import fs from "node:fs";
 import path from "node:path";
-import { careerOpsRoot, readApplications, readInbox } from "@/lib/career-ops";
+import { careerOpsRoot, readApplications, readInbox, readProfileAuthorizedIn } from "@/lib/career-ops";
+import { usAuthorizedFrom } from "@/lib/location-reach.mjs";
+import { lookalikeAts } from "@/lib/core/ats-lookalike.mjs";
 import { setInboxLabel, setInboxSkip } from "@/lib/inbox-skip.mjs";
 import { preTriage, trackerKeys } from "@/lib/pre-triage.mjs";
 import { createJdReader } from "@/lib/pretriage-jd";
@@ -29,6 +31,7 @@ export async function POST(req: Request) {
   }
 
   const tracker = trackerKeys(readApplications());
+  const options = { usAuthorized: usAuthorizedFrom(readProfileAuthorizedIn()) };
   const targets = readInbox().filter((job) => !job.done && !job.triage && (recheck || !job.pretriaged));
   const readJd = createJdReader();
   const jds = new Array(targets.length);
@@ -44,9 +47,15 @@ export async function POST(req: Request) {
   const failed: string[] = [];
   for (const [index, job] of targets.entries()) {
     const jd = jds[index];
-    const verdict = preTriage(job, tracker, jd);
+    // A real ATS domain with more labels after it (rule a) is a fake host: drop it. A reused
+    // vendor word (rule b) is only labelled, since an unrelated site can carry the word.
+    const lookalike = lookalikeAts(job.url);
+    const verdict = lookalike?.rule === "a"
+      ? { pass: false as const, reason: `look-alike ATS host (${lookalike.host})` }
+      : preTriage(job, tracker, jd, options);
+    const passLabel = `${jd ? "pass" : "pass, no JD"}${lookalike ? `, look-alike ${lookalike.vendor} host ${lookalike.host}` : ""}`;
     const writes = verdict.pass
-      ? [() => setInboxLabel(file, job.url, "pretriage", jd ? "pass" : "pass, no JD", { lockModule })]
+      ? [() => setInboxLabel(file, job.url, "pretriage", passLabel, { lockModule })]
       : [
           () => setInboxLabel(file, job.url, "closed", `pre-triage: ${verdict.reason}`, { lockModule }),
           () => setInboxSkip(file, job.url, true, { lockModule }),

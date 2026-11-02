@@ -130,13 +130,16 @@ if (!bash || !apiBlock) {
     if (absent.jd === '') pass('fetch-jd.mjs absent: the fallback is skipped without error');
     else fail('fetch-jd.mjs absent: the JD file changed');
 
-    // A hostile URL must arrive as data: one argv element, nothing executed.
+    // A hostile URL must arrive as data: one argv element, nothing executed. The only other
+    // arguments are the runner's own --integrity-file flag and a path it chose.
     const marker = join(work, 'pwned');
     const hostile = `https://jobs.ashbyhq.com/acme/1?x=$(touch ${marker})&y=\`touch ${marker}\`";touch ${marker};"`;
     const evil = run({ mode: 'miss', url: hostile });
     let argv = null;
     try { argv = JSON.parse(evil.trace.trim().split('\n')[0]); } catch {}
-    if (!existsSync(marker) && Array.isArray(argv) && argv.length === 1 && argv[0] === hostile) {
+    const extra = Array.isArray(argv) ? argv.slice(1) : [];
+    const onlyOwnFlags = extra.length === 0 || (extra.length === 2 && extra[0] === '--integrity-file' && !extra[1].includes(hostile));
+    if (!existsSync(marker) && Array.isArray(argv) && argv[0] === hostile && onlyOwnFlags) {
       pass('hostile URL: passed as a single argument, no command substitution runs');
     } else {
       fail(`hostile URL: marker=${existsSync(marker)} argv=${JSON.stringify(argv)}`);

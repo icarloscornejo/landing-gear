@@ -35,6 +35,26 @@ const RESIDENCY = /(must (reside|live|be (based|located|resident))|residents? of
 const BASED_ONLY = /[- ]based\s+((resources|candidates|applicants|talent)\s+)?(only|required)\b/;
 const CLAUSE_START = /[.;:!?()\n*|]/;
 
+// US work eligibility as a requirement (idea from ai-job-search, MIT). Only applied when the
+// profile says the user is not authorized in the US (preTriage options.usAuthorized === false).
+// Every pattern needs requirement wording; folded text, so "U.S." reads "u.s.".
+const US = String.raw`(?:u\.?s\.?a?\.?|united states|american)`;
+const ELIGIBILITY = [
+  new RegExp(String.raw`\b(must|required to|need to|have to) (be|hold) (a |an )?${US} citizen`),
+  new RegExp(String.raw`\b${US} citizen(s|ship)?( is| are)? (required|only|mandatory)\b`),
+  new RegExp(String.raw`\brequires? ${US} citizenship\b`),
+  /\b(debe|debes|deberas|requisito|requiere|se requiere)\b[^.]{0,40}\b(ciudadan[oa]s?|ciudadania) (estadounidense|de (los )?(estados unidos|ee\.? ?uu\.?))/,
+  new RegExp(String.raw`\b(must|required to) (be|hold|have) (a |an )?(green card|${US} permanent resident|lawful permanent resident)`),
+  new RegExp(String.raw`\b(green card|${US} permanent residen(t|cy)|lawful permanent resident)( holders?)?( is| are)? (required|only|mandatory)\b`),
+  new RegExp(String.raw`\b(must|required to) (have|hold|possess|maintain|obtain)\b[^.]{0,30}\b(ts/sci|top secret|secret|${US} (security|government)) clearance`),
+  new RegExp(String.raw`\b(active |current )?(ts/sci|top secret|secret|${US} (security|government)) clearance\b[^.]{0,30}\b(required|mandatory|only)\b`),
+  new RegExp(String.raw`\b(must|required to) be (legally )?(authorized|eligible|able) to work in the ${US}\b[^.]{0,60}\bwithout\b[^.]{0,30}\bsponsorship`),
+  /\bw-?2 (only|employees only|candidates only)\b/,
+];
+const NEGATED = /\b(no|not|never|without|doesn.?t|don.?t|isn.?t|aren.?t|sin)\b/;
+const NOT_REQUIRED_AFTER = /^[^.]{0,30}\b(not required|not needed|not necessary|no es necesari[oa]|no se requiere)\b/;
+const SOFT = /\b(preferred|a plus|nice to have|bonus|ability to obtain|able to obtain|eligible to obtain|eligibility to obtain|willing(ness)? to obtain|deseable|valorable)\b/;
+
 // Stack the profile covers; a JD naming none of it is outside the profile.
 const PROFILE_STACK = /\b(android|kotlin|mobile|movil|moviles|ios|swift|react native|flutter|ai|ia|llm|llms|machine learning|aprendizaje automatico|inteligencia artificial|agent\w*|agente\w*|genai)\b/;
 const MIN_JD = 300;
@@ -80,6 +100,35 @@ export function residencyBlock(text) {
   return null;
 }
 
+/**
+ * The sentence that requires US citizenship, a green card, a US clearance, US work
+ * authorization without sponsorship or W-2, or null. A sentence passes when the
+ * requirement is negated, only preferred, or offered with a non-US alternative
+ * ("US or Canada", "US citizens or LATAM").
+ * @param {string} text JD text
+ */
+export function eligibilityBlock(text) {
+  // No split after initials ("U.S. citizen"), where the requirement usually sits.
+  for (const sentence of String(text ?? "").split(/(?<=[.;!?])(?<!\b[a-zA-Z]\.)\s+|\n+/)) {
+    const folded = fold(sentence);
+    let match = null;
+    for (const pattern of ELIGIBILITY) {
+      match = pattern.exec(folded);
+      if (match) break;
+    }
+    if (!match) continue;
+    const before = folded.slice(0, match.index);
+    let start = before.length;
+    while (start > 0 && !/[,;:]/.test(before[start - 1])) start--;
+    if (NEGATED.test(before.slice(start)) || NOT_REQUIRED_AFTER.test(folded.slice(match.index + match[0].length))) continue;
+    if (SOFT.test(folded)) continue;
+    const { openScope, latam, others } = placesIn(sentence);
+    if (openScope || latam.length || others.some((place) => place !== "United States")) continue;
+    return sentence.trim().replace(/\s+/g, " ").slice(0, 120);
+  }
+  return null;
+}
+
 /** Monthly USD maximum from structured salary, or null when it isn't USD or has no max. */
 function monthlyMaxUsd(salary) {
   if (!salary || String(salary.currency ?? "").toUpperCase() !== "USD") return null;
@@ -92,9 +141,11 @@ function monthlyMaxUsd(salary) {
  * @param {{url: string, company: string, role: string, location?: string}} job
  * @param {{urls: Set<string>, companyRoles: Set<string>}} tracker keys from applications.md
  * @param {{text: string, salary?: {max?: number, currency?: string, period?: string}} | null} [jd] JD read for free, if any
+ * @param {{usAuthorized?: boolean}} [options] usAuthorized from usAuthorizedFrom(profile authorized_in);
+ *   only false turns on the US eligibility check
  * @returns {{pass: true} | {pass: false, reason: string}}
  */
-export function preTriage(job, tracker, jd = null) {
+export function preTriage(job, tracker, jd = null, options = {}) {
   const link = urlKey(job.url);
   if ((link && tracker.urls.has(link)) || tracker.companyRoles.has(`${key(job.company)}|${key(job.role)}`)) {
     return { pass: false, reason: "already in tracker" };
@@ -123,6 +174,8 @@ export function preTriage(job, tracker, jd = null) {
   if (text) {
     const blocked = residencyBlock(text);
     if (blocked) return { pass: false, reason: `residency: "${blocked}"` };
+    const ineligible = options.usAuthorized === false ? eligibilityBlock(text) : null;
+    if (ineligible) return { pass: false, reason: `eligibility: "${ineligible}"` };
     if (text.length >= MIN_JD && !PROFILE_STACK.test(fold(text))) return { pass: false, reason: "stack outside profile" };
   }
   const monthly = monthlyMaxUsd(jd?.salary);

@@ -56,6 +56,12 @@ import { isZohoRecordClosed, parseZohoDetailPage } from './providers/zoho-recrui
 import { DEFAULT_USER_AGENT } from './user-agent.mjs';
 import { flagValue, hasFlag, validateFlags } from './lib/cli-flags.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
+import { AsyncLocalStorage } from 'node:async_hooks';
+import { guardText, hiddenHtml } from './posting-guard.mjs';
+
+// Posting-guard findings from every jdHtmlToText call made while reading one JD, so the
+// ten per-ATS fetchers report hidden markup without threading an argument through each.
+const guardFindings = new AsyncLocalStorage();
 
 const CAREER_OPS = getCareerOpsRoot();
 
@@ -127,7 +133,8 @@ export function normalizeJd(raw, finalUrl, textCap = JD_TEXT_CAP) {
   // stub JobPosting (a one-line summary, or just the title) alongside a fully
   // rendered body, and preferring the stub there would break the common case to
   // fix the rare one.
-  const ldText = jdHtmlToText(raw?.jsonLdDescription || '');
+  const findings = (Array.isArray(raw?.hiddenText) ? raw.hiddenText : []).map((sample) => ({ kind: 'hidden-html', sample }));
+  const ldText = guardFindings.run(findings, () => jdHtmlToText(raw?.jsonLdDescription || ''));
   // Normalized length, not raw length: raw DOM text on a chrome-heavy page is
   // mostly repeated newlines ("Apply now\n\n\n\n\n\nSave job\n\n\n\n\n\n..."), which
   // can out-length a shorter-in-raw-HTML but substantive JSON-LD description
@@ -135,12 +142,15 @@ export function normalizeJd(raw, finalUrl, textCap = JD_TEXT_CAP) {
   // point of "longer wins". No cap here (Infinity) — only the comparison needs
   // normalizing; the real textCap is still applied below.
   const domText = compactText(String(raw?.text || ''), Infinity);
-  const text = ldText.length > domText.length ? ldText : domText;
+  const guarded = guardText(ldText.length > domText.length ? ldText : domText);
+  findings.push(...guarded.findings);
 
   return {
     url: finalUrl,
     title: compactText(raw?.title || raw?.jsonLdTitle || '', 300),
-    text: compactText(text, textCap),
+    text: compactText(guarded.text, textCap),
+    // Posting-guard findings (posting-guard.mjs): untrusted posting text, data only.
+    integrity: findings,
     // For the liveness check in jdFailure() only. `text` has had nav/header/footer
     // stripped, and an expired-posting banner often sits in one of them. Never
     // emitted on the success path.
@@ -191,7 +201,11 @@ const BLOCK_END_RE = /<\/(p|div|ul|ol|h[1-6]|tr|section|article|blockquote)\s*>/
  */
 export function jdHtmlToText(html) {
   if (typeof html !== 'string' || !html) return '';
-  const stripped = decodeEntities(html)
+  // Hidden elements go before the tags do: once stripped, their text reads as ordinary words.
+  // After the first decode, so entity-escaped payloads (Greenhouse `content`) are covered.
+  const hidden = hiddenHtml(decodeEntities(html));
+  guardFindings.getStore()?.push(...hidden.findings);
+  const stripped = hidden.html
     .replace(/<(script|style)[^>]*>[\s\S]*?<\/\1>/gi, ' ')
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<li[^>]*>/gi, '\n- ')
@@ -799,8 +813,11 @@ export async function fetchJdViaKnownApi(url, textCap = JD_TEXT_CAP, timeoutMs =
   // the resolved value wins, the argument is the fallback for every ATS that
   // declares none.
   const budgetMs = resolved.timeoutMs || timeoutMs;
-  const result = await fetcher(resolved, url, textCap, budgetMs);
-  return result ? { ...result, ats: resolved.ats } : null;
+  const findings = [];
+  const result = await guardFindings.run(findings, () => fetcher(resolved, url, textCap, budgetMs));
+  if (!result) return null;
+  const guarded = guardText(result.text);
+  return { ...result, text: guarded.text, integrity: [...findings, ...guarded.findings], ats: resolved.ats };
 }
 
 /**
@@ -975,9 +992,23 @@ export async function readDom(page) {
     // textContent, so CSS-hidden text would count and could outrank the posting.
     // The chrome is hidden only for the read and its style attribute restored.
     // script/style/noscript are never rendered, so innerText already skips them.
+    // innerText already skips display:none and visibility:hidden, but not text a reader cannot
+    // see through opacity:0, font-size:0 or aria-hidden: that is hidden for the read too, and its
+    // text kept apart as a posting-guard finding (posting-guard.mjs).
+    const hiddenText = [];
+    const isUnseen = (n) => {
+      if (n.getAttribute('aria-hidden') === 'true') return true;
+      const style = getComputedStyle(n);
+      return style.opacity === '0' || parseFloat(style.fontSize) === 0;
+    };
     const strippedText = (el) => {
       if (el.getClientRects().length === 0 && getComputedStyle(el).display !== 'contents') return '';
-      const chrome = Array.from(el.querySelectorAll('nav, header, footer'));
+      const unseen = Array.from(el.querySelectorAll('*')).filter((n) => isUnseen(n) && !(n.parentElement && isUnseen(n.parentElement)));
+      for (const n of unseen) {
+        const t = (n.textContent || '').replace(/\s+/g, ' ').trim();
+        if (t.length >= 12 && !hiddenText.includes(t.slice(0, 160))) hiddenText.push(t.slice(0, 160));
+      }
+      const chrome = [...Array.from(el.querySelectorAll('nav, header, footer')), ...unseen];
       const saved = chrome.map((n) => n.getAttribute('style'));
       // Attribute writes only: setting a property through n.style leaves style=""
       // behind after removeAttribute. The prefix is the browser's serialized
@@ -1050,7 +1081,7 @@ export async function readDom(page) {
     const fullBody = document.body?.innerText || '';
     const bodyText = fullBody.length > 4000 ? `${fullBody.slice(0, 2000)}\n…\n${fullBody.slice(-2000)}` : fullBody;
 
-    return { title, text, anchors, jsonLdDescription, jsonLdTitle, bodyText };
+    return { title, text, anchors, jsonLdDescription, jsonLdTitle, bodyText, hiddenText };
   });
 }
 

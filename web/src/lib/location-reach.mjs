@@ -88,6 +88,27 @@ function countryTable() {
   return table;
 }
 
+// A profile's authorized_in entry that means the US, after punctuation folds to spaces ("U.S." -> "u s").
+const US_AUTHORIZED = /\b(us|usa|u s|u s a|united states|estados unidos|ee uu|eeuu|eua|etats unis|green card)\b/;
+
+/**
+ * Whether the profile's `location.authorized_in` covers the US: true for any US entry,
+ * false only when every entry is a known non-US country, undefined otherwise (missing,
+ * empty, a region like "Latin America", or text it cannot read). Pre-triage only runs
+ * its US eligibility check on false.
+ * @param {unknown} authorizedIn a list or a bare string
+ * @returns {boolean | undefined}
+ */
+export function usAuthorizedFrom(authorizedIn) {
+  const entries = (Array.isArray(authorizedIn) ? authorizedIn : [authorizedIn])
+    .map((entry) => fold(entry).replace(/[^a-z0-9]+/g, " ").trim())
+    .filter(Boolean);
+  if (!entries.length) return undefined;
+  if (entries.some((entry) => US_AUTHORIZED.test(entry))) return true;
+  const table = countryTable();
+  return entries.every((entry) => table.some((country) => country.code !== "US" && country.re.test(entry))) ? false : undefined;
+}
+
 /**
  * @param {unknown} location
  * @param {string} [url] the posting URL, for house rule 10's Workday exception

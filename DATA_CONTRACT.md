@@ -35,6 +35,7 @@ These files contain your personal data, customizations, and work product. Update
 | `plugins.local/` | Your own / private plugins (never auto-updated) |
 | `plugins.lock` | Integrity pins + recorded consent for your enabled plugins (generated; never auto-updated) |
 | `data/applications.md` | Your application tracker (source of truth) |
+| `data/company-research/*.md` | Cached company-level web research, one file per company, reused for 30 days by `deep` and `interview-prep` (untrusted leads, re-confirmed before quoting); safe to delete |
 | `data/career-profile.yml` | Your source-backed Master Career Profile; written only after explicit review of imported CV facts |
 | `data/applications.db` | Derived query index over `applications.md` and `status-log.tsv` (SQLite, rebuilt by `node tracker.mjs sync`). Its `status_events` table, read by `tracker.mjs history`, is derived from the ledger: every sync rebuilds a row's events from `status-log.tsv` folded through `foldObservations()` in `funnel-velocity.mjs`, so `correction` and retraction lines apply. The one thing it adds is a status the ledger does not explain (a hand edit in `applications.md`, which writes no ledger row), recorded as observed at the sync that saw it and shown by `history` as `(no ledger row; observed at sync)`. Safe to delete: the next sync rebuilds every ledger-derived event exactly, and only those hand-edit observations are lost |
 | `data/pipeline.md` | Your URL inbox |

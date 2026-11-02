@@ -61,6 +61,8 @@ export type CadenceEntry = {
   /** User-pinned next date (overrides the computed cadence); absent on older engines. */
   nextOverride?: string | null;
   daysUntilNext: number | null;
+  /** Where appliedDate came from; "evaluation-date-fallback" is an estimate. */
+  appDateSource?: string;
 };
 
 export type CadenceMetadata = {

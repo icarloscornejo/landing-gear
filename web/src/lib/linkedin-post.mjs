@@ -66,9 +66,13 @@ const cleanTitle = (text) => text.replace(/^[^\p{L}\p{N}]+/u, "").trim().slice(0
  * @param {string[]} rawLines
  * @returns {{author: string, body: string[]}}
  */
+const HIDING = /[\u{E0000}-\u{E007F}\u{202A}-\u{202E}\u{2066}-\u{2069}\u{200B}\u{2060}-\u{2064}\u{00AD}]/gu;
+
 export function splitPost(rawLines) {
   // NFKC turns "decorative" Unicode letters (𝐐𝐀 𝐄𝐧𝐠𝐢𝐧𝐞𝐞𝐫, 2026-10-28) into plain ones, so every regex can read them.
-  const lines = rawLines.map((line) => line.normalize("NFKC").trim()).filter((line) => line && !NOISE_LINE.test(line));
+  // Characters that hide or reorder text go too (same set as posting-guard.mjs; inline, since
+  // this module is pasted into the LinkedIn console and cannot import it).
+  const lines = rawLines.map((line) => line.normalize("NFKC").replace(HIDING, "").trim()).filter((line) => line && !NOISE_LINE.test(line));
   const ageIndex = lines.findIndex((line) => AGE.test(line));
   return { author: lines[0] ?? "", body: lines.slice(ageIndex >= 0 ? ageIndex + 1 : 1) };
 }
@@ -119,10 +123,11 @@ export function dedupKey(title, body) {
 /**
  * Why the post is not worth a look, or null. `kind` names the counter it goes to.
  * @param {{author: string, body: string[]}} post
- * @param {(job: object, tracker: object, jd: object) => {pass: boolean, reason?: string}} preTriage
+ * @param {(job: object, tracker: object, jd: object, options: object) => {pass: boolean, reason?: string}} preTriage
+ * @param {{usAuthorized?: boolean}} [options] passed on to preTriage
  * @returns {{title: string, location: string, kind: string|null, reason: string|null}}
  */
-export function judgePost(post, preTriage) {
+export function judgePost(post, preTriage, options = {}) {
   const text = post.body.join("\n");
   const title = postTitle(post.body);
   const location = postLocation(post.body);
@@ -149,6 +154,6 @@ export function judgePost(post, preTriage) {
   // After the more specific reasons (job list, blocked terms), so those still name the real cause.
   if (!TITLE_STACK.test(fold(title))) return out("offStack", "fuera de stack");
   if (JUNIOR.test(fold(title))) return out("offStack", "junior");
-  const verdict = preTriage({ url: "", company: post.author, role: title, location }, NO_TRACKER, { text });
+  const verdict = preTriage({ url: "", company: post.author, role: title, location }, NO_TRACKER, { text }, options);
   return verdict.pass ? out(null, null) : out("preTriage", `pre-triage: ${verdict.reason}`);
 }

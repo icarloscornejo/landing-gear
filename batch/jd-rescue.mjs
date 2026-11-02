@@ -53,6 +53,12 @@
  */
 
 import fs from 'node:fs';
+import { decodeEntities } from '../providers/_html-entities.mjs';
+import { guardText, hiddenHtml } from '../posting-guard.mjs';
+
+// Posting-guard findings for this one run (one posting per process), written to a sidecar
+// beside the JD file so the runner and the worker can see what the guard removed.
+const guardFound = [];
 
 const HTML_ENTITIES = {
   nbsp: ' ', amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", '#39': "'",
@@ -62,7 +68,10 @@ const HTML_ENTITIES = {
 
 /** Strip HTML to visible text, matching the runner's own normalization. */
 function htmlToText(html) {
-  return String(html ?? '')
+  // Hidden elements go first, on decoded markup, so escaped payloads are covered too.
+  const hidden = hiddenHtml(decodeEntities(String(html ?? '')));
+  guardFound.push(...hidden.findings);
+  return hidden.html
     .replace(/<script[\s\S]*?<\/script[^>]*>/gi, ' ')
     .replace(/<style[\s\S]*?<\/style[^>]*>/gi, ' ')
     // Keep block boundaries as line breaks so requirement lists do not run
@@ -174,7 +183,7 @@ async function fromKnownApi(url) {
     const result = await fetchJdViaKnownApi(url, 20_000, 15_000);
     if (!result?.text) return null;
     const text = result.title ? `${result.title}\n\n${result.text}` : result.text;
-    return { text, method: `ats-api:${result.ats}` };
+    return { text, method: `ats-api:${result.ats}`, integrity: result.integrity ?? [] };
   } catch {
     return null;
   }
@@ -232,8 +241,11 @@ async function main() {
     () => fromKnownApi(url),
     () => fromEmbeddedDescription(html),
   ]) {
+    const before = guardFound.length;
     const candidate = await run();
     if (!candidate) continue;
+    // Only the findings this strategy's own conversion produced belong to its text.
+    candidate.integrity ??= guardFound.slice(before);
     const w = wordCount(candidate.text);
     if (w < minWords) { thinFound ??= candidate; continue; }
     // Never replace a page that already had more JD than the rescue found —
@@ -253,13 +265,20 @@ async function main() {
     process.exit(1);
   }
 
-  const words = wordCount(found.text);
+  const guarded = guardText(found.text);
+  const findings = [...found.integrity, ...guarded.findings];
+  const words = wordCount(guarded.text);
   // Write beside the target and rename, so a failed write leaves the existing
   // JD file intact for the fallbacks that follow.
   const tmp = `${outFile}.rescue-${process.pid}`;
   try {
-    fs.writeFileSync(tmp, found.text);
+    fs.writeFileSync(tmp, guarded.text);
     fs.renameSync(tmp, outFile);
+    // The sidecar is advisory: a failed write must not cost the rescued JD.
+    try {
+      fs.writeFileSync(`${tmp}.integrity`, JSON.stringify({ findings }));
+      fs.renameSync(`${tmp}.integrity`, `${outFile}.integrity.json`);
+    } catch { /* no findings file; the JD stands */ }
   } catch (err) {
     try { fs.unlinkSync(tmp); } catch { /* nothing to clean */ }
     throw err;

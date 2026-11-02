@@ -1,8 +1,9 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { careerOpsRoot } from "@/lib/career-ops";
+import { careerOpsRoot, readProfileAuthorizedIn } from "@/lib/career-ops";
 import { buildLinkedinScript } from "@/lib/linkedin-script.mjs";
+import { usAuthorizedFrom } from "@/lib/location-reach.mjs";
 
 export type LinkedinScanState = { ranToday: boolean; lastRun: string | null; script: string | null };
 
@@ -21,7 +22,7 @@ export function linkedinScanState(): LinkedinScanState {
   }
   let script: string | null = null;
   try {
-    script = buildLinkedinScript(careerOpsRoot());
+    script = buildLinkedinScript(careerOpsRoot(), usAuthorizedFrom(readProfileAuthorizedIn()));
   } catch (error) {
     console.warn("linkedin scan: cannot build the script", error);
   }

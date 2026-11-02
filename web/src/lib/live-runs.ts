@@ -1,5 +1,5 @@
 // Server-owned triage/evaluate runs (house rule 16). A run started from the web
-// or from a chat session (my-tools/run-job.mjs) is owned by this server process:
+// or from a chat session (run-job.mjs) is owned by this server process:
 // it reads /api/run's own stream to the end, so it finishes and saves even with
 // no browser attached, and its snapshot lives in .career-ops-web/live/ where
 // every browser can poll it. At most MAX_ACTIVE Haiku runs go at once; the rest

@@ -12,6 +12,7 @@ import { careerOpsRoot } from "@/lib/career-ops";
 import { fetchJdCapture, listJdFiles, readJdSources } from "@/lib/jd-captures";
 import { pastedJdMarkdown, parseNeedsChrome, resolveWorkerInput } from "@/lib/lifecycle.mjs";
 import { bareUrl, jdFromHimalayas, jdFromHtml, type FreeJd } from "@/lib/pretriage-jd-parse.mjs";
+import { guardText, integritySection } from "@/lib/core/posting-guard.mjs";
 
 const PAGE_TIMEOUT_MS = 15_000;
 const HIMALAYAS_SEARCH = "https://himalayas.app/jobs/api/search";
@@ -42,14 +43,24 @@ const onHost = (host: string, listed: string) => host === listed || host.endsWit
 function captureText(relative: string): string {
   const markdown = fs.readFileSync(path.join(careerOpsRoot(), relative), "utf8");
   const heading = markdown.search(/^## Job description/m);
-  return (heading === -1 ? markdown : markdown.slice(markdown.indexOf("\n", heading) + 1)).trim();
+  const body = heading === -1 ? markdown : markdown.slice(markdown.indexOf("\n", heading) + 1);
+  // The guard's report is about the posting, not part of it.
+  const integrity = body.search(/^## Posting integrity/m);
+  return (integrity === -1 ? body : body.slice(0, integrity)).trim();
+}
+
+/** The JD with invisible characters removed and every posting-guard finding attached. */
+function guarded(jd: FreeJd): FreeJd {
+  const result = guardText(jd.text);
+  return { ...jd, text: result.text, integrity: [...(jd.integrity ?? []), ...result.findings] };
 }
 
 function saveCapture(job: Job, jd: FreeJd, how: string): void {
   const relative = path.join("jds", `fetched-${createHash("sha1").update(job.url).digest("hex").slice(0, 10)}.md`);
   const date = new Date().toISOString().slice(0, 10);
   fs.mkdirSync(path.join(careerOpsRoot(), "jds"), { recursive: true });
-  fs.writeFileSync(path.join(careerOpsRoot(), relative), pastedJdMarkdown({ url: job.url, company: job.company, role: job.role, text: jd.text, date, how }));
+  const markdown = pastedJdMarkdown({ url: job.url, company: job.company, role: job.role, text: jd.text, date, how });
+  fs.writeFileSync(path.join(careerOpsRoot(), relative), markdown + integritySection(jd.integrity ?? []));
 }
 
 async function fetchPage(url: string): Promise<string | null> {
@@ -87,7 +98,8 @@ export function createJdReader() {
       const host = hostOf(job.url);
       if (!host) return null;
       if (onHost(host, "himalayas.app")) {
-        const jd = await himalayasSearch(job);
+        const found = await himalayasSearch(job);
+        const jd = found ? guarded(found) : null;
         if (jd) saveCapture(job, jd, "read from the Himalayas public search API by pre-triage");
         return jd ? { ...jd, source: "Himalayas search" } : null;
       }
@@ -98,7 +110,8 @@ export function createJdReader() {
       if (captured) return { text: captureText(captured), source: "ATS API" };
 
       const html = await fetchPage(job.url);
-      const jd = html ? jdFromHtml(html) : null;
+      const read = html ? jdFromHtml(html) : null;
+      const jd = read ? guarded(read) : null;
       if (jd) saveCapture(job, jd, "read from the posting page by pre-triage");
       return jd ? { ...jd, source: "posting page" } : null;
     } catch {

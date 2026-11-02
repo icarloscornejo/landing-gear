@@ -5,6 +5,7 @@ import { createHash } from "node:crypto";
 import { careerOpsRoot } from "@/lib/career-ops";
 import { readJsonObject } from "@/lib/json-body";
 import { jdSourceLine, pastedJdMarkdown, sameUrl } from "@/lib/lifecycle.mjs";
+import { guardText, integritySection } from "@/lib/core/posting-guard.mjs";
 
 export const runtime = "nodejs";
 
@@ -43,7 +44,9 @@ export async function POST(req: Request) {
     .filter((file) => file.startsWith("pasted-") && file.endsWith(".md"))
     .find((file) => sameUrl(jdSourceLine(fs.readFileSync(path.join(dir, file), "utf8").slice(0, 1500)), url));
   const file = earlier ?? `pasted-${slug(String(body.company ?? ""))}-${slug(String(body.role ?? ""))}-${createHash("sha256").update(url).digest("hex").slice(0, 8)}.md`;
-  const markdown = pastedJdMarkdown({ url, company: String(body.company ?? ""), role: String(body.role ?? ""), text, date: new Date().toLocaleDateString("en-CA") });
+  // Pasted text is still posting text: invisible characters go, AI-directed lines are reported.
+  const guarded = guardText(text);
+  const markdown = pastedJdMarkdown({ url, company: String(body.company ?? ""), role: String(body.role ?? ""), text: guarded.text, date: new Date().toLocaleDateString("en-CA") }) + integritySection(guarded.findings);
   const target = path.join(dir, file);
   const temp = `${target}.tmp-${process.pid}`;
   fs.writeFileSync(temp, markdown);

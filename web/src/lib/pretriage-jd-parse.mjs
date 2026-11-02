@@ -3,13 +3,26 @@
 // itemprop="description" block) or from a Himalayas feed item. No I/O here.
 
 /** @typedef {{max?: number, currency?: string, period?: string}} Salary */
-/** @typedef {{text: string, salary?: Salary}} FreeJd */
+/** @typedef {{kind: string, sample: string}} Finding */
+/** @typedef {{text: string, salary?: Salary, integrity?: Finding[]}} FreeJd */
+
+import { hiddenHtml } from "./core/posting-guard.mjs";
 
 const ENTITIES = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " ", "#39": "'", "#x27": "'" };
 
-/** Readable text from an HTML fragment: block tags become line breaks, the rest is dropped. */
-export function htmlToText(html) {
-  return String(html ?? "")
+/** Escaped markup (`&lt;div style=&quot;...&quot;&gt;`) decoded once, so hidden elements are seen as tags. */
+const unescapeMarkup = (html) => (/&lt;/i.test(html) ? html.replace(/&lt;/gi, "<").replace(/&gt;/gi, ">").replace(/&quot;/gi, '"').replace(/&#0?39;|&#x27;/gi, "'").replace(/&amp;/gi, "&") : html);
+
+/**
+ * Readable text from an HTML fragment: block tags become line breaks, the rest is dropped.
+ * Hidden elements (posting-guard) are removed first and reported into `findings` when given.
+ * @param {unknown} html
+ * @param {Finding[] | null} [findings]
+ */
+export function htmlToText(html, findings = null) {
+  const hidden = hiddenHtml(unescapeMarkup(String(html ?? "")));
+  findings?.push(...hidden.findings);
+  return hidden.html
     .replace(/<(script|style)[\s\S]*?<\/\1>/gi, " ")
     .replace(/<br\s*\/?>|<\/(p|li|h[1-6]|div|ul|ol|tr)>/gi, "\n")
     .replace(/<li[^>]*>/gi, "- ")
@@ -78,16 +91,18 @@ function salaryFromJsonLd(base) {
 export function jdFromHtml(html) {
   const posting = jsonLdNodes(html).find(isJobPosting);
   if (posting?.description) {
-    const text = htmlToText(posting.description);
-    if (text) return { text: [posting.title, text].filter(Boolean).join("\n\n"), salary: salaryFromJsonLd(posting.baseSalary) };
+    const integrity = [];
+    const text = htmlToText(posting.description, integrity);
+    if (text) return { text: [posting.title, text].filter(Boolean).join("\n\n"), salary: salaryFromJsonLd(posting.baseSalary), integrity };
   }
   const start = String(html ?? "").search(/itemprop=["']description["']/i);
   if (start === -1) return null;
   const tagEnd = html.indexOf(">", start);
   const rest = html.slice(tagEnd + 1);
   const next = rest.search(/itemprop=["'](?!description)/i);
-  const text = htmlToText((next === -1 ? rest : rest.slice(0, next)).slice(0, 60_000));
-  return text.length > 100 ? { text: text.slice(0, 20_000) } : null;
+  const integrity = [];
+  const text = htmlToText((next === -1 ? rest : rest.slice(0, next)).slice(0, 60_000), integrity);
+  return text.length > 100 ? { text: text.slice(0, 20_000), integrity } : null;
 }
 
 /** A posting URL without query, fragment or trailing slash, for matching feed guids. */
@@ -106,10 +121,11 @@ export function bareUrl(raw) {
  * @returns {FreeJd|null}
  */
 export function jdFromHimalayas(item) {
-  const text = htmlToText(item?.description);
+  const integrity = [];
+  const text = htmlToText(item?.description, integrity);
   if (!text) return null;
   const where = Array.isArray(item.locationRestrictions) && item.locationRestrictions.length ? `\n\nLocation restrictions: ${item.locationRestrictions.join(", ")}` : "";
   const max = Number(item.maxSalary);
   const salary = Number.isFinite(max) && max > 0 && item.currency ? { max, currency: item.currency, period: salaryPeriod(item.salaryPeriod) ?? "year" } : undefined;
-  return { text: `${item.title ?? ""}\n\n${text}${where}`.trim(), salary };
+  return { text: `${item.title ?? ""}\n\n${text}${where}`.trim(), salary, integrity };
 }

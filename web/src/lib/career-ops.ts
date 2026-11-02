@@ -541,6 +541,12 @@ function resolveEvalModeFile(root: string, modesDir: string): string {
   return DEFAULT_EVAL_MODE;
 }
 
+/** The `location` block of config/profile.yml. Throws when the profile is missing or unreadable. */
+function readProfileLocation(): { timezone?: unknown; authorized_in?: unknown } {
+  const parsed = yaml.load(fs.readFileSync(path.join(careerOpsRoot(), "config", "profile.yml"), "utf8")) as { location?: { timezone?: unknown; authorized_in?: unknown } } | null;
+  return parsed?.location ?? {};
+}
+
 /**
  * The candidate's IANA time zone (`location.timezone` in config/profile.yml),
  * for interview dates. Falls back to the server's zone when it is missing or
@@ -549,14 +555,27 @@ function resolveEvalModeFile(root: string, modesDir: string): string {
 export function readProfileTimezone(): string {
   const fallback = Intl.DateTimeFormat().resolvedOptions().timeZone;
   try {
-    const parsed = yaml.load(fs.readFileSync(path.join(careerOpsRoot(), "config", "profile.yml"), "utf8")) as { location?: { timezone?: unknown } } | null;
-    const zone = parsed?.location?.timezone;
+    const zone = readProfileLocation().timezone;
     if (typeof zone !== "string" || !zone.trim()) return fallback;
     new Intl.DateTimeFormat("en-US", { timeZone: zone.trim() });
     return zone.trim();
   } catch {
     // Missing or unreadable profile, or an unknown zone: use the server's.
     return fallback;
+  }
+}
+
+/**
+ * `location.authorized_in` from profile.yml, as written (a list or a string), or
+ * undefined when the profile or the field is missing. Read by pre-triage through
+ * usAuthorizedFrom (location-reach.mjs).
+ */
+export function readProfileAuthorizedIn(): unknown {
+  try {
+    return readProfileLocation().authorized_in;
+  } catch {
+    // Missing or unreadable profile: unknown authorization, so the US eligibility check stays off.
+    return undefined;
   }
 }
 

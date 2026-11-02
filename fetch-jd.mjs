@@ -26,6 +26,7 @@
  * interactive extractor cannot drift on which ATS is API-fetchable.
  */
 
+import { writeFileSync } from 'node:fs';
 import { fetchJdViaKnownApi } from './browser-extract.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
 
@@ -34,9 +35,13 @@ const TIMEOUT_MS = 15_000;
 
 async function main() {
   const url = process.argv[2];
+  // --integrity-file <path>: also write the posting-guard findings (posting-guard.mjs) there as
+  // {findings}, so a caller that saves the text can keep them; stdout stays the text alone.
+  const integrityAt = process.argv.indexOf('--integrity-file');
+  const integrityFile = integrityAt > 0 ? process.argv[integrityAt + 1] : null;
 
-  if (!url) {
-    console.error('usage: node fetch-jd.mjs <url>');
+  if (!url || url.startsWith('--') || (integrityAt > 0 && !integrityFile)) {
+    console.error('usage: node fetch-jd.mjs <url> [--integrity-file <path>]');
     process.exit(1);
   }
 
@@ -46,6 +51,7 @@ async function main() {
   // normal path look broken.
   if (!result) process.exit(1);
 
+  if (integrityFile) writeFileSync(integrityFile, JSON.stringify({ findings: result.integrity ?? [] }));
   const header = result.title ? `${result.title}\n\n` : '';
   process.stdout.write(header + result.text);
 }

@@ -65,6 +65,22 @@ Once confirmed, surface one reminder line alongside the Step 2 dashboard:
 
 If the user asks what to do about a confirmed flag, show the flag's ready-made `blacklistSuggestion` row and tell them ([Render in {language.output}]) they can copy it into `data/blacklist.md` themselves — this is a suggestion only. When `language.output` is not English, compose the reminder prose — and, if the user keeps their blacklist reasons in another language, the row's Reason cell — from the flag's structured fields (`reasonCode`, `daysSinceLastInterview`, `thresholdDays`, `lastInterviewDate`) instead of relaying the English `reason` string verbatim; the table's column layout and the literal `company` scope value stay fixed (they must match `data/blacklist.md`'s file format). **Never write to `data/blacklist.md`, `data/applications.md`, or `data/active-interviews.md` from this step** (#1742 opt-in guarantee, same suggestion-only bridge as `modes/interview-redflag.md`).
 
+## Step 1c: Stale sweep (Applied rows quiet 60+ days)
+
+From the Step 1 JSON, take `entries` plus `retiredEntries` and select the Applied rows with `daysSinceApplication >= 60` whose `daysSinceLastFollowup` is null or 60 or more (the rule in `web/src/lib/stale-sweep.mjs`). Split them in three groups and show each one:
+
+- **Can be closed together:** no `nextOverride` and a measured applied date.
+- **Pinned:** any `nextOverride`, past or future. The user chose to keep chasing these; list them, never close them in bulk.
+- **Estimated:** `appDateSource` is `evaluation-date-fallback`, so the silence may be shorter than it looks; list them for one-by-one decisions only.
+
+If no row qualifies, skip this step silently. Otherwise ask the user whether to close the first group as ghosted. Only after a clear yes, for each row run:
+
+```bash
+node set-status.mjs --row <num> Discarded --expect-status Applied --note "OUTCOME: Ghosted at Applied"
+```
+
+`--expect-status` refuses a row that moved (for example, a reply arrived) since the JSON was read; report it and go on with the next row. This is the same status and note the web's Ghosted button writes; the web's "Quiet 60+ days" group on /followups also records the outcome in the CV pick log when one is set up, so suggest it when the user has the dashboard open.
+
 ## Step 2 — Display Dashboard
 
 Show a cadence dashboard sorted by urgency (urgent > overdue > waiting > cold):

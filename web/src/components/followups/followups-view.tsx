@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { CompanyLogo } from "@/components/company-logo";
 import { LogDialog } from "@/components/followups/log-dialog";
 import { QuietCompanies } from "@/components/followups/quiet-companies";
+import { StaleSweep } from "@/components/followups/stale-sweep";
 import { NextDateDialog } from "@/components/followups/next-date-dialog";
 import { type CadenceEntry, type CadenceMetadata, relativeDays } from "@/lib/followups";
 import { cvSent, groupFollowups } from "@/lib/followup-groups.mjs";
@@ -20,7 +21,7 @@ import { cn } from "@/lib/cn";
 // due rows first. The verdict is the core's followup-cadence.mjs (via
 // /api/followups?full=1); this view only groups and records.
 
-type CadenceResponse = { available: boolean; metadata: CadenceMetadata | null; entries: CadenceEntry[] };
+type CadenceResponse = { available: boolean; metadata: CadenceMetadata | null; entries: CadenceEntry[]; retiredEntries?: CadenceEntry[] };
 
 function dayLabel(date: string): string {
   const parsed = new Date(`${date}T12:00:00`);
@@ -145,6 +146,9 @@ export function FollowupsView() {
             </section>
           );
         })}
+
+      {/* Applications silent long enough to close as ghosted. */}
+      {data?.available && <StaleSweep entries={data.entries} retired={data.retiredEntries ?? []} onChanged={refetch} />}
 
       {/* The far end of chasing: companies silent after an interview. */}
       <QuietCompanies />

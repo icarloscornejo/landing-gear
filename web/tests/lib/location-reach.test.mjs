@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { readReach } from "../../src/lib/location-reach.mjs";
+import { readReach, usAuthorizedFrom } from "../../src/lib/location-reach.mjs";
 
 const kind = (location, url) => readReach(location, url).kind;
 const label = (location, url) => readReach(location, url).label;
@@ -49,4 +49,15 @@ test("time-zone words are an hours note, not a place", () => {
 test("nothing usable", () => {
   assert.equal(label(""), "Doesn't say");
   assert.equal(kind(undefined), "unknown");
+});
+
+test("usAuthorizedFrom: any US spelling is true, only known non-US countries are false, the rest unknown", () => {
+  for (const value of [["U.S."], ["U.S. citizen"], ["Estados Unidos"], ["EE.UU."], ["Green card holder"], ["United States of America"], "USA", ["El Salvador", "US"]]) {
+    assert.equal(usAuthorizedFrom(value), true, JSON.stringify(value));
+  }
+  assert.equal(usAuthorizedFrom(["El Salvador"]), false);
+  assert.equal(usAuthorizedFrom(["El Salvador", "Mexico"]), false);
+  for (const value of [["Latin America"], ["Central America"], ["Remote"], [], undefined, ""]) {
+    assert.equal(usAuthorizedFrom(value), undefined, JSON.stringify(value));
+  }
 });

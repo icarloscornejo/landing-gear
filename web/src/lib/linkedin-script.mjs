@@ -12,6 +12,19 @@ import * as yaml from "js-yaml";
 
 const MARKER = "const modules = null; // MODULES";
 const QUERIES_LINE = /^ {2}const QUERIES = .*\/\/ QUERIES$/m;
+const PROFILE_LINE = /^ {2}const PROFILE = .*\/\/ PROFILE$/m;
+
+/**
+ * The script with its PROFILE line set to `{usAuthorized}` only: the console script runs on
+ * linkedin.com, so no other profile field may reach it.
+ * @param {string} script console script with the PROFILE line
+ * @param {boolean | undefined} usAuthorized from usAuthorizedFrom(profile authorized_in)
+ */
+export function withProfile(script, usAuthorized) {
+  if (!PROFILE_LINE.test(script)) throw new Error("linkedin script: PROFILE line not found");
+  const profile = typeof usAuthorized === "boolean" ? { usAuthorized } : {};
+  return script.replace(PROFILE_LINE, () => `  const PROFILE = ${JSON.stringify(profile)}; // PROFILE`);
+}
 
 /**
  * The script with its QUERIES line set to `queries`; without queries it keeps the script's fallback.
@@ -67,8 +80,13 @@ return { ${Object.values(EXPORTS).flat().join(", ")} };
   return script.replace(MARKER, () => inlined);
 }
 
-/** The ready-to-paste script, read from the repo at `root`, minified so it pastes as one short block. */
-export function buildLinkedinScript(root) {
+/**
+ * The ready-to-paste script, read from the repo at `root`, minified so it pastes as one short block.
+ * @param {string} root
+ * @param {boolean | undefined} [usAuthorized] from usAuthorizedFrom(profile authorized_in); undefined
+ *   keeps the US eligibility check off
+ */
+export function buildLinkedinScript(root, usAuthorized) {
   const read = (...parts) => fs.readFileSync(path.join(root, ...parts), "utf8");
   let queries = [];
   try {
@@ -76,7 +94,8 @@ export function buildLinkedinScript(root) {
   } catch (error) {
     if (error.code !== "ENOENT") throw error;
   }
-  const script = withModules(withQueries(read("web", "src", "lib", "linkedin-posts-scan.js"), queries), {
+  const template = withProfile(withQueries(read("web", "src", "lib", "linkedin-posts-scan.js"), queries), usAuthorized);
+  const script = withModules(template, {
     preTriage: read("web", "src", "lib", "pre-triage.mjs"),
     linkedinPost: read("web", "src", "lib", "linkedin-post.mjs"),
     locationReach: read("web", "src", "lib", "location-reach.mjs"),

@@ -34,6 +34,8 @@ export async function GET(req: Request) {
         available: true,
         metadata: j.metadata ?? null,
         entries,
+        // Retired rows, for the stale sweep only (older engines omit the field).
+        retiredEntries: Array.isArray(j.retiredEntries) ? j.retiredEntries : [],
         upcoming,
         cadenceConfig: j.cadenceConfig ?? null,
         followupsEnabled: j.followupsEnabled !== false,
