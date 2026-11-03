@@ -49,7 +49,7 @@ function runSync() {
       encoding: 'utf-8',
       timeout: 30000,
       cwd: work,
-      env: { ...process.env, CAREER_OPS_ROOT: work, CAREER_OPS_TRACKER: tracker, CAREER_OPS_PDF_INDEX: pdfIndex },
+      env: { ...process.env, LANDING_GEAR_ROOT: work, LANDING_GEAR_TRACKER: tracker, LANDING_GEAR_PDF_INDEX: pdfIndex },
     });
     
     return readFileSync(tracker, 'utf-8');
@@ -108,7 +108,7 @@ try {
     const result = spawnSync(NODE, [join(ROOT, 'sync-pdf-flags.mjs'), '--dry-rn', '--json'], {
       encoding: 'utf-8',
       timeout: 30000,
-      env: { ...process.env, CAREER_OPS_TRACKER: tracker, CAREER_OPS_PDF_INDEX: pdfIndex },
+      env: { ...process.env, LANDING_GEAR_TRACKER: tracker, LANDING_GEAR_PDF_INDEX: pdfIndex },
     });
     const unchanged = readFileSync(tracker, 'utf-8') === TRACKER_HEADER;
 
@@ -133,7 +133,7 @@ try {
     const result = spawnSync(NODE, [join(ROOT, 'sync-pdf-flags.mjs'), '--json'], {
       encoding: 'utf-8',
       timeout: 30000,
-      env: { ...process.env, CAREER_OPS_TRACKER: tracker, CAREER_OPS_PDF_INDEX: pdfIndexDir },
+      env: { ...process.env, LANDING_GEAR_TRACKER: tracker, LANDING_GEAR_PDF_INDEX: pdfIndexDir },
     });
 
     if (result.status === 2 && /manifest-read-error/i.test(result.stdout)) {
@@ -176,7 +176,7 @@ try {
     const result = spawnSync(NODE, [join(ROOT, 'sync-pdf-flags.mjs'), '--prune', '--json'], {
       encoding: 'utf-8',
       timeout: 30000,
-      env: { ...process.env, CAREER_OPS_TRACKER: tracker, CAREER_OPS_PDF_INDEX: pdfIndex },
+      env: { ...process.env, LANDING_GEAR_TRACKER: tracker, LANDING_GEAR_PDF_INDEX: pdfIndex },
     });
 
     const manifestAfter = readFileSync(pdfIndex, 'utf-8');
@@ -222,7 +222,7 @@ try {
     const result = spawnSync(NODE, [join(ROOT, 'sync-pdf-flags.mjs'), '--prune', '--write', '--json'], {
       encoding: 'utf-8',
       timeout: 30000,
-      env: { ...process.env, CAREER_OPS_TRACKER: tracker, CAREER_OPS_PDF_INDEX: pdfIndex },
+      env: { ...process.env, LANDING_GEAR_TRACKER: tracker, LANDING_GEAR_PDF_INDEX: pdfIndex },
     });
 
     const manifestAfter = readFileSync(pdfIndex, 'utf-8');
@@ -276,7 +276,7 @@ try {
     const result = spawnSync(NODE, [join(ROOT, 'sync-pdf-flags.mjs'), '--prune', '--write', '--json'], {
       encoding: 'utf-8',
       timeout: 30000,
-      env: { ...process.env, CAREER_OPS_TRACKER: tracker, CAREER_OPS_PDF_INDEX: pdfIndex },
+      env: { ...process.env, LANDING_GEAR_TRACKER: tracker, LANDING_GEAR_PDF_INDEX: pdfIndex },
     });
 
     const manifestAfter = readFileSync(pdfIndex, 'utf-8');
@@ -310,7 +310,7 @@ try {
     const result = spawnSync(NODE, [join(ROOT, 'sync-pdf-flags.mjs'), '--write', '--json'], {
       encoding: 'utf-8',
       timeout: 30000,
-      env: { ...process.env, CAREER_OPS_TRACKER: tracker, CAREER_OPS_PDF_INDEX: pdfIndex },
+      env: { ...process.env, LANDING_GEAR_TRACKER: tracker, LANDING_GEAR_PDF_INDEX: pdfIndex },
     });
 
     if (result.status === 1 && /unknown option.*--write/i.test(result.stderr)) {
@@ -335,7 +335,7 @@ try {
     const result = spawnSync(NODE, [join(ROOT, 'sync-pdf-flags.mjs'), '--prune', '--json'], {
       encoding: 'utf-8',
       timeout: 30000,
-      env: { ...process.env, CAREER_OPS_TRACKER: tracker, CAREER_OPS_PDF_INDEX: pdfIndex },
+      env: { ...process.env, LANDING_GEAR_TRACKER: tracker, LANDING_GEAR_PDF_INDEX: pdfIndex },
     });
 
     const json = (() => { try { return JSON.parse(result.stdout); } catch { return null; } })();
@@ -374,7 +374,7 @@ try {
     const result = spawnSync(NODE, [join(ROOT, 'sync-pdf-flags.mjs'), '--prune', '--dry-run', '--write', '--json'], {
       encoding: 'utf-8',
       timeout: 30000,
-      env: { ...process.env, CAREER_OPS_TRACKER: tracker, CAREER_OPS_PDF_INDEX: pdfIndex },
+      env: { ...process.env, LANDING_GEAR_TRACKER: tracker, LANDING_GEAR_PDF_INDEX: pdfIndex },
     });
 
     const manifestAfter = readFileSync(pdfIndex, 'utf-8');
@@ -427,7 +427,7 @@ try {
     const result = spawnSync(NODE, [join(ROOT, 'sync-pdf-flags.mjs'), '--prune', '--write', '--json'], {
       encoding: 'utf-8',
       timeout: 30000,
-      env: { ...process.env, CAREER_OPS_TRACKER: tracker, CAREER_OPS_PDF_INDEX: pdfIndex },
+      env: { ...process.env, LANDING_GEAR_TRACKER: tracker, LANDING_GEAR_PDF_INDEX: pdfIndex },
     });
 
     const manifestAfter = readFileSync(pdfIndex, 'utf-8');
@@ -500,7 +500,7 @@ console.log('\nsync-pdf-flags.mjs — a deleted PDF leaves a stale manifest row 
       encoding: 'utf-8',
       timeout: 30000,
       cwd: work,
-      env: { ...process.env, CAREER_OPS_ROOT: work, CAREER_OPS_TRACKER: tracker, CAREER_OPS_PDF_INDEX: pdfIndex },
+      env: { ...process.env, LANDING_GEAR_ROOT: work, LANDING_GEAR_TRACKER: tracker, LANDING_GEAR_PDF_INDEX: pdfIndex },
     });
 
     const rows = readFileSync(tracker, 'utf-8').split('\n');
@@ -567,7 +567,7 @@ const PDF_HEADER = '# report\tpdf\thtml\tformat\tdate\tkind';
       encoding: 'utf-8',
       timeout: 30000,
       cwd: work,
-      env: { ...process.env, CAREER_OPS_ROOT: work, CAREER_OPS_TRACKER: tracker, CAREER_OPS_PDF_INDEX: pdfIndex },
+      env: { ...process.env, LANDING_GEAR_ROOT: work, LANDING_GEAR_TRACKER: tracker, LANDING_GEAR_PDF_INDEX: pdfIndex },
     });
     const after = readFileSync(tracker, 'utf-8');
 
@@ -605,9 +605,9 @@ const PDF_HEADER = '# report\tpdf\thtml\tformat\tdate\tkind';
     ].join('\n'));
     symlinkSync(join(external, 'data'), join(repo, 'data'), process.platform === 'win32' ? 'junction' : 'dir');
 
-    const env = { ...process.env, CAREER_OPS_ROOT: repo };
-    delete env.CAREER_OPS_TRACKER;
-    delete env.CAREER_OPS_PDF_INDEX;
+    const env = { ...process.env, LANDING_GEAR_ROOT: repo };
+    delete env.LANDING_GEAR_TRACKER;
+    delete env.LANDING_GEAR_PDF_INDEX;
     execFileSync(NODE, [join(ROOT, 'sync-pdf-flags.mjs')], { encoding: 'utf-8', timeout: 30000, cwd: repo, env });
 
     const after = readFileSync(join(external, 'data', 'applications.md'), 'utf-8');
@@ -638,7 +638,7 @@ const PDF_HEADER = '# report\tpdf\thtml\tformat\tdate\tkind';
       encoding: 'utf-8',
       timeout: 30000,
       cwd: work,
-      env: { ...process.env, CAREER_OPS_ROOT: work, CAREER_OPS_TRACKER: tracker, CAREER_OPS_PDF_INDEX: pdfIndex },
+      env: { ...process.env, LANDING_GEAR_ROOT: work, LANDING_GEAR_TRACKER: tracker, LANDING_GEAR_PDF_INDEX: pdfIndex },
     });
     const after = readFileSync(tracker, 'utf-8');
     if (result.status === 0 && rowIn(after, 1).includes('❌') && /outside the workspace/.test(result.stderr)) {
@@ -664,7 +664,7 @@ const PDF_HEADER = '# report\tpdf\thtml\tformat\tdate\tkind';
       encoding: 'utf-8',
       timeout: 30000,
       cwd: work,
-      env: { ...process.env, CAREER_OPS_ROOT: work, CAREER_OPS_TRACKER: tracker, CAREER_OPS_PDF_INDEX: pdfIndex },
+      env: { ...process.env, LANDING_GEAR_ROOT: work, LANDING_GEAR_TRACKER: tracker, LANDING_GEAR_PDF_INDEX: pdfIndex },
     });
     const after = readFileSync(tracker, 'utf-8');
     if (rowIn(after, 1).includes('❌')) {
@@ -700,7 +700,7 @@ if (process.platform === 'win32') {
       encoding: 'utf-8',
       timeout: 30000,
       cwd: work,
-      env: { ...process.env, CAREER_OPS_ROOT: work, CAREER_OPS_TRACKER: tracker, CAREER_OPS_PDF_INDEX: pdfIndex },
+      env: { ...process.env, LANDING_GEAR_ROOT: work, LANDING_GEAR_TRACKER: tracker, LANDING_GEAR_PDF_INDEX: pdfIndex },
     });
     const after = readFileSync(tracker, 'utf-8');
     if (result.status === 0 && rowIn(after, 1).includes('✅') && rowIn(after, 2).includes('❌') && /cannot tell/.test(result.stderr)) {

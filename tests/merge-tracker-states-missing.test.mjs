@@ -20,7 +20,7 @@ import { describeSpawn } from './helpers/describe-spawn.mjs';
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 
 test('merge-tracker merges with the status as written when templates/states.yml is missing', (t) => {
-  const tmp = mkdtempSync(join(tmpdir(), 'career-ops-no-states-'));
+  const tmp = mkdtempSync(join(tmpdir(), 'landing-gear-no-states-'));
   try {
     const codeRoot = join(tmp, 'code');
     const dataRoot = join(tmp, 'user');
@@ -52,8 +52,8 @@ test('merge-tracker merges with the status as written when templates/states.yml 
     writeFileSync(join(dataRoot, 'batch', 'tracker-additions', '002-globex.tsv'),
       '2\t2026-01-02\tGlobex\tEngineer\tApplied\t4.1/5\t❌\t—\tqueued\n');
 
-    const env = { ...process.env, CAREER_OPS_ROOT: dataRoot };
-    for (const k of ['CAREER_OPS_DATA_DIR', 'CAREER_OPS_TRACKER', 'CAREER_OPS_ADDITIONS', 'CAREER_OPS_BATCH_STATE']) delete env[k];
+    const env = { ...process.env, LANDING_GEAR_ROOT: dataRoot };
+    for (const k of ['LANDING_GEAR_DATA_DIR', 'LANDING_GEAR_TRACKER', 'LANDING_GEAR_ADDITIONS', 'LANDING_GEAR_BATCH_STATE']) delete env[k];
     const r = spawnSync(process.execPath, [join(codeRoot, 'merge-tracker.mjs')], {
       cwd: tmp, env, encoding: 'utf-8', timeout: 60_000,
     });

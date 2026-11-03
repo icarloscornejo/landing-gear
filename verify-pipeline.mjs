@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * verify-pipeline.mjs — Health check for career-ops pipeline integrity
+ * verify-pipeline.mjs — Health check for landing-gear pipeline integrity
  *
  * Checks:
  * 1. All statuses are canonical (per states.yml)
@@ -21,13 +21,13 @@
  * 16. No invisible control characters in tracker cells (error — see #3892)
  * 17. JD archive coverage — check-jd-archive.mjs's findings (warning/error — see #4525)
  *
- * Run: node career-ops/verify-pipeline.mjs
+ * Run: node landing-gear/verify-pipeline.mjs
  */
 
 import { readFileSync, readdirSync, existsSync, mkdirSync, unlinkSync, statSync } from 'fs';
 import { join, dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
-import { getCareerOpsRoot, resolveTrackerPath } from './path-resolver.mjs';
+import { getLandingGearRoot, resolveTrackerPath } from './path-resolver.mjs';
 import {
   looksLikeScoreCell, isSeparatorRow, isHeaderRow, resolveColumns,
   normalizeTextKey, normalizeVia, unwrapReportUrlToken, parseMarkdownLinks,
@@ -41,26 +41,26 @@ import { loadCanonicalStates } from './tracker-utils.mjs';
 import { checkJdArchive } from './check-jd-archive.mjs';
 
 const CODE_ROOT = dirname(fileURLToPath(import.meta.url));
-const CAREER_OPS = getCareerOpsRoot();
+const LANDING_GEAR = getLandingGearRoot();
 // Support both layouts: data/applications.md (boilerplate) and applications.md (original).
-// CAREER_OPS_TRACKER overrides the path (used by tests and non-standard layouts).
-const APPS_FILE = resolveTrackerPath(CAREER_OPS);
+// LANDING_GEAR_TRACKER overrides the path (used by tests and non-standard layouts).
+const APPS_FILE = resolveTrackerPath(LANDING_GEAR);
 
-const ADDITIONS_DIR = join(CAREER_OPS, 'batch/tracker-additions');
-// CAREER_OPS_REPORTS overrides the reports dir (used by tests, mirrors CAREER_OPS_TRACKER).
-const REPORTS_DIR = process.env.CAREER_OPS_REPORTS
-  ? resolve(CAREER_OPS, process.env.CAREER_OPS_REPORTS)
-  : join(CAREER_OPS, 'reports');
-// CAREER_OPS_JDS overrides the jds/ dir (used by tests, mirrors CAREER_OPS_REPORTS).
-const JDS_DIR = process.env.CAREER_OPS_JDS
-  ? resolve(CAREER_OPS, process.env.CAREER_OPS_JDS)
-  : join(CAREER_OPS, 'jds');
+const ADDITIONS_DIR = join(LANDING_GEAR, 'batch/tracker-additions');
+// LANDING_GEAR_REPORTS overrides the reports dir (used by tests, mirrors LANDING_GEAR_TRACKER).
+const REPORTS_DIR = process.env.LANDING_GEAR_REPORTS
+  ? resolve(LANDING_GEAR, process.env.LANDING_GEAR_REPORTS)
+  : join(LANDING_GEAR, 'reports');
+// LANDING_GEAR_JDS overrides the jds/ dir (used by tests, mirrors LANDING_GEAR_REPORTS).
+const JDS_DIR = process.env.LANDING_GEAR_JDS
+  ? resolve(LANDING_GEAR, process.env.LANDING_GEAR_JDS)
+  : join(LANDING_GEAR, 'jds');
 const STATES_FILE = existsSync(join(CODE_ROOT, 'templates/states.yml'))
   ? join(CODE_ROOT, 'templates/states.yml')
   : join(CODE_ROOT, 'states.yml');
 
 // Ensure required directories exist (fresh setup)
-mkdirSync(join(CAREER_OPS, 'data'), { recursive: true });
+mkdirSync(join(LANDING_GEAR, 'data'), { recursive: true });
 mkdirSync(REPORTS_DIR, { recursive: true });
 
 // Canonical states — loaded from templates/states.yml, the single source of truth.
@@ -176,7 +176,7 @@ if (dupes === 0) ok('No exact duplicates found');
 // first, then fall back to the repo root before flagging a link broken. A
 // symlinked tracker file has two "own directories": its target's and the
 // link's, which is the one editors resolve from (#5374).
-const TRACKER_DIRS = trackerLinkDirsFor(CAREER_OPS);
+const TRACKER_DIRS = trackerLinkDirsFor(LANDING_GEAR);
 let brokenReports = 0;
 let uninspectableReports = 0;
 for (const e of entries) {
@@ -184,7 +184,7 @@ for (const e of entries) {
   // data root; a directory is not a report (#4748). Also used by merge-tracker
   // and fix-report-links so all three agree on which rows are broken.
   let inspectionFailure = null;
-  const link = findDeadReportLink(e.report, TRACKER_DIRS, CAREER_OPS, {
+  const link = findDeadReportLink(e.report, TRACKER_DIRS, LANDING_GEAR, {
     onInspectionError: (failure) => { inspectionFailure = failure; },
   });
   if (inspectionFailure) {
@@ -545,10 +545,10 @@ if (syncResult) {
 // their follow-ups are working, so a silent zero is actively misleading. This is
 // the only place that difference is visible.
 //
-// Path resolution deliberately matches the two consumers (CAREER_OPS/data/...)
+// Path resolution deliberately matches the two consumers (LANDING_GEAR/data/...)
 // rather than APPS_FILE's directory: the check exists to predict what they will
 // do, so it has to read the same file they read.
-const FOLLOWUPS_FILE = join(CAREER_OPS, 'data', 'follow-ups.md');
+const FOLLOWUPS_FILE = join(LANDING_GEAR, 'data', 'follow-ups.md');
 const FOLLOWUPS_COLUMNS = '| num | appNum | date | company | role | channel | contact | notes |';
 if (!existsSync(FOLLOWUPS_FILE)) {
   ok('No follow-ups.md yet — nothing to schema-check');
@@ -582,7 +582,7 @@ if (!existsSync(FOLLOWUPS_FILE)) {
 // jobs?) needs 170 fetches and stays a separate command: `node audit-portals.mjs`.
 //
 // portals.yml is user-layer and gitignored, so its absence is not a finding.
-const PORTALS_FILE = process.env.CAREER_OPS_PORTALS || join(CAREER_OPS, 'portals.yml');
+const PORTALS_FILE = process.env.LANDING_GEAR_PORTALS || join(LANDING_GEAR, 'portals.yml');
 if (!existsSync(PORTALS_FILE)) {
   ok('No portals.yml yet — nothing to coverage-check');
 } else {
@@ -607,7 +607,7 @@ if (!existsSync(PORTALS_FILE)) {
     // install: mergeProviderPlugins returns before any work when
     // config/plugins.yml is absent.
     const providers = await loadProviders(join(CODE_ROOT, 'providers'));
-    await mergeProviderPlugins(providers, { root: CODE_ROOT, dataRoot: CAREER_OPS });
+    await mergeProviderPlugins(providers, { root: CODE_ROOT, dataRoot: LANDING_GEAR });
     const { silent, handoff, unknownProvider } = findUnclaimedEntries(entries, providers);
 
     // findUnclaimedEntries silently skips an entry with no (or blank) `name` —

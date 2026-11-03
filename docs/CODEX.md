@@ -1,19 +1,19 @@
 # Codex Guide
 
-Career-ops supports Codex through the same shared router used by the other CLI integrations.
+Landing-gear supports Codex through the same shared router used by the other CLI integrations.
 
-## How Codex maps to career-ops
+## How Codex maps to landing-gear
 
 - `AGENTS.md` is the shared instruction source.
 - Root `CODEX.md` is the thin Codex wrapper that imports `AGENTS.md`.
-- This file is the human-facing guide for running career-ops workflows from Codex.
+- This file is the human-facing guide for running landing-gear workflows from Codex.
 
 ## Interactive Codex
 
 Start Codex in the repository root:
 
 ```bash
-cd career-ops
+cd landing-gear
 codex
 ```
 

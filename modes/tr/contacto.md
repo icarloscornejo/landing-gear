@@ -92,6 +92,6 @@ Açılış mesajının kesin bir karakter bütçesine sahip olduğu platformlar 
 **Selamlama kuralları:**
 - Platformdan bağımsızdır — asla LinkedIn olduğunu varsayma; herhangi bir sohbet/açılış yüzeyinde çalışır.
 - `outreach.greeting_max_chars` dahilinde (varsayılan 150). Asla aşma.
-- career-ops'un geri kalanıyla aynı "uydurmama" kuralı geçerlidir: `cv.md`'deki gerçek deneyimi yeniden formüle et, asla beceri, metrik veya iddia uydurma.
+- landing-gear'un geri kalanıyla aynı "uydurmama" kuralı geçerlidir: `cv.md`'deki gerçek deneyimi yeniden formüle et, asla beceri, metrik veya iddia uydurma.
 - Kurumsal dil YOK, "... konusunda tutkuluyum" YOK, ASLA telefon numarası paylaşma.
 - Persona yapıyı değil, VURGUYU değiştirir.

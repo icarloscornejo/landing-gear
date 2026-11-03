@@ -1,11 +1,11 @@
-import { readApplications, readInbox, readReport, doctorState } from "@/lib/career-ops";
+import { readApplications, readInbox, readReport, doctorState } from "@/lib/landing-gear";
 import { pickAwaitingDecision, pickApproved } from "@/lib/home/awaiting.mjs";
 import { cardReason } from "@/lib/machine-summary.mjs";
 import type { CardReason } from "@/lib/machine-summary.mjs";
 import { todaySnapshot } from "@/lib/home/today-snapshot.mjs";
 import { todayOverview } from "@/lib/home/today-overview.mjs";
 import { pendingInbox } from "@/lib/inbox-pending.mjs";
-import { linkedinScanState } from "@/lib/linkedin-scan";
+import { linkedinScanState, xScanState } from "@/lib/linkedin-scan";
 import { dailyScanStatus } from "@/lib/daily-scan";
 import { scoreNum, parseReport } from "@/lib/format";
 import { FirstRunHome } from "@/components/home/first-run-home";
@@ -34,6 +34,6 @@ export default function Home() {
   // Established / in-between: the dual-loop retention dashboard. Missing setup
   // files are reported by `node doctor.mjs` in the terminal.
   return (
-    <TodayDashboard applications={applications} reasons={reasons} legitimacy={legitimacy} inbox={inbox} inBetween={phase === "in-between"} overview={overview} linkedinScan={linkedinScanState()} dailyScan={dailyScanStatus()} />
+    <TodayDashboard applications={applications} reasons={reasons} legitimacy={legitimacy} inbox={inbox} inBetween={phase === "in-between"} overview={overview} linkedinScan={linkedinScanState()} xScan={xScanState()} dailyScan={dailyScanStatus()} />
   );
 }

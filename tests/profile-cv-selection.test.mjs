@@ -165,7 +165,7 @@ syncBuiltinESMExports();
 `);
 function cli(script, args, status = 0, overrides = {}) {
   const result = spawnSync(NODE, ['--import', pathToFileURL(networkGuard).href, join(ROOT, script), ...args], {
-    cwd: root, env: { ...process.env, CAREER_OPS_ROOT: root, CAREER_OPS_PROFILE: '', ...overrides }, encoding: 'utf8', timeout: 30_000,
+    cwd: root, env: { ...process.env, LANDING_GEAR_ROOT: root, LANDING_GEAR_PROFILE: '', ...overrides }, encoding: 'utf8', timeout: 30_000,
   });
   assert.equal(result.status, status, describeSpawn(result));
   return result;
@@ -186,13 +186,13 @@ try {
 
   check('shared reader respects explicit/default Data Roots and rejects missing/invalid profiles', () => {
     assert.deepEqual(loadValidatedProfile({ dataRoot: root }), original.profile);
-    const previous = process.env.CAREER_OPS_ROOT;
+    const previous = process.env.LANDING_GEAR_ROOT;
     try {
-      process.env.CAREER_OPS_ROOT = root;
+      process.env.LANDING_GEAR_ROOT = root;
       assert.deepEqual(loadValidatedProfile(), original.profile);
     } finally {
-      if (previous === undefined) delete process.env.CAREER_OPS_ROOT;
-      else process.env.CAREER_OPS_ROOT = previous;
+      if (previous === undefined) delete process.env.LANDING_GEAR_ROOT;
+      else process.env.LANDING_GEAR_ROOT = previous;
     }
     assert.throws(() => loadValidatedProfile({ file: join(root, 'missing.yml') }), { code: 'ENOENT' });
     save('invalid-reader.yml', { schema_version: 2 });
@@ -206,7 +206,7 @@ try {
     cli('career-profile.mjs', ['verify-cv', ...args, '--prepared', 'prepared.json']);
     save('alternate-profile.yml', original.profile);
     cli('career-profile.mjs', ['prepare-cv', ...args, '--profile', 'alternate-profile.yml']);
-    cli('career-profile.mjs', ['prepare-cv', ...args], 0, { CAREER_OPS_ROOT: '', CAREER_OPS_DATA_DIR: root });
+    cli('career-profile.mjs', ['prepare-cv', ...args], 0, { LANDING_GEAR_ROOT: '', LANDING_GEAR_DATA_DIR: root });
     assert.equal(cli('career-profile.mjs', ['validate']).status, 0);
   });
 

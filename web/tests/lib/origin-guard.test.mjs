@@ -226,7 +226,7 @@ test("a cross-site request is blocked even on an allowed LAN host", () => {
   assert.equal(d.ok, false);
 });
 
-// --- the origin allowlist (CAREER_OPS_ALLOWED_ORIGINS) -------------------
+// --- the origin allowlist (LANDING_GEAR_ALLOWED_ORIGINS) -------------------
 
 test("normalizeOrigin lowercases and strips trailing slashes", () => {
   assert.equal(normalizeOrigin("Chrome-Extension://ABCDEF/"), "chrome-extension://abcdef");

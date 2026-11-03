@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * weekly-digest.mjs — Weekly Interview Digest for career-ops
+ * weekly-digest.mjs — Weekly Interview Digest for landing-gear
  *
  * `interview/debrief` and `interview/practice` already write structured
  * session transcripts to `interview-prep/sessions/{company-slug}-{role-slug}-
@@ -34,7 +34,7 @@
  * Default range: the current ISO week (Monday–Sunday), matching the
  * `isoWeek` convention already used by `stats.mjs`'s scan-run trends.
  *
- * Issue #2129 — github.com/career-ops-hq/career-ops
+ * Issue #2129 (upstream)
  */
 
 import { readFileSync, existsSync, readdirSync, mkdtempSync, writeFileSync, rmSync } from 'fs';
@@ -45,13 +45,13 @@ import { loadYaml } from './lib/yaml-document.mjs';
 import { validateFlags, flagValue } from './lib/cli-flags.mjs';
 import { localToday } from './lib/local-today.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
-import { getCareerOpsRoot } from './path-resolver.mjs';
+import { getLandingGearRoot } from './path-resolver.mjs';
 
 // The USER's data root. interview-prep/ is USER_PATHS in update-system.mjs, so
 // resolving it from this file's directory meant that with a data root configured
 // the digest looked in the checkout, found nothing, and said "no session files
 // fall inside this range" — blaming the dates for a directory it never opened.
-const DATA_ROOT = getCareerOpsRoot();
+const DATA_ROOT = getLandingGearRoot();
 const DEFAULT_SESSIONS_DIR = join(DATA_ROOT, 'interview-prep', 'sessions');
 const DEFAULT_QUESTION_BANK_PATH = join(DATA_ROOT, 'interview-prep', 'question-bank.md');
 

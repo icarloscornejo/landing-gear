@@ -10,89 +10,89 @@ const FIXTURE = fileURLToPath(new URL('./fixtures/gojobs-search-results.html', i
 const RECIPE_ROOT = fileURLToPath(new URL('.', import.meta.url));
 
 test('parses English rows from legacy and current ASP.NET control prefixes', () => {
-  const previousRoot = process.env.CAREER_OPS_ROOT;
+  const previousRoot = process.env.LANDING_GEAR_ROOT;
   try {
-    process.env.CAREER_OPS_ROOT = RECIPE_ROOT;
+    process.env.LANDING_GEAR_ROOT = RECIPE_ROOT;
     assert.deepEqual(parseFiles([FIXTURE]), [
       { title: 'Learning Systems Specialist', url: 'https://www.gojobs.gov.on.ca/Preview.aspx?JobID=249065&Language=English', company: 'Ministry of Example Services', location: 'Toronto, Toronto Region', closingDate: 'Friday, September 18, 2026 11:59 pm EDT', jobId: '249065' },
       { title: 'Data & Reporting Analyst', url: 'https://www.gojobs.gov.on.ca/Preview.aspx?JobID=249066&Language=English', company: 'Ontario Public Service', location: 'London, West Region', closingDate: 'Monday, September 21, 2026 11:59 pm EDT', jobId: '249066' },
     ]);
   } finally {
-    if (previousRoot === undefined) delete process.env.CAREER_OPS_ROOT;
-    else process.env.CAREER_OPS_ROOT = previousRoot;
+    if (previousRoot === undefined) delete process.env.LANDING_GEAR_ROOT;
+    else process.env.LANDING_GEAR_ROOT = previousRoot;
   }
 });
 
 test('deduplicates repeated postings across saved pages', () => {
   const dir = mkdtempSync(join(tmpdir(), 'gojobs-parser-'));
   const html = '<a id="ctl00_Content_rptSearchResult_ctl01_lnkJobTitleEN" href="Preview.aspx?JobID=42&amp;Language=English">Role</a>';
-  const previousRoot = process.env.CAREER_OPS_ROOT;
+  const previousRoot = process.env.LANDING_GEAR_ROOT;
   try {
-    process.env.CAREER_OPS_ROOT = dir;
+    process.env.LANDING_GEAR_ROOT = dir;
     writeFileSync(join(dir, 'page-1.html'), html); writeFileSync(join(dir, 'page-2.htm'), html);
     assert.equal(parseFiles(['.']).length, 1);
   } finally {
-    if (previousRoot === undefined) delete process.env.CAREER_OPS_ROOT;
-    else process.env.CAREER_OPS_ROOT = previousRoot;
+    if (previousRoot === undefined) delete process.env.LANDING_GEAR_ROOT;
+    else process.env.LANDING_GEAR_ROOT = previousRoot;
     rmSync(dir, { recursive: true, force: true });
   }
 });
 
-test('rejects absolute and traversal inputs outside CAREER_OPS_ROOT', () => {
+test('rejects absolute and traversal inputs outside LANDING_GEAR_ROOT', () => {
   const parent = mkdtempSync(join(tmpdir(), 'gojobs-root-'));
   const root = join(parent, 'data-root');
   const outside = join(parent, 'outside.html');
-  const previousRoot = process.env.CAREER_OPS_ROOT;
+  const previousRoot = process.env.LANDING_GEAR_ROOT;
   try {
     mkdirSync(root);
     writeFileSync(outside, '<html></html>');
-    process.env.CAREER_OPS_ROOT = root;
-    assert.throws(() => parseFiles([outside]), /outside the career-ops data root/);
-    assert.throws(() => parseFiles(['../outside.html']), /outside the career-ops data root/);
+    process.env.LANDING_GEAR_ROOT = root;
+    assert.throws(() => parseFiles([outside]), /outside the landing-gear data root/);
+    assert.throws(() => parseFiles(['../outside.html']), /outside the landing-gear data root/);
   } finally {
-    if (previousRoot === undefined) delete process.env.CAREER_OPS_ROOT;
-    else process.env.CAREER_OPS_ROOT = previousRoot;
+    if (previousRoot === undefined) delete process.env.LANDING_GEAR_ROOT;
+    else process.env.LANDING_GEAR_ROOT = previousRoot;
     rmSync(parent, { recursive: true, force: true });
   }
 });
 
-test('rejects a symlink that escapes CAREER_OPS_ROOT', (t) => {
+test('rejects a symlink that escapes LANDING_GEAR_ROOT', (t) => {
   const parent = mkdtempSync(join(tmpdir(), 'gojobs-symlink-'));
   const root = join(parent, 'data-root');
   const outside = join(parent, 'outside');
   const link = join(root, 'captures');
-  const previousRoot = process.env.CAREER_OPS_ROOT;
+  const previousRoot = process.env.LANDING_GEAR_ROOT;
   try {
     mkdirSync(root);
     mkdirSync(outside);
     try { symlinkSync(outside, link, 'junction'); }
     catch (error) { return t.skip(`symlink unsupported here (${error.code || error.message})`); }
-    process.env.CAREER_OPS_ROOT = root;
-    assert.throws(() => parseFiles(['captures']), /outside the career-ops data root/);
+    process.env.LANDING_GEAR_ROOT = root;
+    assert.throws(() => parseFiles(['captures']), /outside the landing-gear data root/);
   } finally {
-    if (previousRoot === undefined) delete process.env.CAREER_OPS_ROOT;
-    else process.env.CAREER_OPS_ROOT = previousRoot;
+    if (previousRoot === undefined) delete process.env.LANDING_GEAR_ROOT;
+    else process.env.LANDING_GEAR_ROOT = previousRoot;
     rmSync(parent, { recursive: true, force: true });
   }
 });
 
-test('rejects an HTML symlink inside a directory when its target escapes CAREER_OPS_ROOT', (t) => {
+test('rejects an HTML symlink inside a directory when its target escapes LANDING_GEAR_ROOT', (t) => {
   const parent = mkdtempSync(join(tmpdir(), 'gojobs-child-symlink-'));
   const root = join(parent, 'data-root');
   const captures = join(root, 'captures');
   const outside = join(parent, 'outside.html');
   const link = join(captures, 'escaped.html');
-  const previousRoot = process.env.CAREER_OPS_ROOT;
+  const previousRoot = process.env.LANDING_GEAR_ROOT;
   try {
     mkdirSync(captures, { recursive: true });
     writeFileSync(outside, '<html></html>');
     try { symlinkSync(outside, link, 'file'); }
     catch (error) { return t.skip(`symlink unsupported here (${error.code || error.message})`); }
-    process.env.CAREER_OPS_ROOT = root;
-    assert.throws(() => parseFiles(['captures']), /outside the career-ops data root/);
+    process.env.LANDING_GEAR_ROOT = root;
+    assert.throws(() => parseFiles(['captures']), /outside the landing-gear data root/);
   } finally {
-    if (previousRoot === undefined) delete process.env.CAREER_OPS_ROOT;
-    else process.env.CAREER_OPS_ROOT = previousRoot;
+    if (previousRoot === undefined) delete process.env.LANDING_GEAR_ROOT;
+    else process.env.LANDING_GEAR_ROOT = previousRoot;
     rmSync(parent, { recursive: true, force: true });
   }
 });

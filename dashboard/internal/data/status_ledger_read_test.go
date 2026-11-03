@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/santifer/career-ops/dashboard/internal/model"
+	"github.com/icarloscornejo/landing-gear/dashboard/internal/model"
 )
 
 // LatestDate must follow the ledger's own correction semantics (the fold in
@@ -87,7 +87,7 @@ func TestParseStatusLedgerLatestDate(t *testing.T) {
 
 func TestReadStatusLedgerMissingFile(t *testing.T) {
 	root := t.TempDir()
-	t.Setenv("CAREER_OPS_TRACKER", filepath.Join(root, "applications.md"))
+	t.Setenv("LANDING_GEAR_TRACKER", filepath.Join(root, "applications.md"))
 	ledger, err := ReadStatusLedger(root)
 	if err != nil || len(ledger.Reached) != 0 || len(ledger.LatestDate) != 0 {
 		t.Fatalf("missing ledger = %+v, %v; want empty ledger without an error", ledger, err)
@@ -96,7 +96,7 @@ func TestReadStatusLedgerMissingFile(t *testing.T) {
 
 func TestReadStatusLedgerPropagatesReadFailure(t *testing.T) {
 	root := t.TempDir()
-	t.Setenv("CAREER_OPS_TRACKER", filepath.Join(root, "applications.md"))
+	t.Setenv("LANDING_GEAR_TRACKER", filepath.Join(root, "applications.md"))
 	ledgerPath := filepath.Join(root, "status-log.tsv")
 	if err := os.Mkdir(ledgerPath, 0700); err != nil {
 		t.Fatal(err)
@@ -113,7 +113,7 @@ func TestReadStatusLedgerPropagatesReadFailure(t *testing.T) {
 
 func TestReadStatusLedgerFollowsTrackerOverride(t *testing.T) {
 	root := t.TempDir()
-	t.Setenv("CAREER_OPS_TRACKER", filepath.Join(root, "custom.md"))
+	t.Setenv("LANDING_GEAR_TRACKER", filepath.Join(root, "custom.md"))
 	if err := os.WriteFile(filepath.Join(root, "status-log.tsv"), []byte("1\t2026-09-01\tOffer\tDiscarded\tset-status\t\n"), 0600); err != nil {
 		t.Fatal(err)
 	}

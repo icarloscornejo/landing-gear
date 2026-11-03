@@ -16,7 +16,7 @@ function freshPipeline() {
 
 function add(pipelinePath, url, extra = []) {
   return new Promise((resolve) => {
-    const child = spawn('node', [SCRIPT, url, ...extra], { env: { ...process.env, CAREER_OPS_PIPELINE: pipelinePath } });
+    const child = spawn('node', [SCRIPT, url, ...extra], { env: { ...process.env, LANDING_GEAR_PIPELINE: pipelinePath } });
     let stdout = '';
     let stderr = '';
     child.stdout.on('data', (chunk) => { stdout += chunk; });
@@ -75,7 +75,7 @@ function freshRoot(pipelineBody = '# Pipeline\n\n## Pending\n\n## Processed\n') 
 
 function addJd(root, pipelinePath, jdArgument) {
   return new Promise((resolve) => {
-    const child = spawn('node', [SCRIPT, '--jd', jdArgument], { env: { ...process.env, CAREER_OPS_ROOT: root, CAREER_OPS_PIPELINE: pipelinePath } });
+    const child = spawn('node', [SCRIPT, '--jd', jdArgument], { env: { ...process.env, LANDING_GEAR_ROOT: root, LANDING_GEAR_PIPELINE: pipelinePath } });
     let stdout = '';
     let stderr = '';
     child.stdout.on('data', (chunk) => { stdout += chunk; });

@@ -8,7 +8,7 @@ import { join } from 'node:path';
 import { NODE, ROOT, run } from './helpers.mjs';
 
 test('merge-tracker fixtures ignore failed rows from an inherited batch-state', (t) => {
-  const work = mkdtempSync(join(tmpdir(), 'career-ops-merge-isolation-'));
+  const work = mkdtempSync(join(tmpdir(), 'landing-gear-merge-isolation-'));
   t.after(() => rmSync(work, { recursive: true, force: true }));
   const additions = join(work, 'tracker-additions');
   mkdirSync(additions);
@@ -23,20 +23,20 @@ test('merge-tracker fixtures ignore failed rows from an inherited batch-state', 
 
   const inheritedState = join(work, 'install-batch-state.tsv');
   writeFileSync(inheritedState, 'id\tx\tstatus\tx\tx\treport_num\nworker\t-\tfailed\t-\t-\t007\n');
-  const previousState = process.env.CAREER_OPS_BATCH_STATE;
-  process.env.CAREER_OPS_BATCH_STATE = inheritedState;
+  const previousState = process.env.LANDING_GEAR_BATCH_STATE;
+  process.env.LANDING_GEAR_BATCH_STATE = inheritedState;
   try {
     const output = run(NODE, ['merge-tracker.mjs'], {
       env: {
         ...process.env,
-        CAREER_OPS_TRACKER: tracker,
-        CAREER_OPS_ADDITIONS: additions,
+        LANDING_GEAR_TRACKER: tracker,
+        LANDING_GEAR_ADDITIONS: additions,
       },
     });
     assert.notEqual(output, null, 'merge-tracker should complete against its fixture');
     assert.match(readFileSync(tracker, 'utf-8'), /\|\s*7\s*\|/);
   } finally {
-    if (previousState === undefined) delete process.env.CAREER_OPS_BATCH_STATE;
-    else process.env.CAREER_OPS_BATCH_STATE = previousState;
+    if (previousState === undefined) delete process.env.LANDING_GEAR_BATCH_STATE;
+    else process.env.LANDING_GEAR_BATCH_STATE = previousState;
   }
 });

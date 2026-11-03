@@ -15,7 +15,7 @@ The only safe fix is to never let the raw location text touch a shell command li
 3. Decode and write the file in the same step, using Node (already this project's runtime) rather than a platform-specific `base64` binary, so this works identically everywhere. Use a fresh, unique temp path via `mktemp` rather than a fixed filename — a shared fixed path risks collision with a concurrent `batch` worker's own run — and clean it up when done:
 
 ```bash
-posting_location_file="$(mktemp /tmp/career-ops-posting-location.XXXXXX)"
+posting_location_file="$(mktemp /tmp/landing-gear-posting-location.XXXXXX)"
 trap 'rm -f -- "$posting_location_file"' EXIT
 node -e 'process.stdout.write(Buffer.from("<base64-encoded JD location, no line wrapping>", "base64"))' > "$posting_location_file"
 node salary-gap.mjs --relocation --gross <annual gross: annual midpoint; monthly midpoint × 12; or hourly midpoint × JD-stated weekly hours × 52> --posting-location-file "$posting_location_file" --home-location "<config/profile.yml location>" --currency <advertised_comp's own currency>

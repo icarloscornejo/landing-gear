@@ -19,13 +19,13 @@ import { parseOrphanReport } from "../../src/lib/tracker-delete-output.mjs";
 const HERE = dirname(fileURLToPath(import.meta.url));
 
 const DRY = [
-  "Would remove application 42 (1 row) from /home/u/career-ops/data/applications.md.",
+  "Would remove application 42 (1 row) from /home/u/landing-gear/data/applications.md.",
   "(report file would be orphaned: [42](../reports/042-beta-2026-09-02.md))",
   "",
 ].join("\n");
 
 const REAL = [
-  "Removed application 42 (1 row) from /home/u/career-ops/data/applications.md and reindexed.",
+  "Removed application 42 (1 row) from /home/u/landing-gear/data/applications.md and reindexed.",
   "Note: report file may now be orphaned — [42](../reports/042-beta-2026-09-02.md)",
   "",
 ].join("\n");
@@ -65,9 +65,9 @@ test("parseOrphanReport: other stderr lines around the report line do not matter
   // The script may say more before, between or after (a resync warning, a
   // backup path). Each line is judged on its own.
   const noisy = [
-    "(index stale — resyncing from /home/u/career-ops/data/applications.md)",
-    "Removed application 42 (1 row) from /home/u/career-ops/data/applications.md and reindexed.",
-    "Some later line the script might add: /home/u/career-ops/data/applications.md.bak",
+    "(index stale — resyncing from /home/u/landing-gear/data/applications.md)",
+    "Removed application 42 (1 row) from /home/u/landing-gear/data/applications.md and reindexed.",
+    "Some later line the script might add: /home/u/landing-gear/data/applications.md.bak",
     "Note: report file may now be orphaned — [42](../reports/042-beta-2026-09-02.md)",
     "A trailing line.",
   ].join("\n");

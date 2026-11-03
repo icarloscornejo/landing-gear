@@ -57,13 +57,13 @@ function runCli(script, tmp, trackerFile, extra = [], input = 'n\n') {
     input,
     env: {
       ...process.env,
-      CAREER_OPS_TRACKER: trackerFile,
+      LANDING_GEAR_TRACKER: trackerFile,
       // Both CLI consumers resolve writes under DATA_ROOT (README: "All write
       // operations canonically target {DATA_ROOT}/data/..."), and both read
       // `DATA_ROOT/data/follow-ups.md`. Pointing these at dataDir would look for
       // `dataDir/data/follow-ups.md`, silently skipping the fixture below.
-      CAREER_OPS_DATA_DIR: tmp,
-      CAREER_OPS_ROOT: tmp,
+      LANDING_GEAR_DATA_DIR: tmp,
+      LANDING_GEAR_ROOT: tmp,
     },
   });
   return res;

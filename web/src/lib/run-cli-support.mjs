@@ -390,7 +390,7 @@ export function accumulateTokens(current, ev) {
 /**
  * Completed report filenames from a raw `reports/` listing.
  * Reservation sentinels are not completed reports — `isReservedReportFile` is
- * the single definition of that convention, shared with career-ops.ts.
+ * the single definition of that convention, shared with landing-gear.ts.
  *
  * @param {string[]} entries
  * @returns {Set<string>}

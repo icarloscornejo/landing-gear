@@ -10,7 +10,7 @@
 //     careers_url: https://co.computrabajo.com/trabajo-de-sistemas
 //
 // Card shape (measured on https://co.computrabajo.com/trabajo-de-sistemas,
-// 2026-10-23: HTTP 200 with career-ops' default User-Agent, 20 cards):
+// 2026-10-23: HTTP 200 with landing-gear' default User-Agent, 20 cards):
 //   <article class="box_offer ..." data-id="{ID}">
 //     <h2><a class="js-o-link fc_base" href="/ofertas-de-trabajo/...-{ID}#lc=...">TITLE</a></h2>
 //     <p ...><a ... offer-grid-article-company-url>COMPANY</a></p>

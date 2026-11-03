@@ -16,7 +16,7 @@
  * the default tier. The user's only signal is noticing the wrong language in
  * finished work.
  *
- * WARN, never FAIL. career-ops is meant to work out of the box and an unknown
+ * WARN, never FAIL. landing-gear is meant to work out of the box and an unknown
  * key is not a broken install — it is almost always a typo, and the right
  * response is to name it, not to refuse to run. `portals.yml` gets
  * validate-portals.mjs and the plugin registry gets validate-plugin-registry.mjs;

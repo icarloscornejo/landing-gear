@@ -23,7 +23,7 @@
 import { readFileSync, existsSync } from 'fs';
 import { isMainModule } from './lib/is-main-module.mjs';
 import { join } from 'path';
-import { getCareerOpsRoot } from './path-resolver.mjs';
+import { getLandingGearRoot } from './path-resolver.mjs';
 import { parseStories, splitStoryBlocks, isValidStory } from './lib/story-bank.mjs';
 import { parseStoryBlocks, classifyEntries } from './story-provenance-check.mjs';
 
@@ -33,8 +33,8 @@ import { parseStoryBlocks, classifyEntries } from './story-provenance-check.mjs'
 // update-system.mjs, and a bare relative path resolves against wherever the
 // process was started — so this read the checkout's story bank (usually absent)
 // for anyone whose data lives elsewhere.
-const STORY_BANK_PATH = join(getCareerOpsRoot(), 'interview-prep', 'story-bank.md');
-const CV_PATH = join(getCareerOpsRoot(), 'cv.md');
+const STORY_BANK_PATH = join(getLandingGearRoot(), 'interview-prep', 'story-bank.md');
+const CV_PATH = join(getLandingGearRoot(), 'cv.md');
 
 const UNCONFIRMED = '[unconfirmed figure]';
 

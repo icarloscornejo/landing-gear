@@ -44,13 +44,13 @@
 import { readFileSync, existsSync, appendFileSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
-import { getCareerOpsRoot, getProfilePath } from './path-resolver.mjs';
+import { getLandingGearRoot, getProfilePath } from './path-resolver.mjs';
 import { loadYaml } from './lib/yaml-document.mjs';
 import { localToday } from './lib/local-today.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
 
-const CAREER_OPS = getCareerOpsRoot();
-const LOG_PATH = join(CAREER_OPS, 'data/assessments.tsv');
+const LANDING_GEAR = getLandingGearRoot();
+const LOG_PATH = join(LANDING_GEAR, 'data/assessments.tsv');
 
 const KNOWN_FLAGS = ['--self-test', '--summary', '--help', '-h'];
 const ADD_VALUE_FLAGS = ['--company', '--report', '--platform', '--subject', '--threshold', '--score', '--stale',

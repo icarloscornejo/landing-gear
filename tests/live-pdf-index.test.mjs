@@ -13,15 +13,15 @@ import { tmpdir } from 'node:os';
 
 import { livePdfIndex } from '../find.mjs';
 
-// The workspace root follows CAREER_OPS_TRACKER, so a stray value from the
+// The workspace root follows LANDING_GEAR_TRACKER, so a stray value from the
 // environment would move the fixture's root out from under these tests.
 function withoutTrackerEnv(fn) {
-  const saved = process.env.CAREER_OPS_TRACKER;
-  delete process.env.CAREER_OPS_TRACKER;
+  const saved = process.env.LANDING_GEAR_TRACKER;
+  delete process.env.LANDING_GEAR_TRACKER;
   try {
     return fn();
   } finally {
-    if (saved !== undefined) process.env.CAREER_OPS_TRACKER = saved;
+    if (saved !== undefined) process.env.LANDING_GEAR_TRACKER = saved;
   }
 }
 
@@ -137,7 +137,7 @@ test('paths resolve against the workspace root generate-pdf wrote them for, even
   assert.deepEqual([...live.keys()], ['1']);
 }));
 
-test('CAREER_OPS_TRACKER moves the workspace the paths resolve against', () => fixture(({ parent, root }) => {
+test('LANDING_GEAR_TRACKER moves the workspace the paths resolve against', () => fixture(({ parent, root }) => {
   // generate-pdf.mjs writes into the workspace the tracker override names, so
   // that, not the script's own root, is where output/ has to be looked for.
   const external = join(parent, 'external');
@@ -145,12 +145,12 @@ test('CAREER_OPS_TRACKER moves the workspace the paths resolve against', () => f
   mkdirSync(join(external, 'output'), { recursive: true });
   writeFileSync(join(external, 'data', 'applications.md'), '# tracker\n');
   writeFileSync(join(external, 'output', '1-acme-cv.pdf'), '%PDF-1.4\n');
-  process.env.CAREER_OPS_TRACKER = join(external, 'data', 'applications.md');
+  process.env.LANDING_GEAR_TRACKER = join(external, 'data', 'applications.md');
   try {
     const live = livePdfIndex(rows(['1', 'output/1-acme-cv.pdf']), root, () => {});
     assert.deepEqual([...live.keys()], ['1']);
   } finally {
-    delete process.env.CAREER_OPS_TRACKER;
+    delete process.env.LANDING_GEAR_TRACKER;
   }
 }));
 

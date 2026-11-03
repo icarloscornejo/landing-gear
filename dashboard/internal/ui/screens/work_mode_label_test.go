@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/charmbracelet/x/ansi"
-	"github.com/santifer/career-ops/dashboard/internal/i18n"
-	"github.com/santifer/career-ops/dashboard/internal/model"
-	"github.com/santifer/career-ops/dashboard/internal/theme"
+	"github.com/icarloscornejo/landing-gear/dashboard/internal/i18n"
+	"github.com/icarloscornejo/landing-gear/dashboard/internal/model"
+	"github.com/icarloscornejo/landing-gear/dashboard/internal/theme"
 )
 
 func TestWorkModeShowsTheCatalogLabel(t *testing.T) {

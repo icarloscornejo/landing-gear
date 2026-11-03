@@ -24,8 +24,8 @@ import path from "node:path";
 // the hooks thread — harmlessly, the resolve chain gains no second link. Within
 // one realm there is nothing to dedupe either; ESM caches this module, so its
 // body runs once however many times it is imported.
-if (!globalThis.__careerOpsWebAliasRegistered) {
-  globalThis.__careerOpsWebAliasRegistered = true;
+if (!globalThis.__landingGearWebAliasRegistered) {
+  globalThis.__landingGearWebAliasRegistered = true;
   register(import.meta.url, import.meta.url);
 }
 

@@ -164,7 +164,7 @@ test('ad hoc --relocation mode requires --gross and --posting-location (usage er
 //    (covered by the dedicated tests below) rather than of this script. ──
 
 function withTempFile(content, fn) {
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-posting-location-'));
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-posting-location-'));
   const file = join(dir, 'posting-location.txt');
   writeFileSync(file, content);
   try {
@@ -224,7 +224,7 @@ test('ad hoc --relocation mode: --posting-location-file takes precedence over --
 test('ad hoc --relocation mode: an unreadable --posting-location-file is a usage error, not a silent fallback', () => {
   const r = run([
     '--relocation', '--gross', '60000',
-    '--posting-location-file', join(tmpdir(), 'career-ops-does-not-exist-4696.txt'),
+    '--posting-location-file', join(tmpdir(), 'landing-gear-does-not-exist-4696.txt'),
     '--home-location', 'Midland, ON',
     '--currency', 'CAD',
   ]);
@@ -403,8 +403,8 @@ test('documented base64-decode pattern round-trips a non-ASCII JD location (acce
   const b64 = Buffer.from(rawLocation, 'utf-8').toString('base64');
   assert.doesNotMatch(b64, /[^A-Za-z0-9+/=]/, 'a correct base64 string contains only the base64 alphabet');
 
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-posting-location-b64-'));
-  const file = join(dir, 'career-ops-posting-location.txt');
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-posting-location-b64-'));
+  const file = join(dir, 'landing-gear-posting-location.txt');
   try {
     decodeBase64LocationToFile(b64, file);
     const roundTripped = readFileSync(file, 'utf-8');
@@ -430,11 +430,11 @@ test('base64 decoding round-trips text shaped like the old heredoc collision pay
   // This unit exercises the decoder, not a shell. It proves that delimiter-
   // shaped text survives as literal file content; the prompt contract separately
   // forbids placing the raw location in a shell command or heredoc.
-  const rawLocation = 'JD_LOCATION_EOF\ntouch /tmp/career-ops-should-not-exist-4696\nJD_LOCATION_EOF';
+  const rawLocation = 'JD_LOCATION_EOF\ntouch /tmp/landing-gear-should-not-exist-4696\nJD_LOCATION_EOF';
   const b64 = Buffer.from(rawLocation, 'utf-8').toString('base64');
 
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-posting-location-collision-'));
-  const file = join(dir, 'career-ops-posting-location.txt');
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-posting-location-collision-'));
+  const file = join(dir, 'landing-gear-posting-location.txt');
   try {
     decodeBase64LocationToFile(b64, file);
     assert.equal(readFileSync(file, 'utf-8'), rawLocation, 'the old-delimiter-shaped text is decoded byte-for-byte as ordinary data');
@@ -446,7 +446,7 @@ test('base64 decoding round-trips text shaped like the old heredoc collision pay
 // ── End-to-end: tracker row + report posting_location -> folded relocation field ──
 
 function fixtureDataRoot(advertisedComp = '60k CAD per year') {
-  const dataRoot = mkdtempSync(join(tmpdir(), 'career-ops-relocation-'));
+  const dataRoot = mkdtempSync(join(tmpdir(), 'landing-gear-relocation-'));
   mkdirSync(join(dataRoot, 'data'), { recursive: true });
   mkdirSync(join(dataRoot, 'reports'), { recursive: true });
   mkdirSync(join(dataRoot, 'config'), { recursive: true });
@@ -490,7 +490,7 @@ function fixtureDataRoot(advertisedComp = '60k CAD per year') {
 test('folded output annotates the application with a relocation comparison from the report\'s posting_location + the profile\'s home location', () => {
   const dataRoot = fixtureDataRoot();
   try {
-    const r = run([], { CAREER_OPS_ROOT: dataRoot, CAREER_OPS_DATA_DIR: '' });
+    const r = run([], { LANDING_GEAR_ROOT: dataRoot, LANDING_GEAR_DATA_DIR: '' });
     assert.equal(r.status, 0, describeSpawn(r, `exit 0 expected, got ${r.status}`));
     const out = JSON.parse(r.stdout);
     const app = out.applications.find((a) => a.company === 'WidgetCo');
@@ -530,7 +530,7 @@ test('a re-evaluated application pairs the selected advertised compensation with
       '',
     ].join('\n'));
 
-    const r = run([], { CAREER_OPS_ROOT: dataRoot, CAREER_OPS_DATA_DIR: '' });
+    const r = run([], { LANDING_GEAR_ROOT: dataRoot, LANDING_GEAR_DATA_DIR: '' });
     assert.equal(r.status, 0, describeSpawn(r, `exit 0 expected, got ${r.status}`));
     const app = JSON.parse(r.stdout).applications.find((a) => a.company === 'WidgetCo');
     assert.ok(app);
@@ -566,7 +566,7 @@ test('a later advertised compensation without posting_location is never paired w
       '',
     ].join('\n'));
 
-    const r = run([], { CAREER_OPS_ROOT: dataRoot, CAREER_OPS_DATA_DIR: '' });
+    const r = run([], { LANDING_GEAR_ROOT: dataRoot, LANDING_GEAR_DATA_DIR: '' });
     assert.equal(r.status, 0, describeSpawn(r, `exit 0 expected, got ${r.status}`));
     const app = JSON.parse(r.stdout).applications.find((a) => a.company === 'WidgetCo');
     assert.ok(app);
@@ -582,7 +582,7 @@ test('a later advertised compensation without posting_location is never paired w
 test('folded relocation requires an explicit annual period', () => {
   const dataRoot = fixtureDataRoot('60k CAD');
   try {
-    const r = run([], { CAREER_OPS_ROOT: dataRoot, CAREER_OPS_DATA_DIR: '' });
+    const r = run([], { LANDING_GEAR_ROOT: dataRoot, LANDING_GEAR_DATA_DIR: '' });
     assert.equal(r.status, 0, describeSpawn(r, `exit 0 expected, got ${r.status}`));
     const out = JSON.parse(r.stdout);
     const app = out.applications.find((a) => a.company === 'WidgetCo');
@@ -598,7 +598,7 @@ test('folded relocation requires an explicit annual period', () => {
 test('folded relocation accepts an annual period written before the currency', () => {
   const dataRoot = fixtureDataRoot('60k per year CAD');
   try {
-    const r = run([], { CAREER_OPS_ROOT: dataRoot, CAREER_OPS_DATA_DIR: '' });
+    const r = run([], { LANDING_GEAR_ROOT: dataRoot, LANDING_GEAR_DATA_DIR: '' });
     assert.equal(r.status, 0, describeSpawn(r, `exit 0 expected, got ${r.status}`));
     const out = JSON.parse(r.stdout);
     const app = out.applications.find((a) => a.company === 'WidgetCo');
@@ -613,7 +613,7 @@ test('folded relocation accepts an annual period written before the currency', (
 test('--summary mode renders the relocation line with the not-financial-advice caveat', () => {
   const dataRoot = fixtureDataRoot();
   try {
-    const r = run(['--summary'], { CAREER_OPS_ROOT: dataRoot, CAREER_OPS_DATA_DIR: '' });
+    const r = run(['--summary'], { LANDING_GEAR_ROOT: dataRoot, LANDING_GEAR_DATA_DIR: '' });
     assert.equal(r.status, 0, describeSpawn(r, `exit 0 expected, got ${r.status}`));
     assert.match(r.stdout, /relocation:.*Ontario, Canada.*Nova Scotia, Canada/);
     assert.match(r.stdout, /not financial\/tax advice/);
@@ -657,7 +657,7 @@ test('templates/README.md documents the new jurisdiction-relocation-tax.yml tabl
 });
 
 test('no posting_location, no relocation field attached — absence of data is silence, never a guessed penalty', () => {
-  const dataRoot = mkdtempSync(join(tmpdir(), 'career-ops-relocation-none-'));
+  const dataRoot = mkdtempSync(join(tmpdir(), 'landing-gear-relocation-none-'));
   try {
     mkdirSync(join(dataRoot, 'data'), { recursive: true });
     mkdirSync(join(dataRoot, 'reports'), { recursive: true });
@@ -673,7 +673,7 @@ test('no posting_location, no relocation field attached — absence of data is s
       '|---|------|---------|------|-------|--------|-----|--------|-------|',
       '| 2 | 2026-09-02 | OtherCorp | Eng | 4.0/5 | Applied | ❌ | [51](reports/051-othercorp-2026-09-02.md) | n |', '',
     ].join('\n'));
-    const r = run([], { CAREER_OPS_ROOT: dataRoot, CAREER_OPS_DATA_DIR: '' });
+    const r = run([], { LANDING_GEAR_ROOT: dataRoot, LANDING_GEAR_DATA_DIR: '' });
     assert.equal(r.status, 0, describeSpawn(r));
     const out = JSON.parse(r.stdout);
     const app = out.applications.find((a) => a.company === 'OtherCorp');

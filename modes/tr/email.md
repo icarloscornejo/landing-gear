@@ -97,7 +97,7 @@ Yalnızca tek-gerçek-kaynak dosyalarındaki gerçekleri (facts) kullan. JD'deki
 Eğer raporun bir puanı (score) varsa:
 - `>= 4.5`: kendine güvenen (confident), öncelikli (priority) başvuru.
 - `4.0-4.4`: iyi eşleşme, başvurmaya değer.
-- `< 4.0`: ölçülü (restrained); abartarak satmaya (oversell) çalışma. 4.0'ın altındaysa, taslağı hazırlamadan önce career-ops'un normalde başvurmamayı önerdiği konusunda kullanıcıyı uyar.
+- `< 4.0`: ölçülü (restrained); abartarak satmaya (oversell) çalışma. 4.0'ın altındaysa, taslağı hazırlamadan önce landing-gear'un normalde başvurmamayı önerdiği konusunda kullanıcıyı uyar.
 
 ---
 

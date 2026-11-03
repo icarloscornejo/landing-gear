@@ -117,7 +117,7 @@ test("no capability ever yields an unsandboxed run", () => {
 });
 
 test("the sandbox policy is spelled with -c, which beats the user's config.toml", () => {
-  // Given career-ops does not pass --ignore-user-config, so a user's
+  // Given landing-gear does not pass --ignore-user-config, so a user's
   // ~/.codex/config.toml still applies to these runs
   const { args } = fenceArgs({ cliId: "codex", args: codexArgv(), capabilities: CAPS.localReadOnly });
 

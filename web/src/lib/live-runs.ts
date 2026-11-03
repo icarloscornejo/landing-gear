@@ -1,12 +1,12 @@
 // Server-owned triage/evaluate runs (house rule 16). A run started from the web
 // or from a chat session (run-job.mjs) is owned by this server process:
 // it reads /api/run's own stream to the end, so it finishes and saves even with
-// no browser attached, and its snapshot lives in .career-ops-web/live/ where
+// no browser attached, and its snapshot lives in .landing-gear-web/live/ where
 // every browser can poll it. At most MAX_ACTIVE Haiku runs go at once; the rest
 // wait their turn instead of starting dozens of `claude -p` processes.
 import fs from "node:fs";
 import path from "node:path";
-import { careerOpsRoot } from "@/lib/career-ops";
+import { landingGearRoot } from "@/lib/landing-gear";
 import { readJobStream } from "@/lib/job-stream.mjs";
 import { shouldRetryRun } from "@/lib/lifecycle.mjs";
 import { writeRunLog } from "@/lib/run-log.mjs";
@@ -18,13 +18,13 @@ const LIST_LIMIT = 40;
 
 type Registry = { runs: Map<string, RunSnapshot>; active: number; waiting: (() => void)[] };
 // On globalThis so dev hot reloads keep the runs this process still owns.
-const registry: Registry = ((globalThis as { __careerOpsLiveRuns?: Registry }).__careerOpsLiveRuns ??= {
+const registry: Registry = ((globalThis as { __landingGearLiveRuns?: Registry }).__landingGearLiveRuns ??= {
   runs: new Map(),
   active: 0,
   waiting: [],
 });
 
-const liveDir = () => path.join(careerOpsRoot(), ".career-ops-web", "live");
+const liveDir = () => path.join(landingGearRoot(), ".landing-gear-web", "live");
 const SAFE_ID = /^[A-Za-z0-9_-]{1,80}$/;
 
 export function safeRunId(value: unknown): string | null {
@@ -142,7 +142,7 @@ export function startDetachedRun(request: DetachedRunRequest, launch: (body: Rec
       releaseSlot();
       const run = registry.runs.get(request.id);
       if (run) {
-        writeRunLog(careerOpsRoot(), {
+        writeRunLog(landingGearRoot(), {
           id: run.id,
           title: run.status === "done" ? run.title : `${run.title} (failed: ${run.error ?? "error"})`,
           subtitle: run.subtitle,

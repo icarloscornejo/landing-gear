@@ -1,6 +1,6 @@
 # Templates
 
-System-layer template files used by career-ops scripts and modes. These files are auto-updated when you run `npm run update` -- put user customizations in the user-layer files instead (see DATA_CONTRACT.md).
+System-layer template files used by landing-gear scripts and modes. These files are auto-updated when you run `npm run update` -- put user customizations in the user-layer files instead (see DATA_CONTRACT.md).
 
 ## Files
 
@@ -85,7 +85,7 @@ The one shipped so far is `templates/ats/` (`cv-template.ats.html`, name `ats`):
 **Declare the sections a pack owns.** Partials cover seven sections — `competencies`, `experience`, `projects`, `education`, `certifications`, `awards`, `skills` — and any section a pack does not ship a partial for renders through the built-in builder, which emits the DOM the pack exists to replace. A malformed partial falls back the same way. Neither says anything in the output, so a pack's manifest can make ownership an explicit, checked claim:
 
 ```html
-<!-- career-ops-template
+<!-- landing-gear-template
 name: ATS Friendly
 sections: all
 -->

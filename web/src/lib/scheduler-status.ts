@@ -2,13 +2,13 @@ import { execFile } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { promisify } from "node:util";
-import { careerOpsRoot } from "@/lib/career-ops";
+import { landingGearRoot } from "@/lib/landing-gear";
 import { resolveCodeRoot } from "@/lib/core/code-root.mjs";
 import { readLockStatus } from "./scheduled-jobs-store.mjs";
 import { scheduledRunnerResourcePath, scheduledStorePath } from "./scheduled-runner-path.mjs";
 
 const execFileAsync = promisify(execFile);
-const TASK_NAME = "career-ops recurring scan";
+const TASK_NAME = "landing-gear recurring scan";
 
 export type SchedulerStatus = {
   platform: NodeJS.Platform;
@@ -62,7 +62,7 @@ async function readTask(): Promise<SchedulerStatus["task"]> {
 }
 
 export async function schedulerStatus(): Promise<SchedulerStatus> {
-  const root = careerOpsRoot();
+  const root = landingGearRoot();
   const runner = path.join(resolveCodeRoot(process.cwd(), process.env), "web", "scripts", "scheduled-jobs-runner.mjs");
   const runnerLock = scheduledRunnerResourcePath(scheduledStorePath(root));
   const lock = readLockStatus(runnerLock, { staleMs: 25 * 60 * 1_000 * 3 + 60_000 });

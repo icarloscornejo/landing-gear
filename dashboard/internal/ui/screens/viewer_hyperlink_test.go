@@ -6,7 +6,7 @@ import (
 
 	"github.com/charmbracelet/x/ansi"
 
-	"github.com/santifer/career-ops/dashboard/internal/theme"
+	"github.com/icarloscornejo/landing-gear/dashboard/internal/theme"
 )
 
 // linkTargets returns the URI of every OSC 8 opening sequence in s, in order.
@@ -91,8 +91,8 @@ func TestHyperlinkRejectsControlCharacters(t *testing.T) {
 }
 
 func TestHyperlinkPercentEncodesSpacesAndNonASCII(t *testing.T) {
-	got := linkTargets(hyperlink("file:///srv/career-ops/My Drive/cv-é.pdf", "cv"))
-	if len(got) != 1 || got[0] != "file:///srv/career-ops/My%20Drive/cv-%C3%A9.pdf" {
+	got := linkTargets(hyperlink("file:///srv/landing-gear/My Drive/cv-é.pdf", "cv"))
+	if len(got) != 1 || got[0] != "file:///srv/landing-gear/My%20Drive/cv-%C3%A9.pdf" {
 		t.Fatalf("targets = %q, want the path percent-encoded", got)
 	}
 }

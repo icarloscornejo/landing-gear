@@ -39,7 +39,7 @@ if (zshProbe.error?.code === 'ENOENT') {
     const bin = join(dir, 'bin');
     mkdirSync(bin);
     const claudeStub = join(bin, 'claude');
-    writeFileSync(claudeStub, '#!/bin/zsh\necho CLAUDE_RAN > "$CAREER_OPS_ROOT/output/claude-ran"\nexit 0\n');
+    writeFileSync(claudeStub, '#!/bin/zsh\necho CLAUDE_RAN > "$LANDING_GEAR_ROOT/output/claude-ran"\nexit 0\n');
     chmodSync(claudeStub, 0o755);
 
     const sweep = join(ROOT, 'scripts', 'followup-sweep.sh');
@@ -48,10 +48,10 @@ if (zshProbe.error?.code === 'ENOENT') {
       env: {
         ...process.env,
         PATH: `${bin}:${process.env.PATH}`,
-        CAREER_OPS_ROOT: dir,
-        CAREER_OPS_TRACKER: join(dir, 'data', 'applications.md'),
-        CAREER_OPS_FOLLOWUPS: join(dir, 'data', 'follow-ups.md'),
-        CAREER_OPS_PROFILE: join(dir, 'config', 'profile.yml'),
+        LANDING_GEAR_ROOT: dir,
+        LANDING_GEAR_TRACKER: join(dir, 'data', 'applications.md'),
+        LANDING_GEAR_FOLLOWUPS: join(dir, 'data', 'follow-ups.md'),
+        LANDING_GEAR_PROFILE: join(dir, 'config', 'profile.yml'),
       },
       encoding: 'utf8',
       timeout: 30000,

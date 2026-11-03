@@ -92,17 +92,17 @@ import { asciiFold } from './lib/ascii-fold.mjs';
 import { loadProviders, resolveProvider } from './providers/_registry.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
 import { flagValue, hasFlag, validateFlags } from './lib/cli-flags.mjs';
-import { getCareerOpsRoot } from './path-resolver.mjs';
+import { getLandingGearRoot } from './path-resolver.mjs';
 
-// getCareerOpsRoot() (not a bare 'portals.yml'): scan.mjs, scan-ats-full.mjs
+// getLandingGearRoot() (not a bare 'portals.yml'): scan.mjs, scan-ats-full.mjs
 // and audit-portals.mjs all resolve their default portals.yml against the
-// Data Root (CAREER_OPS_ROOT / CAREER_OPS_DATA_DIR / .career-ops-data —
+// Data Root (LANDING_GEAR_ROOT / LANDING_GEAR_DATA_DIR / .landing-gear-data —
 // AGENTS.md's Path Resolution Override & Precedence), so this script was the
 // one place still assuming the Data Root equals the current working
 // directory — the same split-checkout mismatch class as #3867, just for
 // this script's default path (CodeRabbit, #4254 review).
-const DATA_ROOT = getCareerOpsRoot();
-const DEFAULT_PORTALS_PATH = process.env.CAREER_OPS_PORTALS || join(DATA_ROOT, 'portals.yml');
+const DATA_ROOT = getLandingGearRoot();
+const DEFAULT_PORTALS_PATH = process.env.LANDING_GEAR_PORTALS || join(DATA_ROOT, 'portals.yml');
 
 // The core providers/ directory — the SAME plugins the scanner loads. Resolved
 // from this file's location so it's independent of the caller's cwd.

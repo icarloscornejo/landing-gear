@@ -21,7 +21,7 @@ const row = (n, company, report, extra = '') =>
   `| ${n} | 2026-07-15 | ${company} | Coordinator | 3.2/5 | Applied | ❌ | ${report} | note ${n}${extra} |`;
 
 function makeRoot() {
-  const root = mkdtempSync(join(tmpdir(), 'career-ops-fix-links-'));
+  const root = mkdtempSync(join(tmpdir(), 'landing-gear-fix-links-'));
   mkdirSync(join(root, 'data'), { recursive: true });
   mkdirSync(join(root, 'reports'), { recursive: true });
   return root;
@@ -31,9 +31,9 @@ const bakPath = (root) => `${trackerPath(root)}.bak`;
 const writeTracker = (root, lines, eol = '\n') => writeFileSync(trackerPath(root), lines.join(eol) + eol);
 const tracker = (root) => readFileSync(trackerPath(root), 'utf-8');
 function report(root, name) { writeFileSync(join(root, 'reports', name), '# Eval\n'); }
-function run(root, args = [], envExtra = { CAREER_OPS_ROOT: root }) {
+function run(root, args = [], envExtra = { LANDING_GEAR_ROOT: root }) {
   const env = { ...process.env };
-  for (const k of ['CAREER_OPS_ROOT', 'CAREER_OPS_DATA_DIR', 'CAREER_OPS_TRACKER']) delete env[k];
+  for (const k of ['LANDING_GEAR_ROOT', 'LANDING_GEAR_DATA_DIR', 'LANDING_GEAR_TRACKER']) delete env[k];
   Object.assign(env, envExtra);
   const r = spawnSync(process.execPath, [join(CODE_ROOT, 'fix-report-links.mjs'), ...args], { cwd: CODE_ROOT, env, encoding: 'utf-8', timeout: 30_000 });
   assert.equal(r.error, undefined);
@@ -156,8 +156,8 @@ function lockDirectory(dir) {
 }
 function runVerify(root) {
   const env = { ...process.env };
-  for (const k of ['CAREER_OPS_ROOT', 'CAREER_OPS_DATA_DIR', 'CAREER_OPS_TRACKER']) delete env[k];
-  env.CAREER_OPS_ROOT = root;
+  for (const k of ['LANDING_GEAR_ROOT', 'LANDING_GEAR_DATA_DIR', 'LANDING_GEAR_TRACKER']) delete env[k];
+  env.LANDING_GEAR_ROOT = root;
   const r = spawnSync(process.execPath, [join(CODE_ROOT, 'verify-pipeline.mjs')], { cwd: CODE_ROOT, env, encoding: 'utf-8', timeout: 30_000 });
   assert.equal(r.error, undefined);
   // Spread the real result, so describeSpawn() can still reach stdout, stderr,
@@ -315,23 +315,23 @@ test('no tracker file: exit 0 with a message', withRoot((root) => {
   assert.match(r.out, /No applications\.md found/);
 }));
 
-test('data-root override works with cwd = code root (tracker read and written under CAREER_OPS_ROOT)', withRoot((root) => {
+test('data-root override works with cwd = code root (tracker read and written under LANDING_GEAR_ROOT)', withRoot((root) => {
   writeTracker(root, [...HEADER, row(1, 'Acme Widgets', '[1](reports/gone.md)')]);
-  const r = run(root, [], { CAREER_OPS_ROOT: root });
+  const r = run(root, [], { LANDING_GEAR_ROOT: root });
   assert.equal(r.status, 0, r.out);
   assert.match(tracker(root), /\| — \|/);
   assert.ok(existsSync(bakPath(root)), 'backup sits next to the data-root tracker');
 }));
 
-test('CAREER_OPS_TRACKER override is honored', withRoot((root) => {
+test('LANDING_GEAR_TRACKER override is honored', withRoot((root) => {
   const custom = join(root, 'elsewhere.md');
   writeFileSync(custom, [...HEADER, row(1, 'Acme Widgets', '[1](../reports/gone.md)'), ''].join('\n'));
-  const r = run(root, [], { CAREER_OPS_ROOT: root, CAREER_OPS_TRACKER: custom });
+  const r = run(root, [], { LANDING_GEAR_ROOT: root, LANDING_GEAR_TRACKER: custom });
   assert.equal(r.status, 0, r.out);
   assert.match(readFileSync(custom, 'utf-8'), /\| — \|/);
 }));
 
-test('a symlinked CAREER_OPS_TRACKER: the backup sits beside the real file and holds its original bytes', withRoot((root) => {
+test('a symlinked LANDING_GEAR_TRACKER: the backup sits beside the real file and holds its original bytes', withRoot((root) => {
   // CodeRabbit (PR #4751): copying the link path would put the .bak beside the
   // link; the backup must follow the transaction's canonical path instead.
   const realDir = join(root, 'real');
@@ -346,7 +346,7 @@ test('a symlinked CAREER_OPS_TRACKER: the backup sits beside the real file and h
     if (e.code === 'EPERM' || e.code === 'EACCES') return; // symlinks need privileges on some Windows setups
     throw e;
   }
-  const r = run(root, [], { CAREER_OPS_ROOT: root, CAREER_OPS_TRACKER: link });
+  const r = run(root, [], { LANDING_GEAR_ROOT: root, LANDING_GEAR_TRACKER: link });
   assert.equal(r.status, 0, r.out);
   assert.match(readFileSync(real, 'utf-8'), /\| — \|/, 'the real file was rewritten');
   assert.equal(readFileSync(`${real}.bak`, 'utf-8'), original, 'backup beside the real file, original bytes');

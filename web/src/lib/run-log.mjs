@@ -1,6 +1,6 @@
 /**
  * run-log.mjs: the readable markdown log of a finished worker run, written to
- * .career-ops-web/runs/ so the CLI assistant can read past runs. Shared by the
+ * .landing-gear-web/runs/ so the CLI assistant can read past runs. Shared by the
  * browser's /api/runs/save and the server-owned runs (lib/live-runs.ts).
  */
 import fs from "node:fs";
@@ -34,14 +34,14 @@ ${run.output || ""}
 
 /**
  * Writes the log; returns false on a bad id or a write failure.
- * @param {string} root career-ops root
+ * @param {string} root landing-gear root
  * @param {Parameters<typeof formatRunLog>[0]} run
  * @returns {boolean}
  */
 export function writeRunLog(root, run) {
   const safeId = String(run.id ?? "").replace(/[^a-z0-9_-]/gi, "");
   if (!safeId) return false;
-  const dir = path.join(root, ".career-ops-web", "runs");
+  const dir = path.join(root, ".landing-gear-web", "runs");
   try {
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(path.join(dir, `${safeId}.md`), formatRunLog(run));

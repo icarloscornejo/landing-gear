@@ -47,7 +47,7 @@
  *      node check-table-freshness.mjs --today 2026-10-02 (deterministic date for tests)
  *      node check-table-freshness.mjs --self-test
  *
- * Issue #2036 — github.com/career-ops-hq/career-ops
+ * Issue #2036 (upstream)
  */
 
 import { readFileSync, readdirSync, existsSync } from 'fs';
@@ -58,11 +58,11 @@ import { flagValue, validateFlags } from './lib/cli-flags.mjs';
 import { localToday } from './lib/local-today.mjs';
 import { parseDate } from './lib/parse-date.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
-import { getCareerOpsRoot, getProfilePath } from './path-resolver.mjs';
+import { getLandingGearRoot, getProfilePath } from './path-resolver.mjs';
 
-const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
-const DATA_ROOT = getCareerOpsRoot();
-const TEMPLATES_DIR = join(CAREER_OPS, 'templates');
+const LANDING_GEAR = dirname(fileURLToPath(import.meta.url));
+const DATA_ROOT = getLandingGearRoot();
+const TEMPLATES_DIR = join(LANDING_GEAR, 'templates');
 const DEFAULT_MAX_AGE_MONTHS = 12;
 
 // --- CLI args ---
@@ -310,7 +310,7 @@ function loadConfigMaxAge() {
 function printSummary(result, todayStr, maxAgeMonths) {
   const { tablesScanned, rowsChecked, findings, warnings } = result;
   console.log(`\n${'='.repeat(78)}`);
-  console.log('  Table Freshness — career-ops');
+  console.log('  Table Freshness — landing-gear');
   console.log(`  today: ${todayStr} | review threshold: ${maxAgeMonths} months | tables: ${tablesScanned} | rows: ${rowsChecked}`);
   console.log(`${'='.repeat(78)}\n`);
 

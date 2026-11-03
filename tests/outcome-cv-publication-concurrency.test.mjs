@@ -21,7 +21,7 @@ async function until(fn) {
 
 for (const explicit of [true, false]) for (const fails of [false, true]) {
   test(`concurrent ${explicit ? 'selected' : 'automatic'} CV waits for ${fails ? 'failed' : 'complete'} archive copy`, { timeout: 20000 }, async () => {
-    const dir = realpathSync(mkdtempSync(join(tmpdir(), 'career-ops-cv-publication-')));
+    const dir = realpathSync(mkdtempSync(join(tmpdir(), 'landing-gear-cv-publication-')));
     const root = join(dir, 'workspace');
     const tracker = join(root, 'data', 'applications.md');
     const archive = join(root, 'data', 'outcomes', '1_fictional_engineer');
@@ -63,7 +63,7 @@ syncBuiltinESMExports();
 `);
     const children = [];
     function start(path, writer) {
-      const child = spawn(process.execPath, ['--import', pathToFileURL(preload).href, join(rootCode, 'outcome.mjs'), '1', 'hired', ...((writer === 'first' || explicit) ? ['--cv', path] : []), '--json'], { cwd: dir, env: { ...process.env, CAREER_OPS_ROOT: root, CAREER_OPS_TRACKER: tracker, CV_RACE_WRITER: writer } });
+      const child = spawn(process.execPath, ['--import', pathToFileURL(preload).href, join(rootCode, 'outcome.mjs'), '1', 'hired', ...((writer === 'first' || explicit) ? ['--cv', path] : []), '--json'], { cwd: dir, env: { ...process.env, LANDING_GEAR_ROOT: root, LANDING_GEAR_TRACKER: tracker, CV_RACE_WRITER: writer } });
       const result = { done: false, status: null, stdout: '', stderr: '' };
       child.stdout.on('data', chunk => { result.stdout += chunk; });
       child.stderr.on('data', chunk => { result.stderr += chunk; });

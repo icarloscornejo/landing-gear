@@ -3,11 +3,11 @@
 //
 // #3511 fixed this for the scanners and added a structural guard against a new
 // bare cwd-relative literal. These three had a different spelling of the same
-// bug and that guard does not see it: the constant was named CAREER_OPS and
+// bug and that guard does not see it: the constant was named LANDING_GEAR and
 // assigned `dirname(fileURLToPath(import.meta.url))`, so it reads as the
 // project root and is in fact the CODE root. Both documented overrides —
-// CAREER_OPS_ROOT / CAREER_OPS_DATA_DIR and the .career-ops-data marker — were
-// ignored, and getCareerOpsRoot() is the only thing that honours them.
+// LANDING_GEAR_ROOT / LANDING_GEAR_DATA_DIR and the .landing-gear-data marker — were
+// ignored, and getLandingGearRoot() is the only thing that honours them.
 //
 // The failures were quiet in the way that matters:
 //
@@ -34,8 +34,8 @@ import { describeSpawn } from './helpers/describe-spawn.mjs';
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 
 function fixture() {
-  const dataRoot = mkdtempSync(join(tmpdir(), 'career-ops-analysisroot-'));
-  const decoyCwd = mkdtempSync(join(tmpdir(), 'career-ops-analysiscwd-'));
+  const dataRoot = mkdtempSync(join(tmpdir(), 'landing-gear-analysisroot-'));
+  const decoyCwd = mkdtempSync(join(tmpdir(), 'landing-gear-analysiscwd-'));
   mkdirSync(join(dataRoot, 'data'), { recursive: true });
   mkdirSync(join(dataRoot, 'interview-prep', 'sessions'), { recursive: true });
   writeFileSync(join(dataRoot, 'data', 'applications.md'), [
@@ -59,7 +59,7 @@ function run(script, args, { dataRoot, decoyCwd }) {
     cwd: decoyCwd,
     encoding: 'utf-8',
     timeout: 60_000,
-    env: { ...process.env, CAREER_OPS_ROOT: dataRoot, CAREER_OPS_DATA_DIR: '' },
+    env: { ...process.env, LANDING_GEAR_ROOT: dataRoot, LANDING_GEAR_DATA_DIR: '' },
   });
   assert.equal(r.error, undefined, `spawn failed: ${r.error?.message}`);
   return { ...r, all: `${r.stdout ?? ''}${r.stderr ?? ''}` };
@@ -133,7 +133,7 @@ test('no analysis script derives a data path from its own directory', () => {
   // bare relative string literal; this spelling assigns __dirname to a constant
   // and joins user-layer paths onto it, which reads as correct and is not.
   const offenders = [];
-  const USER_LAYER = /join\(\s*(CAREER_OPS|CODE_ROOT)\s*,\s*'(data|interview-prep|reports|output|jds|documents)[/']/;
+  const USER_LAYER = /join\(\s*(LANDING_GEAR|CODE_ROOT)\s*,\s*'(data|interview-prep|reports|output|jds|documents)[/']/;
   for (const file of ['funnel-velocity.mjs', 'calibrate.mjs', 'weekly-digest.mjs', 'stats.mjs', 'company-history.mjs']) {
     const src = readFileSync(join(ROOT, file), 'utf-8');
     for (const line of src.split('\n')) {

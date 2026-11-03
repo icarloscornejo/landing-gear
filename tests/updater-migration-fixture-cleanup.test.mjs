@@ -66,7 +66,7 @@ function spawnIn(cwd, fixtureDir, args) {
   const dir = mkdtempSync(join(tmpdir(), 'co-migration-fixture-'));
   try {
     gitIn(dir, 'init', '-q', '-b', 'main', '.');
-    const nested = join(dir, 'tools', 'career-ops');
+    const nested = join(dir, 'tools', 'landing-gear');
     makeCopy(nested);
 
     const suite = spawnIn(nested, dir, ['updater-migration-tests.mjs']);

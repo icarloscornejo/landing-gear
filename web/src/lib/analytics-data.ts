@@ -1,5 +1,5 @@
 import { parseReport } from "@/lib/format";
-import { readReport, type Application } from "@/lib/career-ops";
+import { readReport, type Application } from "@/lib/landing-gear";
 
 export type AnalyticsApplication = Application & {
   archetype: string;

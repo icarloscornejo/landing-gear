@@ -2,7 +2,7 @@
 //
 // A full ATS sweep probes every company in a source's dataset regardless of
 // --limit (e.g. Greenhouse's thousands of boards), so a broad scan can outlast
-// the default. career-ops is local-first and config-driven, so a user raises the
+// the default. landing-gear is local-first and config-driven, so a user raises the
 // budget in config/profile.yml under `scan.timeout_seconds` — the same place
 // `scan.extractor` lives. The default keeps a safety margin under the route's
 // maxDuration (300s) so the scanner's final JSON can still be parsed and flushed

@@ -3,14 +3,14 @@
 // the .mjs extension included.
 
 /**
- * Resolve the career-ops data root, matching the core's `path-resolver.mjs`
+ * Resolve the landing-gear data root, matching the core's `path-resolver.mjs`
  * EXACTLY.
  *
  * WHY THIS EXISTS — the divergence it closes:
  *
- * `web/`'s resolver honored only `CAREER_OPS_ROOT`, then fell back to the
- * parent directory. The core honors `CAREER_OPS_ROOT` → `CAREER_OPS_DATA_DIR`
- * → a `.career-ops-data` marker file → its own directory (AGENTS.md, "Path
+ * `web/`'s resolver honored only `LANDING_GEAR_ROOT`, then fell back to the
+ * parent directory. The core honors `LANDING_GEAR_ROOT` → `LANDING_GEAR_DATA_DIR`
+ * → a `.landing-gear-data` marker file → its own directory (AGENTS.md, "Path
  * Resolution Override & Precedence"). A user with a marker file therefore had
  * the CLI and the web app reading two different data roots, with nothing
  * reporting the disagreement.
@@ -36,7 +36,7 @@
  * Absolute env values and marker contents are unaffected — `path.resolve` returns
  * an absolute input unchanged — so every existing install keeps its current root.
  *
- * @param {string} coreRoot Absolute path to the career-ops checkout (path-resolver's `__dirname`).
+ * @param {string} coreRoot Absolute path to the landing-gear checkout (path-resolver's `__dirname`).
  * @param {(p: string) => string | null} readMarker Reads a file, or null when absent/unreadable.
  * @param {NodeJS.ProcessEnv} env
  * @param {(...parts: string[]) => string} resolve `path.resolve`
@@ -44,12 +44,12 @@
  * @returns {string} Absolute data root.
  */
 export function resolveDataRoot(coreRoot, readMarker, env, resolve, join) {
-  // Precedence order is the core's, including CAREER_OPS_ROOT winning over
-  // CAREER_OPS_DATA_DIR when both are set.
-  const fromEnv = env.CAREER_OPS_ROOT?.trim() || env.CAREER_OPS_DATA_DIR?.trim();
+  // Precedence order is the core's, including LANDING_GEAR_ROOT winning over
+  // LANDING_GEAR_DATA_DIR when both are set.
+  const fromEnv = env.LANDING_GEAR_ROOT?.trim() || env.LANDING_GEAR_DATA_DIR?.trim();
   if (fromEnv) return resolve(coreRoot, fromEnv);
 
-  const marker = readMarker(join(coreRoot, ".career-ops-data"));
+  const marker = readMarker(join(coreRoot, ".landing-gear-data"));
   if (marker) {
     const content = marker.trim();
     // An empty or whitespace-only marker is not a root — the core falls through

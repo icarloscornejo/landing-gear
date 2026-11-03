@@ -11,8 +11,8 @@
 // only), through the real process rather than calling the imported function
 // directly — the finding has to actually reach the user's terminal.
 //
-// CAREER_OPS_REPORTS / CAREER_OPS_JDS mirror the existing test convention
-// (tests/verify-pipeline-check15.test.mjs); CAREER_OPS_ROOT stays the
+// LANDING_GEAR_REPORTS / LANDING_GEAR_JDS mirror the existing test convention
+// (tests/verify-pipeline-check15.test.mjs); LANDING_GEAR_ROOT stays the
 // checkout so STATES_FILE resolves.
 import { execFileSync } from 'child_process';
 import { mkdirSync, mkdtempSync, writeFileSync } from 'fs';
@@ -32,7 +32,7 @@ function fixture() {
 }
 
 function runVp({ tracker, reports, jds }) {
-  const env = { ...process.env, CAREER_OPS_TRACKER: tracker, CAREER_OPS_REPORTS: reports, CAREER_OPS_JDS: jds };
+  const env = { ...process.env, LANDING_GEAR_TRACKER: tracker, LANDING_GEAR_REPORTS: reports, LANDING_GEAR_JDS: jds };
   try {
     return execFileSync(NODE, [join(ROOT, 'verify-pipeline.mjs')], { cwd: ROOT, env, encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'], timeout: 60_000 });
   } catch (err) {

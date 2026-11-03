@@ -1,4 +1,4 @@
-# Career-Ops Profile Configuration
+# Landing-Gear Profile Configuration
 # Copy this file to config/profile.yml and fill in your details.
 # This is the single source of truth for your personal data across all modes.
 
@@ -94,6 +94,14 @@ location:
   needs_sponsorship: false
   # For remote roles outside your country:
   # onsite_availability: "1 week/month in any city"
+
+# Optional extra drops for the free pre-triage in the web (Discovered tab).
+# Each one is off unless set here. A dropped row is closed with the reason.
+# pre_triage:
+#   skip_junior: true                  # close roles whose title says junior or jr
+#   onsite_only_in_authorized: true    # close hybrid/on-site JDs outside location.authorized_in
+#   blocked_places: [india, pakistan]  # close JDs naming these places, unless they also name LATAM
+#                                      # or an open scope such as worldwide
 
 # Optional. Only read by the Singapore market mode (modes/sg/): your work
 # status there. One of: citizen | pr | pass-holder | foreign. Omit → the mode

@@ -33,7 +33,7 @@ const sandbox = mkdtempSync(join(tmpdir(), 'co-flag-equals-'));
 function run(script, args, dataRoot) {
   const res = spawnSync(NODE, [join(ROOT, script), ...args], {
     cwd: ROOT, encoding: 'utf-8', timeout: 60000, stdio: ['pipe', 'pipe', 'pipe'],
-    env: { ...process.env, CAREER_OPS_ROOT: dataRoot, CAREER_OPS_DATA_DIR: '', CAREER_OPS_TRACKER: '', CAREER_OPS_CLI: 'claude' },
+    env: { ...process.env, LANDING_GEAR_ROOT: dataRoot, LANDING_GEAR_DATA_DIR: '', LANDING_GEAR_TRACKER: '', LANDING_GEAR_CLI: 'claude' },
   });
   return { code: res.status, stdout: res.stdout || '', stderr: res.stderr || '' };
 }
@@ -105,7 +105,7 @@ try {
 
   // ── update-system.mjs --channel ──────────────────────────────────────
   {
-    const curlGet = async () => JSON.stringify({ tag_name: 'career-ops-v1.32.0' });
+    const curlGet = async () => JSON.stringify({ tag_name: 'landing-gear-v1.32.0' });
     for (const args of [['apply', '--channel', 'main', '--confirm'], ['apply', '--channel=main', '--confirm']]) {
       const ref = await resolveTargetRef(args, {}, { curlGet });
       if (ref === 'main') pass(`resolveTargetRef(${args.join(' ')}) → main`);
@@ -118,8 +118,8 @@ try {
       else fail(`resolveTargetRef(${args.join(' ')}) accepted an unknown channel`);
     }
     // The flag still wins over the re-exec'd child's env copy, in both forms.
-    const viaEnv = await resolveTargetRef(['apply', '--channel=release'], { CAREER_OPS_UPDATE_CHANNEL: 'main' }, { curlGet });
-    if (viaEnv === 'career-ops-v1.32.0') pass('--channel=release wins over CAREER_OPS_UPDATE_CHANNEL=main');
+    const viaEnv = await resolveTargetRef(['apply', '--channel=release'], { LANDING_GEAR_UPDATE_CHANNEL: 'main' }, { curlGet });
+    if (viaEnv === 'landing-gear-v1.32.0') pass('--channel=release wins over LANDING_GEAR_UPDATE_CHANNEL=main');
     else fail(`--channel=release with env main resolved to ${viaEnv}`);
   }
 
@@ -131,7 +131,7 @@ try {
       let asked = 0;
       // The network would answer with a DIFFERENT release, so a dropped
       // --version shows up as 1.40.0 rather than passing by coincidence.
-      const curlGet = async () => { asked++; return JSON.stringify({ tag_name: 'career-ops-v1.40.0' }); };
+      const curlGet = async () => { asked++; return JSON.stringify({ tag_name: 'landing-gear-v1.40.0' }); };
       await quietly(() => dismiss(args, { root, curlGet, now: () => new Date('2026-10-01T00:00:00Z') }));
       const written = JSON.parse(readFileSync(join(root, '.update-dismissed'), 'utf-8'));
       if (written.version === '1.34.0' && asked === 0) pass(`${args.join(' ')} dismisses 1.34.0 without asking the network`);

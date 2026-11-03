@@ -1,6 +1,6 @@
 ---
-name: career-ops-plugin-gmail
-description: How to pull job leads from a Gmail label into the career-ops pipeline.
+name: landing-gear-plugin-gmail
+description: How to pull job leads from a Gmail label into the landing-gear pipeline.
 license: MIT
 ---
 

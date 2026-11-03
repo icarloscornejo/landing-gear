@@ -1,7 +1,7 @@
 // tests/agent-docs-data-root-paths.test.mjs — the agent docs send user-layer
 // reads and writes to the data root, not the checkout (#5346).
 //
-// With CAREER_OPS_ROOT / CAREER_OPS_DATA_DIR / a .career-ops-data marker, the
+// With LANDING_GEAR_ROOT / LANDING_GEAR_DATA_DIR / a .landing-gear-data marker, the
 // scripts resolve user files through path-resolver.mjs, but an interactive
 // agent resolves them from what the docs tell it. Two docs told it the
 // checkout:
@@ -43,7 +43,7 @@ function routingRule(text) {
 
 test('the router derives DATA_ROOT with path-resolver.mjs precedence', () => {
   const text = read(ROUTER);
-  for (const token of ['`DATA_ROOT`', '`CAREER_OPS_ROOT`', '`CAREER_OPS_DATA_DIR`', '.career-ops-data', 'path-resolver.mjs']) {
+  for (const token of ['`DATA_ROOT`', '`LANDING_GEAR_ROOT`', '`LANDING_GEAR_DATA_DIR`', '.landing-gear-data', 'path-resolver.mjs']) {
     assert.ok(text.includes(token), `${ROUTER} does not mention ${token}`);
   }
 });
@@ -86,7 +86,7 @@ test('a TSV written where AGENTS.md says merges under a configured data root', (
   const documented = read('AGENTS.md').match(/`\{DATA_ROOT\}\/(batch\/tracker-additions)\/\{num\}-\{company-slug\}\.tsv`/);
   assert.ok(documented, 'AGENTS.md no longer names the TSV location as {DATA_ROOT}/batch/tracker-additions/');
 
-  const dataRoot = mkdtempSync(join(tmpdir(), 'career-ops-docs-dataroot-'));
+  const dataRoot = mkdtempSync(join(tmpdir(), 'landing-gear-docs-dataroot-'));
   try {
     mkdirSync(join(dataRoot, 'data'), { recursive: true });
     const tracker = join(dataRoot, 'data', 'applications.md');
@@ -103,10 +103,10 @@ test('a TSV written where AGENTS.md says merges under a configured data root', (
       cwd: ROOT, encoding: 'utf-8', timeout: 60_000,
       env: {
         ...process.env,
-        CAREER_OPS_ROOT: dataRoot,
-        CAREER_OPS_DATA_DIR: '',
-        CAREER_OPS_TRACKER: '',
-        CAREER_OPS_ADDITIONS: '',
+        LANDING_GEAR_ROOT: dataRoot,
+        LANDING_GEAR_DATA_DIR: '',
+        LANDING_GEAR_TRACKER: '',
+        LANDING_GEAR_ADDITIONS: '',
       },
     });
     assert.equal(r.status, 0, `merge-tracker exited ${r.status}: ${r.stderr}`);

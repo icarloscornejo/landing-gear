@@ -137,7 +137,7 @@ writeFixture(join(work, 'data', 'applications.md'), tracker.join('\n') + '\n');
 try {
   const run = (...flags) => execFileSync(NODE, [join(ROOT, 'analyze-patterns.mjs'), '--min-threshold', '1', ...flags], {
     encoding: 'utf8', timeout: 30000,
-    env: { ...process.env, CAREER_OPS_ROOT: work, CAREER_OPS_DATA_DIR: work },
+    env: { ...process.env, LANDING_GEAR_ROOT: work, LANDING_GEAR_DATA_DIR: work },
   });
   const result = JSON.parse(run());
   const summary = run('--summary');

@@ -18,7 +18,7 @@ const TREE = {
   'lib/template-manifest.mjs': "import { existsSync } from 'fs';\n",
   'lib/is-main-module.mjs': '',
   'path-resolver.mjs': '',
-  // scaffolder/bin/skill-entrypoints.mjs deliberately absent: an older target lacks it.
+  // lib/skill-entrypoints.mjs deliberately absent: an older target lacks it.
 };
 const readAt = (file) => {
   if (!Object.prototype.hasOwnProperty.call(TREE, file)) throw new Error(`absent: ${file}`);
@@ -36,7 +36,7 @@ if (!REEXEC_FALLBACK_FILES.includes('cv-templates.mjs')) {
   if (files.includes('lib/updater-helper.mjs') && files[0] === 'update-system.mjs') pass('the entry and its own imports still come first');
   else fail(`entry closure missing or not first: ${JSON.stringify(files)}`);
 
-  if (!files.includes('scaffolder/bin/skill-entrypoints.mjs')) pass('a fallback absent from the target tree is skipped, not checked out');
+  if (!files.includes('lib/skill-entrypoints.mjs')) pass('a fallback absent from the target tree is skipped, not checked out');
   else fail('an absent fallback file was listed for checkout');
 
   if (new Set(files).size === files.length) pass('each file is listed once, even when reached twice');

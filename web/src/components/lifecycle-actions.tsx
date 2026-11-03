@@ -7,7 +7,7 @@ import { EXIT_KINDS, currentPhase, isOpenApplied, nextPhases, nextRound, nextSta
 import { cn } from "@/lib/cn";
 import { canonStatus } from "@/lib/status-alias.mjs";
 import { isApproved } from "@/lib/home/awaiting.mjs";
-import type { Application } from "@/lib/career-ops";
+import type { Application } from "@/lib/landing-gear";
 
 // A button key while that button is saving.
 type Busy = string;

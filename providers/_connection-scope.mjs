@@ -27,7 +27,7 @@
 //
 // undici is optional at runtime, exactly as for trusted proxy egress in
 // _http.mjs: if it cannot be imported, withConnectionScope() just runs the
-// work with the default pool. CAREER_OPS_CONNECTION_SCOPE=0 opts out.
+// work with the default pool. LANDING_GEAR_CONNECTION_SCOPE=0 opts out.
 
 import { AsyncLocalStorage } from 'node:async_hooks';
 
@@ -76,7 +76,7 @@ export async function withConnectionScope(fn, { agentOptions, signal } = {}) {
   // timed-out board stops issuing work instead of running on in the background
   // (#5570). It is carried even when the pool itself is skipped, so cancellation
   // never depends on undici being present.
-  if (process.env.CAREER_OPS_CONNECTION_SCOPE === '0') {
+  if (process.env.LANDING_GEAR_CONNECTION_SCOPE === '0') {
     return signal ? storage.run({ signal }, fn) : fn();
   }
   const undici = await loadUndici();

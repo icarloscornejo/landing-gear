@@ -103,7 +103,7 @@ const AGGREGATOR_SUPPLEMENT = [
 ];
 
 /** Path to the shared scraper list, overridable the same way scan.mjs allows. */
-const AGGREGATOR_DOMAINS_PATH = process.env.CAREER_OPS_AGGREGATOR_DOMAINS
+const AGGREGATOR_DOMAINS_PATH = process.env.LANDING_GEAR_AGGREGATOR_DOMAINS
   || join(dirname(fileURLToPath(import.meta.url)), 'data-static/aggregator-domains.txt');
 
 // Read once, lazily: this module is imported by merge-tracker.mjs and scan.mjs
@@ -137,10 +137,10 @@ function aggregatorDomains() {
     // A missing file at the DEFAULT path is the one case that stays quiet: a
     // partial checkout legitimately lacks it. Anything else is the operator
     // being wrong about something they asked for — a bad
-    // CAREER_OPS_AGGREGATOR_DOMAINS path, a directory, an unreadable file —
+    // LANDING_GEAR_AGGREGATOR_DOMAINS path, a directory, an unreadable file —
     // and swallowing all of those identically is how a misconfiguration runs
     // for months looking like normal operation.
-    const overridden = Boolean(process.env.CAREER_OPS_AGGREGATOR_DOMAINS);
+    const overridden = Boolean(process.env.LANDING_GEAR_AGGREGATOR_DOMAINS);
     if (err?.code !== 'ENOENT' || overridden) {
       console.warn(
         `Warning: could not read aggregator domains from ${AGGREGATOR_DOMAINS_PATH} (${err?.code || err}). `
@@ -283,7 +283,7 @@ export function promoteKnownFragmentIdentity(url) {
     url.searchParams.append('mokahr_job_id', jobId);
     return;
   }
-  url.searchParams.append('_career_ops_fragment_job_id', jobId);
+  url.searchParams.append('_landing_gear_fragment_job_id', jobId);
 }
 
 /**

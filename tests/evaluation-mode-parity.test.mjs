@@ -39,7 +39,7 @@ const REPORT = `# 評価: {Company} — {Role}
 const mode = (body = REPORT, fence = '```') => `# Mode instructions\n\n${fence}markdown\n${body}${fence}\n`;
 
 function sandbox(t) {
-  const parent = mkdtempSync(join(tmpdir(), 'career-ops-parity-'));
+  const parent = mkdtempSync(join(tmpdir(), 'landing-gear-parity-'));
   const root = join(parent, 'repo');
   mkdirSync(join(root, 'modes', 'xx'), { recursive: true });
   t.after(() => rmSync(parent, { recursive: true, force: true }));

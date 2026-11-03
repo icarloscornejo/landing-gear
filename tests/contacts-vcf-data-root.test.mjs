@@ -6,11 +6,11 @@
 //
 //   CONTACTS_PATH = join(DATA_ROOT, 'data/contacts.tsv')    (read)
 //   DEFAULT_VCF   = join(DATA_ROOT, 'output/contacts.vcf')  (default target)
-//   CAREER_OPS    = dirname(fileURLToPath(import.meta.url)) (guard anchor)
+//   LANDING_GEAR    = dirname(fileURLToPath(import.meta.url)) (guard anchor)
 //
-// and the path-traversal guard measured the target against CAREER_OPS, the
-// directory the script lives in. When CAREER_OPS_ROOT / CAREER_OPS_DATA_DIR /
-// .career-ops-data puts the user layer outside the checkout, the command's own
+// and the path-traversal guard measured the target against LANDING_GEAR, the
+// directory the script lives in. When LANDING_GEAR_ROOT / LANDING_GEAR_DATA_DIR /
+// .landing-gear-data puts the user layer outside the checkout, the command's own
 // default output counted as "outside the project directory", so `--vcf` exited
 // 1 and wrote nothing.
 //
@@ -47,10 +47,10 @@ function fixture() {
   return { base, dataRoot, workDir };
 }
 
-function run(f, args, envName = 'CAREER_OPS_ROOT') {
+function run(f, args, envName = 'LANDING_GEAR_ROOT') {
   const env = { ...process.env };
-  delete env.CAREER_OPS_ROOT;
-  delete env.CAREER_OPS_DATA_DIR;
+  delete env.LANDING_GEAR_ROOT;
+  delete env.LANDING_GEAR_DATA_DIR;
   env[envName] = f.dataRoot;
   return spawnSync(process.execPath, [SCRIPT, ...args], { cwd: f.workDir, env, encoding: 'utf8', timeout: 20000 });
 }
@@ -70,11 +70,11 @@ test('--vcf writes its default output into the data root when the data root is n
   }
 });
 
-test('--vcf accepts an explicit path inside the data root (CAREER_OPS_DATA_DIR spelling)', () => {
+test('--vcf accepts an explicit path inside the data root (LANDING_GEAR_DATA_DIR spelling)', () => {
   const f = fixture();
   try {
     const target = join(f.dataRoot, 'output', 'custom.vcf');
-    const r = run(f, ['--vcf', target], 'CAREER_OPS_DATA_DIR');
+    const r = run(f, ['--vcf', target], 'LANDING_GEAR_DATA_DIR');
     assert.equal(r.status, 0, describeSpawn(r));
     assert.ok(existsSync(target), 'vCard lands at the explicit path');
   } finally {

@@ -1,6 +1,6 @@
 import path from "node:path";
 import * as yaml from "js-yaml";
-import { careerOpsRoot, portalsConfigPath } from "@/lib/career-ops";
+import { landingGearRoot, portalsConfigPath } from "@/lib/landing-gear";
 import { atomicWriteWithBackup } from "@/lib/core/safe-write";
 import { loadPortalsDocument, mergePortalFilters, PortalsConfigError } from "@/lib/portals-config.mjs";
 import { readJsonObject } from "@/lib/json-body";
@@ -20,7 +20,7 @@ export async function POST(req: Request) {
   const roles = (Array.isArray(body.roles) ? body.roles : []).map((r) => String(r).trim()).filter(Boolean).slice(0, 24);
   if (roles.length === 0) return Response.json({ error: "no roles" }, { status: 400 });
 
-  const root = careerOpsRoot();
+  const root = landingGearRoot();
   const file = portalsConfigPath(root);
   let doc: Record<string, unknown>;
   try {

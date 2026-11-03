@@ -2,7 +2,7 @@
 // that always names a cause.
 //
 // A SEPARATE module from tests/helpers.mjs, which is not free to import: it
-// sets process.env.CAREER_OPS_TRACKER, calls pinSandboxDataRoot() and registers
+// sets process.env.LANDING_GEAR_TRACKER, calls pinSandboxDataRoot() and registers
 // an 'exit' hook at load. 51 of the test files that need this helper do not
 // import helpers.mjs today, and making them do so just to reach one pure
 // function would hand them that environment as well. helpers.mjs re-exports it

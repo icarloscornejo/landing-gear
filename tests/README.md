@@ -1,6 +1,6 @@
 # tests/
 
-Auto-discovered test files for the career-ops suite.
+Auto-discovered test files for the landing-gear suite.
 
 ## Purpose
 
@@ -74,10 +74,10 @@ finishes. How many slots, in order of precedence:
 | Setting | Scope |
 |---------|-------|
 | `--jobs N` | this run |
-| `CAREER_OPS_TEST_JOBS=N` | this machine: a shell profile, a CI job |
+| `LANDING_GEAR_TEST_JOBS=N` | this machine: a shell profile, a CI job |
 | every available CPU | the default |
 
-`--jobs 1` (or `CAREER_OPS_TEST_JOBS=1`) runs the inline sections and then
+`--jobs 1` (or `LANDING_GEAR_TEST_JOBS=1`) runs the inline sections and then
 imports every suite, one after another, all in the runner's own process, which
 is how the suite ran before `--jobs` existed. A value that is not a positive
 integer is a usage error, not a fallback to the default.
@@ -111,7 +111,7 @@ running after 600 others in one:
   shared walker (`lib/walk-tree.mjs`) skips that prefix and `.gitignore`
   covers it. `scratch-dirs.test.mjs` fails a `mkdtempSync(join(ROOT, …))`
   that does not carry it. A file the real scripts read, such as the
-  `.career-ops-data` marker, is never a fixture: see "The suite's data root"
+  `.landing-gear-data` marker, is never a fixture: see "The suite's data root"
   below.
 - **An open handle.** A server, watcher or timer you do not close keeps the
   process alive. The runner cuts the suite off a few seconds after it finishes
@@ -128,7 +128,7 @@ disappears there is one of the cases above, in the suite or section that failed
 or in one it used to follow.
 
 A suite that starts a `test-all.mjs` of its own gets a serial one unless it
-passes `--jobs` itself: the runner sets `CAREER_OPS_TEST_JOBS=1` for everything
+passes `--jobs` itself: the runner sets `LANDING_GEAR_TEST_JOBS=1` for everything
 it starts, so N workers do not fan out N more each.
 
 ## Adding a test
@@ -148,13 +148,13 @@ See `CONTRIBUTING.md` for the full contribution flow.
 
 The suite is run inside real workspaces, so it never reads or writes the
 developer's data. When `helpers.mjs` loads it creates a scratch directory, pins
-`CAREER_OPS_ROOT` to it (clearing `CAREER_OPS_DATA_DIR`, as it clears
-`CAREER_OPS_TRACKER`), and removes it at exit. Every script a test spawns
+`LANDING_GEAR_ROOT` to it (clearing `LANDING_GEAR_DATA_DIR`, as it clears
+`LANDING_GEAR_TRACKER`), and removes it at exit. Every script a test spawns
 inherits that, so the default for a new test is already safe.
 
 - **A test that needs data** writes it under a `mkdtemp` directory and passes
-  that directory to the child: `env: { ...process.env, CAREER_OPS_ROOT: dir,
-  CAREER_OPS_DATA_DIR: '' }`. Never write a fixture over a file under `ROOT`
+  that directory to the child: `env: { ...process.env, LANDING_GEAR_ROOT: dir,
+  LANDING_GEAR_DATA_DIR: '' }`. Never write a fixture over a file under `ROOT`
   and put the original back afterwards — an interrupted run does not reach the
   `finally`, and `data/` is not in git.
 - **A test that copies scripts into a temp directory** and expects the copy to

@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { cliSubstitutionNotice, cliUnavailableError, resolveCliOrFallback } from "@/lib/clis";
-import { careerOpsRoot, readMemory } from "@/lib/career-ops";
+import { landingGearRoot, readMemory } from "@/lib/landing-gear";
 import { getSession } from "@/lib/apply/session";
 import { resolveSessionCv } from "@/lib/apply/cv";
 import { applyCvSource } from "@/lib/apply/cv-source.mjs";
@@ -18,7 +18,7 @@ export const maxDuration = 320;
 // browser access) drafts an answer per field from cv.md / profile / the job's
 // report. We stream a live diagnostic log of every step (spawn, heartbeats,
 // exit code/signal, parse outcome) so a stuck/empty prefill is observable on the
-// page AND written to <root>/.career-ops-web/apply-prefill.log for debugging.
+// page AND written to <root>/.landing-gear-web/apply-prefill.log for debugging.
 export async function POST(req: Request) {
   const body = await readJsonObject<{ sessionId?: string; cliId?: string; company?: string; application?: string }>(req);
   if (!body) return Response.json({ error: "bad json" }, { status: 400 });
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
   }
   const t0 = Date.now();
   const encoder = new TextEncoder();
-  const logPath = path.join(careerOpsRoot(), ".career-ops-web", "apply-prefill.log");
+  const logPath = path.join(landingGearRoot(), ".landing-gear-web", "apply-prefill.log");
   try {
     fs.mkdirSync(path.dirname(logPath), { recursive: true });
   } catch {
@@ -94,7 +94,7 @@ export async function POST(req: Request) {
       // resolved through the one shared call so the answers and the resume
       // stapled to them cannot describe different documents.
       const cvPath = await resolveSessionCv({ company, application, title: s.title });
-      const cvSource = cvPath ? applyCvSource(careerOpsRoot(), cvPath) : null;
+      const cvSource = cvPath ? applyCvSource(landingGearRoot(), cvPath) : null;
       const prompt = buildAnswerPrompt({ title: s.title, fields: s.fields, memory: mem, cvSource });
 
       log(`Form: "${s.title}" · ${s.fields.length} fields · prompt ${prompt.length} chars · memory ${mem.length} chars`);
@@ -106,7 +106,7 @@ export async function POST(req: Request) {
         binPath,
         prompt,
         fieldCount: s.fields.length,
-        cwd: careerOpsRoot(),
+        cwd: landingGearRoot(),
         t0,
         log,
       });

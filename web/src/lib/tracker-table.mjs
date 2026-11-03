@@ -3,12 +3,12 @@
  * for the web read path.
  *
  * The header-alias table is NOT mirrored here: it is loaded at runtime from
- * `tracker-aliases.json` in the career-ops root — the same single source
+ * `tracker-aliases.json` in the landing-gear root — the same single source
  * tracker-parse.mjs exports as HEADER_ALIASES — so the web reader and the Node
  * tracker tooling can never drift (PR #1598 review). A build-time import of the
  * core module is impossible: Turbopack's root is pinned to web/ (see
  * next.config.mjs) and refuses modules outside it, so the shared source is a
- * JSON file read with fs, like every other career-ops file this app consumes.
+ * JSON file read with fs, like every other landing-gear file this app consumes.
  *
  * Plain .mjs (same pattern as clean-chips.mjs) so tests/tracker-columns.test.mjs can
  * import it directly under Node and regression-test the REAL alias chain.
@@ -56,7 +56,7 @@ const REQUIRED_FIELDS = ["num", "company", "role", "score", "status"];
  * `fallbackRootDir` then points at the checkout that runs the web app. Cache
  * entries remain keyed by the resolved file's mtime+size, and failures are
  * never cached so a recovered primary file is picked up immediately.
- * @param {string} rootDir - primary career-ops root.
+ * @param {string} rootDir - primary landing-gear root.
  * @param {string} [fallbackRootDir] - running system checkout.
  * @returns {Record<string, string>}
  */
@@ -147,13 +147,13 @@ export function detectColumnMap(lines, aliases) {
  * @param {string} [systemRootDir] - checkout holding system files; used as the
  *   fallback for tracker-aliases.json when rootDir is data-only.
  * @returns {Record<string, string>[]} One entry per tracker row, carrying every
- *   field in WEB_FIELD — the web `Application` shape (career-ops.ts).
+ *   field in WEB_FIELD — the web `Application` shape (landing-gear.ts).
  */
 /**
  * One row with every web field the map can name, filled by `pick`.
  *
  * The single place the row's shape is decided. Adding a tracker column is two
- * edits — `WEB_FIELD` here and `Application` in career-ops.ts — and neither
+ * edits — `WEB_FIELD` here and `Application` in landing-gear.ts — and neither
  * can be forgotten quietly, because the emitter can no longer disagree with
  * the map it reads from.
  *

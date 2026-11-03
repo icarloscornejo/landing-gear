@@ -11,7 +11,7 @@ import (
 
 // The dashboard's canonical-status list must match templates/states.yml.
 //
-// states.yml says so itself: "Source of truth for career-ops (writer) and
+// states.yml says so itself: "Source of truth for landing-gear (writer) and
 // dashboard (reader). Both systems MUST use these exact states." It also
 // explains that its lifecycle ordering is consumed by tracker-sync-check.mjs
 // "so a new state added here can't silently fall through as unrecognized" —
@@ -24,7 +24,7 @@ import (
 //		switch strings.ToLower(status) {
 //		case "evaluated", "applied", … :
 //
-// with "keep in sync with career-ops/states.yml" written above NormalizeStatus
+// with "keep in sync with landing-gear/states.yml" written above NormalizeStatus
 // and nothing enforcing it. `assessment` is in that list only because the PR
 // that added the state hand-edited it; the next state would be silently
 // REJECTED by the dashboard as malformed input, which is a functional failure

@@ -18,7 +18,7 @@
  *      discovered suite reports through the shared counters and never
  *      exits — so a direct run returns 0 even when assertions fail.
  *
- * Issue #1864 — github.com/career-ops-hq/career-ops
+ * Issue #1864 (upstream)
  */
 
 import {
@@ -670,7 +670,7 @@ try {
   // path writes nothing and reports previewOnly.
   const previewOut = execFileSync('node', [scriptPath], {
     encoding: 'utf-8', timeout: 15000, cwd: dirname(scriptPath),
-    env: { ...process.env, CAREER_OPS_PORTALS: scratchPortals },
+    env: { ...process.env, LANDING_GEAR_PORTALS: scratchPortals },
   });
   const previewJson = JSON.parse(previewOut);
   ok('default run → previewOnly true', previewJson.metadata.previewOnly === true);
@@ -681,7 +681,7 @@ try {
   // no write, file unchanged). Proves the flag parses and the guard holds.
   const writeOut = execFileSync('node', [scriptPath, '--write'], {
     encoding: 'utf-8', timeout: 15000, cwd: dirname(scriptPath),
-    env: { ...process.env, CAREER_OPS_PORTALS: scratchPortals },
+    env: { ...process.env, LANDING_GEAR_PORTALS: scratchPortals },
   });
   const writeJson = JSON.parse(writeOut);
   ok('--write accepted (valid JSON, exit 0)', typeof writeJson === 'object' && 'metadata' in writeJson);
@@ -690,7 +690,7 @@ try {
   // --dry-run is accepted as a harmless alias for the default (no write).
   const aliasOut = execFileSync('node', [scriptPath, '--dry-run'], {
     encoding: 'utf-8', timeout: 15000, cwd: dirname(scriptPath),
-    env: { ...process.env, CAREER_OPS_PORTALS: scratchPortals },
+    env: { ...process.env, LANDING_GEAR_PORTALS: scratchPortals },
   });
   ok('--dry-run still accepted (no-op alias)', JSON.parse(aliasOut).metadata.written === false);
 } finally {
@@ -769,7 +769,7 @@ console.log('\n--- data/blacklist.md is never resolved or written ---');
     writeFileSync(blPath, '| Company | Since | Scope | Reason |\n|---|---|---|---|\n| BannedCo | 2026-01-01 | company | culture |\n');
     const out = JSON.parse(execFileSync('node', [scriptPath, 'BannedCo', '--write'], {
       encoding: 'utf-8', timeout: 15000, cwd: dirname(scriptPath),
-      env: { ...process.env, CAREER_OPS_PORTALS: portals, CAREER_OPS_BLACKLIST: blPath },
+      env: { ...process.env, LANDING_GEAR_PORTALS: portals, LANDING_GEAR_BLACKLIST: blPath },
     }));
     eq('CLI: blacklisted company reported, not resolved', [out.metadata.blacklistedSkipped, out.metadata.resolved], [1, 0]);
     eq('CLI: --write leaves portals.yml unchanged', readFileSync(portals, 'utf-8'), content);

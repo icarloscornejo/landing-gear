@@ -26,8 +26,8 @@ func TestTrackerHeaderAliasesMatchSharedJSON(t *testing.T) {
 }
 
 func TestLocalizedTrackerHeaders(t *testing.T) {
-	t.Setenv("CAREER_OPS_TRACKER", "")
-	t.Setenv("CAREER_OPS_TRACKER_LOCK", "")
+	t.Setenv("LANDING_GEAR_TRACKER", "")
+	t.Setenv("LANDING_GEAR_TRACKER_LOCK", "")
 	markets := []struct{ mode, date, company, role string }{
 		{"de/angebot", "Datum", "Firma", "Rolle"},
 		{"pl/oferta", "Data", "Firma", "Rola"},
@@ -105,7 +105,7 @@ func TestLocalizedTrackerHeaders(t *testing.T) {
 }
 
 func TestTrackerAliasHeaderControls(t *testing.T) {
-	t.Setenv("CAREER_OPS_TRACKER", "")
+	t.Setenv("LANDING_GEAR_TRACKER", "")
 	for _, labels := range []string{"Num | Date | Company | Role", "Num | Fecha | Empresa | Puesto", "# | Datum | Firma | Rolle"} {
 		header := "| " + labels + " | Score | Status | Materials | Report | Notes |"
 		row := "| 41 | 2026-01-02 | Firma | Rolle | 4.2/5 | Applied | ✅ | [41](reports/041.md) | Status |"
@@ -132,7 +132,7 @@ func TestTrackerAliasHeaderControls(t *testing.T) {
 }
 
 func TestTrackerSeparatorRows(t *testing.T) {
-	t.Setenv("CAREER_OPS_TRACKER", "")
+	t.Setenv("LANDING_GEAR_TRACKER", "")
 	for _, cell := range []string{"---", " --- ", " :--- ", " ---: ", " :---: "} {
 		for _, ending := range []string{"with terminal pipe", "without terminal pipe"} {
 			t.Run(cell+"/"+ending, func(t *testing.T) {

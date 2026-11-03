@@ -46,7 +46,7 @@ import { isAbsolute, join, resolve, relative, sep, dirname, basename } from 'pat
 import { tmpdir } from 'os';
 import { fileURLToPath } from 'url';
 import { isMainModule } from './lib/is-main-module.mjs';
-import { getCareerOpsRoot } from './path-resolver.mjs';
+import { getLandingGearRoot } from './path-resolver.mjs';
 import { findExperienceSections, parseCompanyHeading, EXPERIENCE_HEADING_NAMES } from './lib/cv-markdown.mjs';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
@@ -248,13 +248,13 @@ function resolveInputPath(path, cwd = process.cwd()) {
 
 function resolveSourcePath(path) {
   if (isAbsolute(path)) {
-    throw new Error('--source must be relative to CAREER_OPS_ROOT');
+    throw new Error('--source must be relative to LANDING_GEAR_ROOT');
   }
-  const root = resolve(getCareerOpsRoot());
+  const root = resolve(getLandingGearRoot());
   const candidate = resolve(root, path);
   const relativePath = relative(root, candidate);
   if (relativePath === '..' || relativePath.startsWith(`..${sep}`) || isAbsolute(relativePath)) {
-    throw new Error('--source must stay within CAREER_OPS_ROOT');
+    throw new Error('--source must stay within LANDING_GEAR_ROOT');
   }
 
   // Lexical containment blocks `..`; canonical containment also blocks an
@@ -264,7 +264,7 @@ function resolveSourcePath(path) {
     const canonicalCandidate = realpathSync(candidate);
     const canonicalRelativePath = relative(canonicalRoot, canonicalCandidate);
     if (canonicalRelativePath === '..' || canonicalRelativePath.startsWith(`..${sep}`) || isAbsolute(canonicalRelativePath)) {
-      throw new Error('--source must stay within CAREER_OPS_ROOT');
+      throw new Error('--source must stay within LANDING_GEAR_ROOT');
     }
     return canonicalCandidate;
   }
@@ -280,7 +280,7 @@ for two structural regressions fabrication-checking cannot see: experience
 entries rendered out of cv.md's chronological order, and a company descriptor
 ("· Series B healthcare automation") silently dropped from an entry's location.
 Default source: cv.md
-The --source path must be relative to CAREER_OPS_ROOT and cannot escape it.
+The --source path must be relative to LANDING_GEAR_ROOT and cannot escape it.
 
 This is a warning, not a hard gate: a structural pass, warn, or unverified
 result always exits 0 — a finding means review the payload against cv.md and
@@ -560,9 +560,9 @@ function runSelfTest() {
       let nullExit, dirSourceExit, nullEntryExit, nonArrayExperienceExit, dataRootSourceExit,
         absoluteSourceExit, traversalSourceExit;
       const origCwd = process.cwd();
-      const origDataRoot = process.env.CAREER_OPS_ROOT;
+      const origDataRoot = process.env.LANDING_GEAR_ROOT;
       try {
-        process.env.CAREER_OPS_ROOT = dataRoot;
+        process.env.LANDING_GEAR_ROOT = dataRoot;
         nullExit = runCli([nullPayloadPath, '--source', 'cv.md']);
         dirSourceExit = runCli([validPayloadPath, '--source', 'a-directory-not-a-file']);
         nullEntryExit = runCli([nullEntryPayloadPath, '--source', 'cv.md']);
@@ -573,8 +573,8 @@ function runSelfTest() {
         dataRootSourceExit = runCli([validPayloadPath, '--source', 'cv.md']);
       } finally {
         process.chdir(origCwd);
-        if (origDataRoot === undefined) delete process.env.CAREER_OPS_ROOT;
-        else process.env.CAREER_OPS_ROOT = origDataRoot;
+        if (origDataRoot === undefined) delete process.env.LANDING_GEAR_ROOT;
+        else process.env.LANDING_GEAR_ROOT = origDataRoot;
         console.error = origError;
         console.warn = origWarn;
         console.log = origLog;

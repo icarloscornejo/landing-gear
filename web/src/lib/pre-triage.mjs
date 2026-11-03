@@ -8,7 +8,7 @@ import { fold, placesIn, readReach } from "./location-reach.mjs";
 
 // Plainly not a developer role. Seniority words (semi senior, junior) are not here on
 // purpose except intern/trainee.
-const NOT_DEV = /\b(analista|analyst|product manager|project manager|program manager|product owner|scrum master|designer|disenador|sales|ventas|recruiter|reclutador|marketing|account (executive|manager)|customer (success|support)|soporte|intern|internship|pasantia|trainee|data scientist|writer|teacher|tutor|tester|qa|qe|quality (assurance|engineer\w*))\b/;
+const NOT_DEV = /\b(analista|analyst|product manager|project manager|program manager|product owner|scrum master|designer|disenador|product design|design lead|sales|ventas|recruiter|reclutador|marketing|account (executive|manager)|customer (success|support)|soporte|intern|internship|pasantia|trainee|data scientist|writer|teacher|tutor|tester|qa|qe|quality (assurance|engineer\w*))\b/;
 const DEV = /(engineer|developer|desarrollador|programador|ingenier|architect|arquitect|\bdev\b|android|kotlin|java|mobile|movil|\bios\b|flutter|react native|\bai\b|\bia\b|\bml\b|llm|agentic|tech(nical)? lead)/;
 // AI data work sold as "AI" roles: not engineering (brief Hard DQ).
 const AI_GIG = /\b(data label(l)?ing|label(l)?ers?|annotat\w*|raters?|evaluators?|ai trainer|ai tutor|etiquetado de datos|anotador\w*|evaluador\w*|entrenador de ia)\b/;
@@ -129,6 +129,39 @@ export function eligibilityBlock(text) {
   return null;
 }
 
+// Extra drops ported from the LinkedIn post script (linkedin-post.mjs judgePost), each one gated
+// by the profile so a user who did not ask for it never loses a row: US contract terms ride the
+// same usAuthorized gate as eligibility, the rest come from profile.yml `pre_triage`.
+const US_CONTRACT = /\b(only (us|usa)|(us|usa|north america) only|h-?1b|w-?2|c2c|corp[- ]to[- ]corp|1099|us citizens?|us residents)\b/;
+// Only the work arrangement of the job itself: "hybrid SDKs", "hybrid React Native apps" and "a flexible
+// and hybrid working environment" are not a requirement. A line that is only the word (a label) counts.
+const WORK_MODE = /\b(hybrid (role|position|model|schedule|work(ing)? (model|arrangement|schedule)|setup)|(100% )?(on-?site|in[- ]office|presencial) (role|position|job|work|only|required|requirement)|(position|role|job) is (100% )?(on-?site|in[- ]office|hybrid|presencial)|(posicion|puesto|trabajo|modalidad)\b[^.]{0,25}\b(presencial|hibrid[oa])|\d+ days? (a|per) week (in|at) (the|our|an) office|(work ?model|work ?mode|modelo|modalidad|location|ubicacion|remote|remoto)\s*:[^.\n]{0,40}\b(hybrid|on-?site|presencial|hibrid[oa])|(hybrid|on-?site|presencial|hibrid[oa]) (in|en) [a-z]+)\b|\((hybrid|on-?site|presencial|hibrid[oa])\)|^\s*(hybrid|on-?site|presencial|hibrid[oa])\s*$/;
+// "Remote: Hybrid" is a label, not a remote option.
+const REMOTE_OPTION = /\b(remote|remoto|remota|teletrabajo|work from (home|anywhere))\b(?!\s*:)/;
+const JUNIOR = /\b(junior|jr)\b/;
+const escapeRe = (word) => word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/**
+ * The sentence that asks for hybrid or on-site work with no remote option and names none of
+ * `workCountries` (nor does the row's location), or null. "Remote or hybrid" and "hybrid apps" pass.
+ * @param {string} text JD text
+ * @param {string} location the row's location cell
+ * @param {string[]} workCountries folded country names the user can work on site in
+ */
+export function workModeBlock(text, location, workCountries) {
+  const local = (value) => {
+    const { latam, others } = placesIn(value);
+    return [...latam, ...others].some((place) => workCountries.includes(fold(place)));
+  };
+  if (local(location)) return null;
+  for (const sentence of String(text ?? "").split(/(?<=[.;!?])\s+|\n+/)) {
+    const folded = fold(sentence);
+    if (!WORK_MODE.test(folded) || REMOTE_OPTION.test(folded) || local(sentence)) continue;
+    return sentence.trim().replace(/\s+/g, " ").slice(0, 120);
+  }
+  return null;
+}
+
 /** Monthly USD maximum from structured salary, or null when it isn't USD or has no max. */
 function monthlyMaxUsd(salary) {
   if (!salary || String(salary.currency ?? "").toUpperCase() !== "USD") return null;
@@ -164,6 +197,7 @@ export function preTriage(job, tracker, jd = null, options = {}) {
   if (AI_GIG.test(role)) return { pass: false, reason: "not engineering (AI gig)" };
   if (NOT_DEV.test(role) || !DEV.test(role)) return { pass: false, reason: "not a target role" };
   if (/\bjava\b/.test(role) && BACKEND.test(role) && !KEEPS_BACKEND.test(role)) return { pass: false, reason: "backend Java" };
+  if (options.skipJunior && JUNIOR.test(role)) return { pass: false, reason: "junior role" };
 
   const location = (job.location ?? "").trim();
   const reach = location ? readReach(location, job.url).kind : "unknown";
@@ -176,6 +210,21 @@ export function preTriage(job, tracker, jd = null, options = {}) {
     if (blocked) return { pass: false, reason: `residency: "${blocked}"` };
     const ineligible = options.usAuthorized === false ? eligibilityBlock(text) : null;
     if (ineligible) return { pass: false, reason: `eligibility: "${ineligible}"` };
+    const folded = fold(text);
+    const contract = options.usAuthorized === false ? US_CONTRACT.exec(folded) : null;
+    if (contract) return { pass: false, reason: `US contract terms: "${contract[0]}"` };
+    if (options.onsiteOnlyIn?.length) {
+      const onsite = workModeBlock(text, location, options.onsiteOnlyIn.map(fold));
+      if (onsite) return { pass: false, reason: `hybrid or on-site: "${onsite}"` };
+    }
+    if (options.blockedPlaces?.length) {
+      const place = new RegExp(`\\b(${options.blockedPlaces.map((word) => escapeRe(fold(word))).join("|")})\\b`).exec(`${folded}\n${fold(location)}`);
+      const scope = place ? placesIn(`${text}\n${location}`) : null;
+      // "Remote from LATAM or the Philippines" names an open scope, so it stays.
+      if (scope && !scope.openScope && !scope.latam.length) {
+        return { pass: false, reason: `blocked place: ${place[0]}` };
+      }
+    }
     if (text.length >= MIN_JD && !PROFILE_STACK.test(fold(text))) return { pass: false, reason: "stack outside profile" };
   }
   const monthly = monthlyMaxUsd(jd?.salary);

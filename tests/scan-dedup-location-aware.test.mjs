@@ -349,7 +349,7 @@ const BARE = companyRoleDedupKey(CO, ROLE);
 // reason tests/scan-company-role-dedup.test.mjs ends with an e2e pair.
 //
 // Fixture and harness are shared with that file: a local-parser board, no
-// network, cwd and CAREER_OPS_ROOT pinned to a sandbox so nothing reads the
+// network, cwd and LANDING_GEAR_ROOT pinned to a sandbox so nothing reads the
 // developer's real data/.
 function runScanTwice(scanHistoryBlock) {
   const dir = mkdtempSync(join(tmpdir(), 'scan-locdedup-e2e-'));
@@ -372,7 +372,7 @@ tracked_companies:
 
     const scan = () => execFileSync(NODE, [join(ROOT, 'scan.mjs')], {
       cwd: dir,
-      env: { ...process.env, CAREER_OPS_ROOT: dir, CAREER_OPS_PORTALS: portals },
+      env: { ...process.env, LANDING_GEAR_ROOT: dir, LANDING_GEAR_PORTALS: portals },
       encoding: 'utf-8',
       stdio: ['ignore', 'pipe', 'pipe'],
     });
@@ -443,7 +443,7 @@ tracked_companies:
 
     const scan = (relist) => execFileSync(NODE, [join(ROOT, 'scan.mjs')], {
       cwd: dir,
-      env: { ...process.env, CAREER_OPS_ROOT: dir, CAREER_OPS_PORTALS: portals, FIXTURE_RELIST: relist },
+      env: { ...process.env, LANDING_GEAR_ROOT: dir, LANDING_GEAR_PORTALS: portals, FIXTURE_RELIST: relist },
       encoding: 'utf-8',
       stdio: ['ignore', 'pipe', 'pipe'],
     });

@@ -1,7 +1,7 @@
 // Portals page and /api/portals must open the same file doctorState and the
-// scanner use: CAREER_OPS_PORTALS when set, else <root>/portals.yml.
+// scanner use: LANDING_GEAR_PORTALS when set, else <root>/portals.yml.
 //
-// Repro (Fri 2026-10-16 dogfood): CAREER_OPS_PORTALS=/tmp/.../portals.yml with
+// Repro (Fri 2026-10-16 dogfood): LANDING_GEAR_PORTALS=/tmp/.../portals.yml with
 // "Alt Portal Co", root portals.yml absent → CLI doctor ✓ portals found, web
 // /portals showed an empty list (seeded from the example template).
 //
@@ -33,18 +33,18 @@ test("portals page and API routes resolve portals.yml through portalsConfigPath"
   }
 });
 
-const skipTs = !process.features?.typescript && "this Node cannot import career-ops.ts (no type stripping)";
+const skipTs = !process.features?.typescript && "this Node cannot import landing-gear.ts (no type stripping)";
 const mods = skipTs
   ? {}
   : {
-      ...(await import("@/lib/career-ops")),
+      ...(await import("@/lib/landing-gear")),
       ...(await import("@/lib/portals-config.mjs")),
     };
 
-test("watched companies load from CAREER_OPS_PORTALS when set", { skip: skipTs }, () => {
+test("watched companies load from LANDING_GEAR_PORTALS when set", { skip: skipTs }, () => {
   const root = mkdtempSync(join(tmpdir(), "co-portals-page-"));
-  const prevRoot = process.env.CAREER_OPS_ROOT;
-  const prevPortals = process.env.CAREER_OPS_PORTALS;
+  const prevRoot = process.env.LANDING_GEAR_ROOT;
+  const prevPortals = process.env.LANDING_GEAR_PORTALS;
   try {
     mkdirSync(join(root, "templates"), { recursive: true });
     writeFileSync(join(root, "templates/portals.example.yml"), "tracked_companies: []\n");
@@ -53,8 +53,8 @@ test("watched companies load from CAREER_OPS_PORTALS when set", { skip: skipTs }
       alt,
       "tracked_companies:\n  - name: Alt Portal Co\n    careers_url: https://jobs.example.test/alt\n",
     );
-    process.env.CAREER_OPS_ROOT = root;
-    process.env.CAREER_OPS_PORTALS = alt;
+    process.env.LANDING_GEAR_ROOT = root;
+    process.env.LANDING_GEAR_PORTALS = alt;
     const file = mods.portalsConfigPath(root);
     assert.equal(file, alt);
     const { doc, seeded } = mods.loadPortalsDocument(file, join(root, "templates/portals.example.yml"));
@@ -63,10 +63,10 @@ test("watched companies load from CAREER_OPS_PORTALS when set", { skip: skipTs }
     assert.equal(watched.length, 1);
     assert.equal(watched[0].name, "Alt Portal Co");
   } finally {
-    if (prevRoot === undefined) delete process.env.CAREER_OPS_ROOT;
-    else process.env.CAREER_OPS_ROOT = prevRoot;
-    if (prevPortals === undefined) delete process.env.CAREER_OPS_PORTALS;
-    else process.env.CAREER_OPS_PORTALS = prevPortals;
+    if (prevRoot === undefined) delete process.env.LANDING_GEAR_ROOT;
+    else process.env.LANDING_GEAR_ROOT = prevRoot;
+    if (prevPortals === undefined) delete process.env.LANDING_GEAR_PORTALS;
+    else process.env.LANDING_GEAR_PORTALS = prevPortals;
     rmSync(root, { recursive: true, force: true });
   }
 });

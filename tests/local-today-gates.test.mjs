@@ -36,7 +36,7 @@ import { describeSpawn } from './helpers/describe-spawn.mjs';
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 
 // A module path embedded in a child script must be a file:// URL. On Windows a
-// bare join() yields `D:\a\career-ops\...`, which is neither a valid ESM
+// bare join() yields `D:\a\landing-gear\...`, which is neither a valid ESM
 // specifier nor safe inside a quoted JS string — the backslashes read as escape
 // sequences. POSIX absolute paths happen to work, which is why this only ever
 // reddens on the Windows leg.
@@ -524,12 +524,12 @@ test('stats.mjs and analyze-patterns.mjs stamp the local day in report headers, 
   // and followup-cadence.mjs, which it imports, reads config/profile.yml there.
   // So the child gets an empty data root, with the two overrides that outrank
   // it cleared, and the sources check shows it never read the user's files.
-  const dataRoot = mkdtempSync(join(tmpdir(), 'career-ops-localtoday-stats-'));
+  const dataRoot = mkdtempSync(join(tmpdir(), 'landing-gear-localtoday-stats-'));
   try {
     const statsOut = inFrozenTz('America/New_York',
-      `process.env.CAREER_OPS_ROOT = ${JSON.stringify(dataRoot)};` +
-      `delete process.env.CAREER_OPS_TRACKER;` +
-      `delete process.env.CAREER_OPS_PROFILE;` +
+      `process.env.LANDING_GEAR_ROOT = ${JSON.stringify(dataRoot)};` +
+      `delete process.env.LANDING_GEAR_TRACKER;` +
+      `delete process.env.LANDING_GEAR_PROFILE;` +
       `const { computeAllStats } = await import('${spec('stats.mjs')}');` +
       `const s = computeAllStats();` +
       `process.stdout.write(JSON.stringify(s.metadata));`

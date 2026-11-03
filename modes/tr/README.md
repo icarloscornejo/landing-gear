@@ -1,6 +1,6 @@
-# career-ops — Türkçe Modlar (`modes/tr/`)
+# landing-gear — Türkçe Modlar (`modes/tr/`)
 
-Bu klasör, Türkiye iş piyasasında iş arayanlar veya Türkçe ilanlarla çalışanlar için career-ops modlarının Türkçe çevirilerini içerir.
+Bu klasör, Türkiye iş piyasasında iş arayanlar veya Türkçe ilanlarla çalışanlar için landing-gear modlarının Türkçe çevirilerini içerir.
 
 ## Ne Zaman Kullanılır?
 

@@ -24,13 +24,13 @@ import { pdfIndexEntryForReport } from "@/lib/apply/cv-selection.mjs";
 import { NOTES_START, NOTES_END, profilePath as profileMemoryPath, readProfileMemory } from "@/lib/profile-memory.mjs";
 
 /**
- * Resolve the career-ops "home" — the directory holding the user's sibling
+ * Resolve the landing-gear "home" — the directory holding the user's sibling
  * files (cv.md, data/, reports/). In production the web/ app lives inside the
- * career-ops checkout, so the home is its parent (..). Dev overrides via
- * CAREER_OPS_ROOT to read the user's real (gitignored) data from a separate
+ * landing-gear checkout, so the home is its parent (..). Dev overrides via
+ * LANDING_GEAR_ROOT to read the user's real (gitignored) data from a separate
  * checkout — see web/.env.local.
  */
-export function careerOpsRoot(): string {
+export function landingGearRoot(): string {
   // `process.cwd()` is `<core>/web` for `next dev`/`next start`, so its parent is
   // the core checkout — the same directory `path-resolver.mjs` calls `__dirname`.
   // resolveDataRoot() needs it explicitly because relative env values and marker
@@ -38,7 +38,7 @@ export function careerOpsRoot(): string {
   //
   // Via resolveCodeRoot(), NOT a hardcoded `..`, so this agrees with rootScript()
   // just below — which already resolves the checkout that way. With
-  // CAREER_OPS_CODE_ROOT set and a RELATIVE data root, the two were computing
+  // LANDING_GEAR_CODE_ROOT set and a RELATIVE data root, the two were computing
   // from different bases: the script came from the configured checkout and the
   // data root from the process's parent. Identical when the variable is unset,
   // which is every default install.
@@ -65,10 +65,10 @@ export function careerOpsRoot(): string {
  * as module imports and fails the production build otherwise.
  *
  * Scripts live in the engine checkout — never in the data root. Under the #524
- * split layout (CAREER_OPS_ROOT pointing at a data-only directory) the data
+ * split layout (LANDING_GEAR_ROOT pointing at a data-only directory) the data
  * root has no `.mjs` files, so resolving here made every script-driven endpoint
  * (Explore discovery, doctor, portals verify, followups, run) report the
- * checkout as missing. CAREER_OPS_CODE_ROOT selects the checkout explicitly.
+ * checkout as missing. LANDING_GEAR_CODE_ROOT selects the checkout explicitly.
  */
 export function rootScript(nameNoExt: string): string {
   // resolveRootScript() already returns the absolute `<checkout>/<name>.mjs`, and
@@ -90,7 +90,7 @@ export function trackerCanDelete(): boolean {
 
 function read(rel: string): string | null {
   try {
-    return fs.readFileSync(path.join(careerOpsRoot(), rel), "utf8");
+    return fs.readFileSync(path.join(landingGearRoot(), rel), "utf8");
   } catch {
     return null;
   }
@@ -163,7 +163,7 @@ export type Application = {
  * to the running system checkout for that system-layer alias table.
  */
 export function readApplications(): Application[] {
-  const md = readTrackerFile(careerOpsRoot());
+  const md = readTrackerFile(landingGearRoot());
   if (!md) return [];
   // parseApplications derives each row from WEB_FIELD (tracker-table.mjs), so
   // its keys are exactly this type's field names by construction — adding a
@@ -171,7 +171,7 @@ export function readApplications(): Application[] {
   // never a hand-written return-shape list that the two could drift from. The
   // third argument is the running system checkout, so a data-only root (no
   // tracker-aliases.json of its own) still resolves headers correctly.
-  return parseApplications(md, careerOpsRoot(), path.resolve(process.cwd(), "..")) as Application[];
+  return parseApplications(md, landingGearRoot(), path.resolve(process.cwd(), "..")) as Application[];
 }
 
 export type StatusLogRow = {
@@ -194,7 +194,7 @@ export function readStatusLog(): StatusLogRow[] {
 
 /** Ledger sibling of the same tracker readApplications consumes. */
 export function readApplicationStatusLog(): string | null {
-  return readTrackerFile(careerOpsRoot(), "status-log.tsv");
+  return readTrackerFile(landingGearRoot(), "status-log.tsv");
 }
 
 /** Resolve the report-number cell in data/pdf-index.tsv for a given report id.
@@ -224,7 +224,7 @@ export type PdfPathForReportResult =
  *  two applications at the same company have two different tailored CVs.
  *
  *  The manifest path comes from the core's resolvePdfIndexPath (ACL, honors
- *  CAREER_OPS_PDF_INDEX) rather than a hardcoded "data/pdf-index.tsv" literal
+ *  LANDING_GEAR_PDF_INDEX) rather than a hardcoded "data/pdf-index.tsv" literal
  *  — the exact class of bug that #2471 fixed in the core, once, for every
  *  reader. The parsing itself is pdfIndexEntryForReport, a pure function
  *  shared with the apply flow's own CV resolver (cv-selection.mjs) so there
@@ -240,14 +240,14 @@ export async function pdfPathStatusForReport(n: string, kind: "cv" | "cover" = "
   } catch {
     return { status: "not-found" };
   }
-  const root = careerOpsRoot();
+  const root = landingGearRoot();
   const entry = pdfIndexEntryForReport(tsv, target, kind);
   if (!entry.found) return { status: "not-found" };
   if (!entry.path) return { status: "rejected" };
   // The manifest is a user-layer file (generate-pdf.mjs writes it, but nothing
   // stops a hand edit) turned into a filesystem read that this route then
   // serves — the path must be contained BY CONSTRUCTION, not by trusting the
-  // writer. Rows are written relative to the WORKSPACE root (careerOpsRoot()),
+  // writer. Rows are written relative to the WORKSPACE root (landingGearRoot()),
   // not to the manifest's own data/ directory — same base the pre-ACL version
   // of this function used — and must stay under the project's output/ tree.
   const abs = path.resolve(root, entry.path);
@@ -278,7 +278,7 @@ export type LifecyclePhase = "first-run" | "in-between" | "established";
  * Server-side lifecycle, mirroring the core doctor.mjs prerequisite list with the
  * SAME existsSync semantics (the SSOT the OnboardingBanner already reads via
  * /api/doctor). The 4 user-layer prereqs: cv.md, config/profile.yml,
- * modes/_profile.md, portals.yml (or CAREER_OPS_PORTALS).
+ * modes/_profile.md, portals.yml (or LANDING_GEAR_PORTALS).
  *   - first-run  → a TRULY empty install (no cv AND no data): the CV takeover.
  *     CRITICAL back-compat (maintainer): NEVER force onboarding on a user who
  *     already has data (a full pipeline/tracker with no cv.md is valid).
@@ -286,9 +286,9 @@ export type LifecyclePhase = "first-run" | "in-between" | "established";
  *   - established → all 4 prereqs present.
  * onboardingNeeded mirrors doctor.mjs: true if ANY prereq is missing → show banner.
  */
-/** Absolute portals.yml path: CAREER_OPS_PORTALS when set, else <root>/portals.yml. */
-export function portalsConfigPath(root = careerOpsRoot(), env: NodeJS.ProcessEnv = process.env): string {
-  const override = env.CAREER_OPS_PORTALS?.trim();
+/** Absolute portals.yml path: LANDING_GEAR_PORTALS when set, else <root>/portals.yml. */
+export function portalsConfigPath(root = landingGearRoot(), env: NodeJS.ProcessEnv = process.env): string {
+  const override = env.LANDING_GEAR_PORTALS?.trim();
   return override ? path.resolve(override) : path.join(root, "portals.yml");
 }
 
@@ -299,7 +299,7 @@ export function doctorState(snapshot?: Pick<PipelineSummary, "applications" | "i
   hasCv: boolean;
   hasData: boolean;
 } {
-  const root = careerOpsRoot();
+  const root = landingGearRoot();
   const has = (rel: string) => {
     try {
       return fs.existsSync(path.join(root, rel));
@@ -309,7 +309,7 @@ export function doctorState(snapshot?: Pick<PipelineSummary, "applications" | "i
   };
   // Keep this list shaped like doctor.mjs USER_LAYER_PREREQS so the #2369
   // freeze in test-all.mjs can grep the paths. portals.yml alone resolves
-  // through portalsConfigPath (CAREER_OPS_PORTALS when set).
+  // through portalsConfigPath (LANDING_GEAR_PORTALS when set).
   const prereqs = [
     ["cv.md", "cv.md"],
     ["config/profile.yml", "config/profile.yml"],
@@ -346,7 +346,7 @@ export type PipelineSummary = {
 };
 
 export function pipelineSummary(): PipelineSummary {
-  const root = careerOpsRoot();
+  const root = landingGearRoot();
   const scanDates = readScanDates();
   return {
     root,
@@ -383,7 +383,7 @@ export type ReportData = { content: string; file: string };
 export function findReportFile(n: string): string | null {
   if (!/^\d+$/.test(n)) return null;
   const target = Number(n);
-  const root = careerOpsRoot();
+  const root = landingGearRoot();
   const app = readApplications().find((a) => parseInt(a.n, 10) === target);
   const linked = app?.report.match(/\]\(([^)]+)\)/)?.[1];
   if (linked) {
@@ -447,13 +447,13 @@ export function findApplication(n: string): Application | null {
 
 /** The canonical user-customization file the CLI reads (modes/_profile.md). */
 export function profilePath(): string {
-  return profileMemoryPath(careerOpsRoot());
+  return profileMemoryPath(landingGearRoot());
 }
 
 /** Read modes/_profile.md back for injection into a prompt. profile-memory.mjs
  *  owns the rule and is where it is tested. */
 export function readMemory(): string {
-  return readProfileMemory(careerOpsRoot());
+  return readProfileMemory(landingGearRoot());
 }
 
 
@@ -541,10 +541,42 @@ function resolveEvalModeFile(root: string, modesDir: string): string {
   return DEFAULT_EVAL_MODE;
 }
 
+type ProfileYaml = {
+  location?: { timezone?: unknown; authorized_in?: unknown };
+  pre_triage?: { skip_junior?: unknown; blocked_places?: unknown; onsite_only_in_authorized?: unknown };
+};
+
+/** config/profile.yml parsed. Throws when the profile is missing or unreadable. */
+function readProfileYaml(): ProfileYaml {
+  return (yaml.load(fs.readFileSync(path.join(landingGearRoot(), "config", "profile.yml"), "utf8")) as ProfileYaml | null) ?? {};
+}
+
 /** The `location` block of config/profile.yml. Throws when the profile is missing or unreadable. */
-function readProfileLocation(): { timezone?: unknown; authorized_in?: unknown } {
-  const parsed = yaml.load(fs.readFileSync(path.join(careerOpsRoot(), "config", "profile.yml"), "utf8")) as { location?: { timezone?: unknown; authorized_in?: unknown } } | null;
-  return parsed?.location ?? {};
+function readProfileLocation(): NonNullable<ProfileYaml["location"]> {
+  return readProfileYaml().location ?? {};
+}
+
+const stringList = (value: unknown): string[] =>
+  (Array.isArray(value) ? value : typeof value === "string" ? [value] : []).filter((item): item is string => typeof item === "string" && item.trim() !== "");
+
+/**
+ * The opt-in pre-triage drops from profile.yml `pre_triage` (lib/pre-triage.mjs options):
+ * `skip_junior: true`, `blocked_places: [...]`, and `onsite_only_in_authorized: true`, which
+ * drops hybrid or on-site JDs outside `location.authorized_in`. Missing or unreadable: none.
+ */
+export function readProfilePreTriage(): { skipJunior?: boolean; blockedPlaces?: string[]; onsiteOnlyIn?: string[] } {
+  try {
+    const profile = readProfileYaml();
+    const settings = profile.pre_triage ?? {};
+    return {
+      skipJunior: settings.skip_junior === true,
+      blockedPlaces: stringList(settings.blocked_places),
+      onsiteOnlyIn: settings.onsite_only_in_authorized === true ? stringList(profile.location?.authorized_in) : [],
+    };
+  } catch {
+    // Missing or unreadable profile: no extra drops.
+    return {};
+  }
 }
 
 /**
@@ -585,7 +617,7 @@ export function readProfileAuthorizedIn(): unknown {
  * should degrade the market vocabulary, not block every evaluation.
  */
 export function readLanguageConfig(): LanguageConfig {
-  const root = careerOpsRoot();
+  const root = landingGearRoot();
   let modesDirs = ["modes"];
   let output = "en";
   try {

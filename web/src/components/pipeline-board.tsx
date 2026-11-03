@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Check, ExternalLink, GripVertical, Loader2 } from "lucide-react";
 import { useJobs } from "@/components/jobs/job-store";
 import { splitTriageLabel } from "@/lib/lifecycle.mjs";
-import type { Application, InboxJob } from "@/lib/career-ops";
+import type { Application, InboxJob } from "@/lib/landing-gear";
 import { cn } from "@/lib/cn";
 import { scoreTen } from "@/lib/format";
 import { companyPresentation } from "@/lib/company-presentation.mjs";

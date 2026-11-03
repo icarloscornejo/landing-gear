@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { careerOpsRoot } from "@/lib/career-ops";
+import { landingGearRoot } from "@/lib/landing-gear";
 import { readJsonObject } from "@/lib/json-body";
 import { writeRunLog } from "@/lib/run-log.mjs";
 
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
   const b = await readJsonObject<Body>(req);
   if (!b) return NextResponse.json({ error: "bad json" }, { status: 400 });
   if (!String(b.id ?? "").replace(/[^a-z0-9_-]/gi, "")) return NextResponse.json({ error: "id required" }, { status: 400 });
-  return writeRunLog(careerOpsRoot(), b)
+  return writeRunLog(landingGearRoot(), b)
     ? NextResponse.json({ ok: true })
     : NextResponse.json({ error: "write failed" }, { status: 500 });
 }

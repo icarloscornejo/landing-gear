@@ -8,9 +8,9 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/santifer/career-ops/dashboard/internal/model"
-	"github.com/santifer/career-ops/dashboard/internal/theme"
-	"github.com/santifer/career-ops/dashboard/internal/ui/screens"
+	"github.com/icarloscornejo/landing-gear/dashboard/internal/model"
+	"github.com/icarloscornejo/landing-gear/dashboard/internal/theme"
+	"github.com/icarloscornejo/landing-gear/dashboard/internal/ui/screens"
 )
 
 func newStatusTestModel(t *testing.T) (appModel, model.CareerApplication) {
@@ -18,14 +18,14 @@ func newStatusTestModel(t *testing.T) (appModel, model.CareerApplication) {
 	root := t.TempDir()
 	// An explicit missing tracker forces a real writer failure without touching
 	// the checkout's tracker or relying on permissions (which differ as root).
-	t.Setenv("CAREER_OPS_TRACKER", filepath.Join(root, "tracker.md"))
-	t.Setenv("CAREER_OPS_TRACKER_LOCK", "")
+	t.Setenv("LANDING_GEAR_TRACKER", filepath.Join(root, "tracker.md"))
+	t.Setenv("LANDING_GEAR_TRACKER_LOCK", "")
 	app := model.CareerApplication{
 		Number: 7, ReportNumber: "7", Company: "Example Co", Role: "Engineer", Status: "Applied",
 	}
 	theme := theme.NewTheme("catppuccin-mocha")
 	return appModel{
-		careerOpsPath: root,
+		landingGearPath: root,
 		theme:         theme,
 		pipeline: screens.NewPipelineModel(theme, []model.CareerApplication{app},
 			model.PipelineMetrics{Total: 1}, root, 120, 40),
@@ -43,11 +43,11 @@ func TestPipelineStatusWriteFailureIsVisible(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			m, app := newStatusTestModel(t)
 			var msg tea.Msg = screens.PipelineUpdateStatusMsg{
-				CareerOpsPath: m.careerOpsPath, App: app, NewStatus: "Hired",
+				LandingGearPath: m.landingGearPath, App: app, NewStatus: "Hired",
 			}
 			if withNotes {
 				msg = screens.PipelineUpdateStatusAndNotesMsg{
-					CareerOpsPath: m.careerOpsPath, App: app, NewStatus: "Discarded",
+					LandingGearPath: m.landingGearPath, App: app, NewStatus: "Discarded",
 					NotesAppend: "DISCARD: salary_too_low",
 				}
 			}
@@ -100,7 +100,7 @@ func TestSuccessfulHiredWriteStartsCelebration(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			m, app := newStatusTestModel(t)
 			m.state = state
-			tracker := os.Getenv("CAREER_OPS_TRACKER")
+			tracker := os.Getenv("LANDING_GEAR_TRACKER")
 			content := "| # | Date | Company | Role | Score | Status | PDF | Report | Notes |\n" +
 				"|---|---|---|---|---|---|---|---|---|\n" +
 				"| 7 | 2026-09-01 | Example Co | Engineer | 4.2/5 | Applied | ❌ | [7](reports/007.md) | |\n"
@@ -108,7 +108,7 @@ func TestSuccessfulHiredWriteStartsCelebration(t *testing.T) {
 				t.Fatal(err)
 			}
 			var msg tea.Msg = screens.PipelineUpdateStatusMsg{
-				CareerOpsPath: m.careerOpsPath, App: app, NewStatus: "Hired",
+				LandingGearPath: m.landingGearPath, App: app, NewStatus: "Hired",
 			}
 			if state == viewReport {
 				msg = screens.ViewerUpdateStatusMsg{App: app, NewStatus: "Hired"}
@@ -131,7 +131,7 @@ func TestSuccessfulHiredWriteStartsCelebration(t *testing.T) {
 func TestViewerSidecarFailureReloadsPersistedStatusWithoutCelebrating(t *testing.T) {
 	m, app := newStatusTestModel(t)
 	m.state = viewReport
-	tracker := os.Getenv("CAREER_OPS_TRACKER")
+	tracker := os.Getenv("LANDING_GEAR_TRACKER")
 	content := "| # | Date | Company | Role | Score | Status | PDF | Report | Notes |\n" +
 		"|---|---|---|---|---|---|---|---|---|\n" +
 		"| 8 | 2026-09-01 | Other Co | Engineer | 4.2/5 | Offer | ❌ | [8](reports/008.md) | |\n" +

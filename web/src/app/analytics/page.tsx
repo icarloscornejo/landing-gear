@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { careerOpsRoot, pipelineSummary, readApplicationStatusLog, readReport, readStatusLog } from "@/lib/career-ops";
+import { landingGearRoot, pipelineSummary, readApplicationStatusLog, readReport, readStatusLog } from "@/lib/landing-gear";
 import { canonStatus } from "@/lib/format";
 import { cumulativeProgressWithHistory } from "@/lib/funnel-tiles.mjs";
 import { computeProgressMetrics } from "@/lib/analytics-metrics.mjs";
@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 function readCvLog(): { cv: string; outcome: string }[] {
   let text: string;
   try {
-    text = fs.readFileSync(path.join(careerOpsRoot(), "data", "cv-ab.tsv"), "utf8");
+    text = fs.readFileSync(path.join(landingGearRoot(), "data", "cv-ab.tsv"), "utf8");
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === "ENOENT") return [];
     throw err;

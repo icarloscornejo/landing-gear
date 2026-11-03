@@ -24,7 +24,7 @@ import { join } from 'path';
 import { loadYaml } from './lib/yaml-document.mjs';
 import { appendToPipeline, appendToScanHistory, PORTALS_PATH, SCAN_HISTORY_PATH } from './scan.mjs';
 import { createAdmissionGate } from './lib/admission-gate.mjs';
-import { getCareerOpsRoot } from './path-resolver.mjs';
+import { getLandingGearRoot } from './path-resolver.mjs';
 import { localToday } from './lib/local-today.mjs';
 import { printScanSummaryHeader } from './lib/scan-summary-marker.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
@@ -36,10 +36,10 @@ import { flagValue, hasFlag, validateFlags } from './lib/cli-flags.mjs';
 // scan.mjs's appendToScanHistory — anchored to the data root — while reading its
 // own bare-relative copy to work out the last scan date, so within a single run
 // it could write one history file and read another. Its portals copy also
-// ignored CAREER_OPS_PORTALS, which #2271 added so a second search lane does not
+// ignored LANDING_GEAR_PORTALS, which #2271 added so a second search lane does not
 // poison the first one's dedup history.
 const SCAN_HISTORY    = SCAN_HISTORY_PATH;
-const DATA_ROOT       = getCareerOpsRoot();
+const DATA_ROOT       = getLandingGearRoot();
 const INTERAMT_HOME   = 'https://interamt.de/koop/app/';
 // Direct offer URL — constructed from StellenangebotId.
 // Wicket adds a session version number (?28&id=...) during live navigation,

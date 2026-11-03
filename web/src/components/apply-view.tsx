@@ -245,7 +245,7 @@ export function ApplyView() {
 
 // ── Leaving the page: back out, or record that you applied ─────────────────
 // You submit the real form yourself on the employer's site, so the moment you
-// apply happens outside career-ops — this is where you tell the tracker about
+// apply happens outside landing-gear — this is where you tell the tracker about
 // it. The write goes through /api/status, the same route the tracker's own
 // status control uses, so there is only ever one writer to the table.
 function ApplyExitBar() {

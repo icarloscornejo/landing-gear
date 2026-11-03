@@ -36,8 +36,8 @@ const markets = [
 ];
 
 test('parses header columns when the data root does not contain system files', (t) => {
-  const dataRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'career-ops-data-'));
-  const systemRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'career-ops-system-'));
+  const dataRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'landing-gear-data-'));
+  const systemRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'landing-gear-system-'));
   t.after(() => {
     fs.rmSync(dataRoot, { recursive: true, force: true });
     fs.rmSync(systemRoot, { recursive: true, force: true });
@@ -65,8 +65,8 @@ test('parses header columns when the data root does not contain system files', (
 });
 
 test('ignores a data-root alias table that cannot map the required columns', (t) => {
-  const dataRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'career-ops-data-'));
-  const systemRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'career-ops-system-'));
+  const dataRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'landing-gear-data-'));
+  const systemRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'landing-gear-system-'));
   t.after(() => {
     fs.rmSync(dataRoot, { recursive: true, force: true });
     fs.rmSync(systemRoot, { recursive: true, force: true });

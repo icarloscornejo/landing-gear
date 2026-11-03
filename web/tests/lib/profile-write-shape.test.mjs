@@ -8,7 +8,7 @@ import { register } from "node:module";
 import * as yaml from "js-yaml";
 
 // Same Node alias-loader convention as apply-cv-resolver.test.mjs. Import the
-// real route handlers and safe writer, with only CAREER_OPS_ROOT redirected.
+// real route handlers and safe writer, with only LANDING_GEAR_ROOT redirected.
 const webSrc = fileURLToPath(new URL("../../src/", import.meta.url));
 const loader = `
   import { existsSync } from "node:fs";
@@ -36,19 +36,19 @@ const routes = [
 const template = "candidate:\n  full_name: Template Candidate\n  location: Template City\ncompensation:\n  currency: USD\n";
 
 async function withFixture(source, fn) {
-  const root = mkdtempSync(path.join(tmpdir(), "career-ops-profile-shape-"));
+  const root = mkdtempSync(path.join(tmpdir(), "landing-gear-profile-shape-"));
   const config = path.join(root, "config");
   const file = path.join(config, "profile.yml");
   mkdirSync(config);
   writeFileSync(path.join(config, "profile.example.yml"), template);
   if (source !== undefined) writeFileSync(file, source);
-  const previous = process.env.CAREER_OPS_ROOT;
-  process.env.CAREER_OPS_ROOT = root;
+  const previous = process.env.LANDING_GEAR_ROOT;
+  process.env.LANDING_GEAR_ROOT = root;
   try {
     await fn({ config, file });
   } finally {
-    if (previous === undefined) delete process.env.CAREER_OPS_ROOT;
-    else process.env.CAREER_OPS_ROOT = previous;
+    if (previous === undefined) delete process.env.LANDING_GEAR_ROOT;
+    else process.env.LANDING_GEAR_ROOT = previous;
     rmSync(root, { recursive: true, force: true });
   }
 }

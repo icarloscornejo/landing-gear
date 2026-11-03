@@ -108,7 +108,7 @@ export function isVerdictHeading(heading) {
   return /^verdict$/i.test(cleanHeading(heading));
 }
 
-/** Public methodology apply/don't-apply line (career-ops.org + ReportView). */
+/** Public methodology apply/don't-apply line (ReportView). */
 export const APPLY_LINE = 4.0;
 
 /** @param {unknown} legitimacy */

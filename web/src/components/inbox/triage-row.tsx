@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Bookmark, BookmarkCheck, Check, ClipboardPaste, Loader2, X } from "lucide-react";
-import type { InboxJob } from "@/lib/career-ops";
+import type { InboxJob } from "@/lib/landing-gear";
 import type { AtsSource } from "@/lib/explore";
 import { ATS_LABEL } from "@/lib/explore";
 import { unscoredInboxHref } from "@/lib/posting-url.mjs";

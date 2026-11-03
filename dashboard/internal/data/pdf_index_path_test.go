@@ -8,7 +8,7 @@ import (
 )
 
 func TestPDFIndexReadersHonorOverride(t *testing.T) {
-	t.Setenv("CAREER_OPS_TRACKER", "")
+	t.Setenv("LANDING_GEAR_TRACKER", "")
 	root := t.TempDir()
 	index := filepath.Join(t.TempDir(), "custom-index.tsv")
 	if err := os.WriteFile(index, []byte("7\toutput/cv-exact.pdf\toutput/cv-exact.html\tletter\t2026-09-01\n"), 0o644); err != nil {
@@ -19,7 +19,7 @@ func TestPDFIndexReadersHonorOverride(t *testing.T) {
 			if !filepath.IsAbs(override) {
 				t.Chdir(filepath.Dir(index))
 			}
-			t.Setenv("CAREER_OPS_PDF_INDEX", override)
+			t.Setenv("LANDING_GEAR_PDF_INDEX", override)
 			if got := LoadPDFManifest(root); got["7"].PDFPath != "output/cv-exact.pdf" {
 				t.Fatalf("override ignored: %v", got)
 			}
@@ -31,14 +31,14 @@ func TestPDFIndexReadersHonorOverride(t *testing.T) {
 }
 
 func TestPDFIndexReadersFollowTrackerWorkspace(t *testing.T) {
-	t.Setenv("CAREER_OPS_PDF_INDEX", "")
+	t.Setenv("LANDING_GEAR_PDF_INDEX", "")
 	root := t.TempDir()
 	workspace := t.TempDir()
 	writeFixture(t, workspace, "data/pdf-index.tsv", "7\toutput/cv-external.pdf\toutput/cv-external.html\tletter\t2026-09-01\n")
 	writeFixture(t, root, "data/pdf-index.tsv", "7\toutput/cv-decoy.pdf\t\tletter\t2026-09-01\n")
 	for _, tracker := range []string{"data/applications.md", "applications.md"} {
 		t.Run(tracker, func(t *testing.T) {
-			t.Setenv("CAREER_OPS_TRACKER", filepath.Join(workspace, tracker))
+			t.Setenv("LANDING_GEAR_TRACKER", filepath.Join(workspace, tracker))
 			if got := LoadPDFManifest(root); got["7"].PDFPath != "output/cv-external.pdf" {
 				t.Fatalf("read another workspace: %v", got)
 			}
@@ -50,8 +50,8 @@ func TestPDFIndexReadersFollowTrackerWorkspace(t *testing.T) {
 }
 
 func TestPDFIndexReadersKeepArtifactsWithSymlinkedTracker(t *testing.T) {
-	t.Setenv("CAREER_OPS_TRACKER", "")
-	t.Setenv("CAREER_OPS_PDF_INDEX", "")
+	t.Setenv("LANDING_GEAR_TRACKER", "")
+	t.Setenv("LANDING_GEAR_PDF_INDEX", "")
 	root, external := t.TempDir(), t.TempDir()
 	writeFixture(t, external, "data/applications.md", "")
 	if err := os.MkdirAll(filepath.Join(root, "data"), 0o755); err != nil {

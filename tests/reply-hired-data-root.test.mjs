@@ -2,21 +2,21 @@
 // paste-reply.mjs resolve the tracker and their user-layer files against the
 // data root, the same way set-status.mjs and merge-tracker.mjs already do.
 //
-// Before this, all three missed getCareerOpsRoot():
+// Before this, all three missed getLandingGearRoot():
 //
 //   hired-share.mjs   resolveWorkspaceRoot(resolveTrackerPath(process.cwd()))
 //   reply-watch.mjs   resolveTrackerPath(__dirname), data/*.json under __dirname
 //   paste-reply.mjs   data/reply-candidates.json under __dirname
 //
-// With the user layer outside the checkout (CAREER_OPS_ROOT,
-// CAREER_OPS_DATA_DIR or a .career-ops-data marker) hired-share found no hires,
+// With the user layer outside the checkout (LANDING_GEAR_ROOT,
+// LANDING_GEAR_DATA_DIR or a .landing-gear-data marker) hired-share found no hires,
 // and reply-watch/paste-reply read and wrote a candidates file the other side of
 // the configured data root never saw.
 //
 // Every case runs the script from a COPIED code root, with the cwd, the code
 // root, the data root and a decoy root all holding different trackers, so a
 // resolution against the wrong one changes the answer. Copying also keeps the
-// marker cases from writing .career-ops-data into the checkout.
+// marker cases from writing .landing-gear-data into the checkout.
 //
 // Run:  node --test tests/reply-hired-data-root.test.mjs
 
@@ -74,7 +74,7 @@ const tracker = (role) => [
 ].join('\n');
 
 function fixture(t) {
-  const dir = realpathSync(mkdtempSync(join(tmpdir(), 'career-ops-reply-hired-root-')));
+  const dir = realpathSync(mkdtempSync(join(tmpdir(), 'landing-gear-reply-hired-root-')));
   t.after(() => rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 }));
   const f = { dir };
   for (const name of ['code', 'data', 'other', 'cwd']) {
@@ -101,12 +101,12 @@ function run(f, script, args, env = {}, input = '') {
     input,
     encoding: 'utf-8',
     timeout: 30_000,
-    // Every override blank unless the case sets it. CAREER_OPS_TRACKER outranks
+    // Every override blank unless the case sets it. LANDING_GEAR_TRACKER outranks
     // the data root, so leaving a developer's export inherited would point these
     // writers at their real tracker.
     env: {
       ...process.env,
-      CAREER_OPS_ROOT: '', CAREER_OPS_DATA_DIR: '', CAREER_OPS_TRACKER: '', CAREER_OPS_REPLY_CANDIDATES: '',
+      LANDING_GEAR_ROOT: '', LANDING_GEAR_DATA_DIR: '', LANDING_GEAR_TRACKER: '', LANDING_GEAR_REPLY_CANDIDATES: '',
       ...env,
     },
   });
@@ -117,20 +117,20 @@ function run(f, script, args, env = {}, input = '') {
 
 // Each way of configuring the data root, as { name, setup(f) → env }.
 const CONFIGS = [
-  { name: 'CAREER_OPS_ROOT (absolute)', setup: (f) => ({ CAREER_OPS_ROOT: f.data }) },
-  { name: 'CAREER_OPS_ROOT (code-relative)', setup: (f) => ({ CAREER_OPS_ROOT: relative(f.code, f.data) }) },
-  { name: 'CAREER_OPS_DATA_DIR', setup: (f) => ({ CAREER_OPS_DATA_DIR: f.data }) },
+  { name: 'LANDING_GEAR_ROOT (absolute)', setup: (f) => ({ LANDING_GEAR_ROOT: f.data }) },
+  { name: 'LANDING_GEAR_ROOT (code-relative)', setup: (f) => ({ LANDING_GEAR_ROOT: relative(f.code, f.data) }) },
+  { name: 'LANDING_GEAR_DATA_DIR', setup: (f) => ({ LANDING_GEAR_DATA_DIR: f.data }) },
   {
-    name: '.career-ops-data marker (absolute)',
-    setup: (f) => { writeFileSync(join(f.code, '.career-ops-data'), `${f.data}\n`); return {}; },
+    name: '.landing-gear-data marker (absolute)',
+    setup: (f) => { writeFileSync(join(f.code, '.landing-gear-data'), `${f.data}\n`); return {}; },
   },
   {
-    name: '.career-ops-data marker (relative)',
-    setup: (f) => { writeFileSync(join(f.code, '.career-ops-data'), `${relative(f.code, f.data)}\n`); return {}; },
+    name: '.landing-gear-data marker (relative)',
+    setup: (f) => { writeFileSync(join(f.code, '.landing-gear-data'), `${relative(f.code, f.data)}\n`); return {}; },
   },
   {
-    name: 'CAREER_OPS_ROOT over the marker',
-    setup: (f) => { writeFileSync(join(f.code, '.career-ops-data'), f.other); return { CAREER_OPS_ROOT: f.data }; },
+    name: 'LANDING_GEAR_ROOT over the marker',
+    setup: (f) => { writeFileSync(join(f.code, '.landing-gear-data'), f.other); return { LANDING_GEAR_ROOT: f.data }; },
   },
 ];
 
@@ -186,7 +186,7 @@ test('with nothing configured, the code root is the default — not the cwd', (t
 
 test('an explicit --root still overrides the configured data root for hired-share', (t) => {
   const f = fixture(t);
-  const status = JSON.parse(run(f, 'hired-share.mjs', ['--status', '--root', f.other], { CAREER_OPS_ROOT: f.data }).stdout);
+  const status = JSON.parse(run(f, 'hired-share.mjs', ['--status', '--root', f.other], { LANDING_GEAR_ROOT: f.data }).stdout);
   assert.deepEqual(status.hires.map((h) => h.role), ['other role']);
 });
 
@@ -198,7 +198,7 @@ test('hired-share --mark creates data/ on a legacy-layout data root', (t) => {
   mkdirSync(legacy);
   writeFileSync(join(legacy, 'applications.md'), tracker('legacy role'));
 
-  run(f, 'hired-share.mjs', ['--report', '1', '--mark', 'never'], { CAREER_OPS_ROOT: legacy });
+  run(f, 'hired-share.mjs', ['--report', '1', '--mark', 'never'], { LANDING_GEAR_ROOT: legacy });
   const statePath = join(legacy, 'data', '.hired-share-state.json');
   assert.ok(existsSync(statePath), 'state file must be written under the legacy root');
   assert.equal(JSON.parse(readFileSync(statePath, 'utf-8')).byReport['1'].status, 'never');

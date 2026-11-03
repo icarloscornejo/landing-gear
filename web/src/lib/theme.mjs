@@ -2,7 +2,7 @@
 // and browser globals lets the bootstrap script, provider, and tests agree on
 // the same storage key and browser-chrome colors.
 
-export const THEME_STORAGE_KEY = "career-ops:theme";
+export const THEME_STORAGE_KEY = "landing-gear:theme";
 
 export const THEME_COLORS = Object.freeze({
   light: "#f5f5f7",

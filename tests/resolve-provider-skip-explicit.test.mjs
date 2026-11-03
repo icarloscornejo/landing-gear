@@ -115,8 +115,8 @@ ${withField ? '    provider: local-parser\n' : ''}    parser:
       script: tests/fixtures/failing-parser.mjs
 `;
   // The spawn must see the sandbox and nothing else, so every inherited
-  // CAREER_OPS_* variable is dropped by prefix rather than by a list: a list
-  // goes stale the day scan.mjs learns a new override. CAREER_OPS_TRACKER was
+  // LANDING_GEAR_* variable is dropped by prefix rather than by a list: a list
+  // goes stale the day scan.mjs learns a new override. LANDING_GEAR_TRACKER was
   // the one a list missed, and with it set this test followed the developer's
   // real tracker.
   const parserRunsInScan = (withField) => {
@@ -128,11 +128,11 @@ ${withField ? '    provider: local-parser\n' : ''}    parser:
       writeFileSync(portals, portalsYml(withField));
       const marker = join(dir, 'parser-runs.txt');
       const env = { ...process.env };
-      for (const name of Object.keys(env)) if (name.toUpperCase().startsWith('CAREER_OPS_')) delete env[name];
+      for (const name of Object.keys(env)) if (name.toUpperCase().startsWith('LANDING_GEAR_')) delete env[name];
       try {
         execFileSync(NODE, [join(ROOT, 'scan.mjs')], {
           cwd: dir,
-          env: { ...env, CAREER_OPS_ROOT: dir, CAREER_OPS_PORTALS: portals, CO_TEST_PARSER_MARKER: marker },
+          env: { ...env, LANDING_GEAR_ROOT: dir, LANDING_GEAR_PORTALS: portals, CO_TEST_PARSER_MARKER: marker },
           encoding: 'utf-8',
           stdio: ['ignore', 'pipe', 'pipe'],
         });

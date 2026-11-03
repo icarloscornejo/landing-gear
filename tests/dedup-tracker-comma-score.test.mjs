@@ -18,7 +18,7 @@ ok('a hand-typed decimal-comma score wins the dedup keeper pick', () => {
       '|---|---|---|---|---|---|---|---|---|',
       '| 1 | 2026-03-02 | ExampleCorp | Platform Engineer | 4.1/5 | Evaluated | ❌ | [1](reports/001-examplecorp-2026-03-02.md) | |',
       '| 2 | 2026-03-02 | ExampleCorp | Platform Engineer | 4,2/5 | Evaluated | ❌ | [1](reports/001-examplecorp-2026-03-02.md) | |', ''].join('\n'));
-    execFileSync(process.execPath, [DEDUP], { encoding: 'utf-8', env: { ...process.env, CAREER_OPS_TRACKER: tracker } });
+    execFileSync(process.execPath, [DEDUP], { encoding: 'utf-8', env: { ...process.env, LANDING_GEAR_TRACKER: tracker } });
     const rows = readFileSync(tracker, 'utf-8').split('\n').filter(l => /^\|\s*\d+\s*\|/.test(l));
     assert.deepEqual(rows.map(r => r.split('|')[5].trim()), ['4,2/5']);
   } finally {

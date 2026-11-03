@@ -1,8 +1,8 @@
-# Running career-ops with Hermes Agent
+# Running landing-gear with Hermes Agent
 
 This page is the full guide for using this repository from [Hermes Agent](https://hermes-agent.nousresearch.com). It assumes no prior setup beyond a working Hermes install.
 
-Hermes is not a special case for career-ops. The pipeline is the same set of markdown prompt files and Node scripts that every other CLI drives. What differs is only how you point Hermes at this folder, and two behaviours that are specific to Hermes.
+Hermes is not a special case for landing-gear. The pipeline is the same set of markdown prompt files and Node scripts that every other CLI drives. What differs is only how you point Hermes at this folder, and two behaviours that are specific to Hermes.
 
 ## What you need
 
@@ -13,8 +13,8 @@ Hermes is not a special case for career-ops. The pipeline is the same set of mar
 ## Step 1 — Clone and install once
 
 ```bash
-git clone https://github.com/career-ops-hq/career-ops.git
-cd career-ops
+git clone https://github.com/icarloscornejo/landing-gear.git
+cd landing-gear
 npm install
 ```
 
@@ -31,13 +31,13 @@ This step matters more than it looks. Both the project rules and the repository'
 **Desktop app.** The left sidebar lists your local Git repositories as projects, and this repo appears there automatically once cloned. Selecting it scopes new chats to the folder. If it does not appear, point the app at the folder directly:
 
 ```bash
-hermes desktop --cwd /path/to/career-ops
+hermes desktop --cwd /path/to/landing-gear
 ```
 
 **Terminal.**
 
 ```bash
-cd /path/to/career-ops
+cd /path/to/landing-gear
 hermes
 ```
 
@@ -105,7 +105,7 @@ The web UI can run Hermes in one-shot mode for explicitly non-writing workers:
 hermes chat -q "<prompt>" --oneshot -Q --no-restore-cwd
 ```
 
-This returns one plain-text answer without resuming an unrelated session. The worker inherits Hermes's configured tools, approvals, memory, and project-context rules. In the web UI, Hermes is supported only for explicitly non-writing workers such as research and PDF drafting; career-ops rejects Hermes for evaluation and portal-repair workers because no verified Hermes permission adapter exists. Hermes is not supported by batch ranking (`--cli hermes` exits with an error); batch ranking remains a separate workflow and writes only its own guarded annotations. Do not use Hermes for unattended mutation workflows.
+This returns one plain-text answer without resuming an unrelated session. The worker inherits Hermes's configured tools, approvals, memory, and project-context rules. In the web UI, Hermes is supported only for explicitly non-writing workers such as research and PDF drafting; landing-gear rejects Hermes for evaluation and portal-repair workers because no verified Hermes permission adapter exists. Hermes is not supported by batch ranking (`--cli hermes` exits with an error); batch ranking remains a separate workflow and writes only its own guarded annotations. Do not use Hermes for unattended mutation workflows.
 
 The interactive workflow remains available for tasks that benefit from session continuity.
 
@@ -120,4 +120,4 @@ The interactive workflow remains available for tasks that benefit from session c
 
 ## What the agent will never do
 
-career-ops prepares, you decide. No Hermes session will submit an application, send an email, or click anything on your behalf.
+landing-gear prepares, you decide. No Hermes session will submit an application, send an email, or click anything on your behalf.

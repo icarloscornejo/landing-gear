@@ -57,7 +57,7 @@ test('the nearest installation wins', () => {
 test('returns null when the package is installed nowhere', () => {
   const root = tempTree();
   try {
-    assert.equal(findInstalledPackage('career-ops-no-such-package-4f2a', root), null);
+    assert.equal(findInstalledPackage('landing-gear-no-such-package-4f2a', root), null);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

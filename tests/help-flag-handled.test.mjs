@@ -42,7 +42,7 @@ const FIXED = [
 // against the developer's own root is a run that reads their data — and the
 // assertions would then depend on whose machine it is. Every child gets its own
 // data root, and every variable that could point back out of it is cleared:
-// CAREER_OPS_TRACKER outranks the resolved root (#3988), and the per-file
+// LANDING_GEAR_TRACKER outranks the resolved root (#3988), and the per-file
 // overrides would each pull one read back to a real path.
 const sandboxes = [];
 function makeRoot(populated) {
@@ -84,11 +84,11 @@ function runIn(root, script, args) {
     timeout: 60_000,
     env: {
       ...process.env,
-      CAREER_OPS_ROOT: root,
-      CAREER_OPS_DATA_DIR: '',
-      CAREER_OPS_TRACKER: '',
-      CAREER_OPS_PROFILE: '',
-      CAREER_OPS_REPORTS_DIR: '',
+      LANDING_GEAR_ROOT: root,
+      LANDING_GEAR_DATA_DIR: '',
+      LANDING_GEAR_TRACKER: '',
+      LANDING_GEAR_PROFILE: '',
+      LANDING_GEAR_REPORTS_DIR: '',
     },
   });
   assert.equal(r.error, undefined, `${script} failed to spawn: ${r.error?.message}`);

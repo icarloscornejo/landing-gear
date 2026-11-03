@@ -3,7 +3,7 @@ package data
 import (
 	"testing"
 
-	"github.com/santifer/career-ops/dashboard/internal/model"
+	"github.com/icarloscornejo/landing-gear/dashboard/internal/model"
 )
 
 // mustParseApplications is ParseApplications for the tests that expect the read
@@ -13,11 +13,11 @@ import (
 // discarded form would let a test that stopped being able to read its own
 // fixture keep running against a nil slice, pass every "no unexpected rows"
 // assertion, and report as coverage. Failing here names the fixture instead.
-func mustParseApplications(t *testing.T, careerOpsPath string) []model.CareerApplication {
+func mustParseApplications(t *testing.T, landingGearPath string) []model.CareerApplication {
 	t.Helper()
-	apps, err := ParseApplications(careerOpsPath)
+	apps, err := ParseApplications(landingGearPath)
 	if err != nil {
-		t.Fatalf("ParseApplications(%q): %v", careerOpsPath, err)
+		t.Fatalf("ParseApplications(%q): %v", landingGearPath, err)
 	}
 	return apps
 }

@@ -25,7 +25,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 // repo root, where `cwd/..` points outside the checkout and every core case
 // would skip as "not resolvable" while reporting green.
 const CORE =
-  process.env.CAREER_OPS_ROOT ||
+  process.env.LANDING_GEAR_ROOT ||
   path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const coreSeed = path.join(CORE, "followup-seed.mjs");
 

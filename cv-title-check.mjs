@@ -61,12 +61,12 @@ import { tmpdir } from 'os';
 import { spawnSync } from 'child_process';
 import { normalizeCompany } from './tracker-utils.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
-import { getCareerOpsRoot } from './path-resolver.mjs';
+import { getLandingGearRoot } from './path-resolver.mjs';
 import {
   boldLineText, findExperienceSections, headingText, toPlainText, EXPERIENCE_HEADING_NAMES,
 } from './lib/cv-markdown.mjs';
 
-const CV_PATH = join(getCareerOpsRoot(), 'cv.md');
+const CV_PATH = join(getLandingGearRoot(), 'cv.md');
 
 // ── cv.md experience parsing ────────────────────────────────────────
 //
@@ -591,10 +591,10 @@ function runSelfTest() {
 `;
     writeFileSync(join(cliTmp, 'cv.md'), validCv);
 
-    // cv.md resolves through getCareerOpsRoot(), not the cwd, so each run
-    // points CAREER_OPS_ROOT at its fixture directory explicitly.
+    // cv.md resolves through getLandingGearRoot(), not the cwd, so each run
+    // points LANDING_GEAR_ROOT at its fixture directory explicitly.
     const runCli = (args, cwd = cliTmp, root = cwd) => spawnSync(process.execPath, [scriptPath, ...args], {
-      cwd, encoding: 'utf-8', env: { ...process.env, CAREER_OPS_ROOT: root },
+      cwd, encoding: 'utf-8', env: { ...process.env, LANDING_GEAR_ROOT: root },
     });
 
     // Missing payload argument entirely -> usage error, exit 1.
@@ -658,7 +658,7 @@ function runSelfTest() {
     }
 
     // cv.md comes from the data root, not the cwd: run from a directory with a
-    // decoy cv.md and point CAREER_OPS_ROOT at the real one.
+    // decoy cv.md and point LANDING_GEAR_ROOT at the real one.
     const rootDir = mkdtempSync(join(tmpdir(), 'cv-title-check-root-'));
     const cwdDir = mkdtempSync(join(tmpdir(), 'cv-title-check-cwd-'));
     try {
@@ -668,7 +668,7 @@ function runSelfTest() {
         experience: [{ company: 'Acme Corp', role: 'Engineering Lead', dates: '2020-2024' }],
       }));
       const rootRun = runCli(['p.json', '--summary'], cwdDir, rootDir);
-      eq('CLI reads cv.md from CAREER_OPS_ROOT, not the cwd', /title mismatch/i.test(rootRun.stdout), true);
+      eq('CLI reads cv.md from LANDING_GEAR_ROOT, not the cwd', /title mismatch/i.test(rootRun.stdout), true);
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
       rmSync(cwdDir, { recursive: true, force: true });

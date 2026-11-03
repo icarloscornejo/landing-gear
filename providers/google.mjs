@@ -26,7 +26,7 @@ import { htmlToText } from './_html-to-text.mjs';
 //   Disallow: /about/careers/applications/jobs/results/?*&page=
 //
 // with no Allow under /about/careers that could take precedence (RFC 9309 §2.2.2
-// longest-match). career-ops declines Lagou for the same reason — see
+// longest-match). landing-gear declines Lagou for the same reason — see
 // docs/SUPPORTED_JOB_BOARDS.md: "The project does not route around that stated
 // restriction." So this provider never sends `page`, which leaves one results
 // page per query (~20 postings). `sort_by=date` makes that page the NEWEST

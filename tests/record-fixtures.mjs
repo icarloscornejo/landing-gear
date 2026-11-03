@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const SUITE = path.join(here, 'depends-on.test.mjs');
 const OUT = path.join(here, 'fixtures', 'rendered-bodies.json');
-const REPO = process.env.GITHUB_REPOSITORY || 'career-ops-hq/career-ops';
+const REPO = process.env.GITHUB_REPOSITORY || 'icarloscornejo/landing-gear';
 
 // Every string literal in the suite that could possibly declare, not just the
 // ones written inline at a `refs(` call. Cases live in arrays and locals too, and

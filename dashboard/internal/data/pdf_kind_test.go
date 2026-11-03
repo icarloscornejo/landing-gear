@@ -3,8 +3,8 @@ package data
 import "testing"
 
 func TestPDFManifestReadersExcludeCoverLetters(t *testing.T) {
-	t.Setenv("CAREER_OPS_TRACKER", "")
-	t.Setenv("CAREER_OPS_PDF_INDEX", "")
+	t.Setenv("LANDING_GEAR_TRACKER", "")
+	t.Setenv("LANDING_GEAR_PDF_INDEX", "")
 	root := t.TempDir()
 	writeFixture(t, root, "data/pdf-index.tsv",
 		"7\toutput/cv-acme.pdf\toutput/cv-acme.html\tletter\t2026-09-01\tcv\n"+

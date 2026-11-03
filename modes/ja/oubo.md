@@ -102,7 +102,7 @@ Legal、demographic、work-authorization、visa/sponsorship、salary、disabilit
 2. **Previous Section H / `## Application Answers`:** Draft か final response があれば base として使い refine
 3. **"I'm choosing you" tone:** Same auto-pipeline framework
 4. **Specificity:** 画面上に見える JD の specific detail を reference
-5. **career-ops proof point:** "Additional info" field があれば含める
+5. **landing-gear proof point:** "Additional info" field があれば含める
 6. **Recruiter-side risk map:** `modes/heuristics/recruiter-side.md` を使い、question が解消しようとしている doubt（motivation、stack fit、logistics、comp、work-auth、availability、seniority）を特定し、そこに直接答える
 7. **Disclosure discipline:** Logistics questions には truthfully に答えるが、unrelated motivation/fit answers で sensitive or HR-only details を自発的に出さない
 

@@ -171,13 +171,13 @@ test('match-star warns once per unverified figure and stays quiet for a verified
 });
 
 test('npm run star reads the marker from the story bank on disk', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-star-provenance-'));
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-star-provenance-'));
   try {
     mkdirSync(join(dir, 'interview-prep'));
     writeFileSync(join(dir, 'interview-prep', 'story-bank.md'), `# Story Bank\n\n${SCALING}\n${REPORTING}`);
     writeFileSync(join(dir, 'cv.md'), CV);
     const run = spawnSync(process.execPath, [join(ROOT, 'match-star.mjs'), 'Tell me about an automation you built'], {
-      cwd: dir, encoding: 'utf-8', env: { ...process.env, CAREER_OPS_ROOT: dir },
+      cwd: dir, encoding: 'utf-8', env: { ...process.env, LANDING_GEAR_ROOT: dir },
     });
     assert.equal(run.status, 0, run.stderr);
     assert.match(run.stdout, /Weekly reporting/);

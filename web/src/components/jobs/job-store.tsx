@@ -55,8 +55,8 @@ export function useJobs() {
   return c;
 }
 
-const JOBS_KEY = "career-ops:jobs";
-const DISMISSED_KEY = "career-ops:dismissed-runs";
+const JOBS_KEY = "landing-gear:jobs";
+const DISMISSED_KEY = "landing-gear:dismissed-runs";
 
 /** A server-owned run as a Job; the step log stays on the server (/jobs/<id> polls it). */
 function jobFromRun(run: LiveRunSummary): Job {

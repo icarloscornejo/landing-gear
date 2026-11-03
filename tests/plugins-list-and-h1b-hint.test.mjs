@@ -18,16 +18,16 @@ function check(ok, msg, detail = '') {
   else fail(detail ? `${msg}\n${detail}` : msg);
 }
 
-// CAREER_OPS_ROOT stays the scratch root tests/helpers.mjs pins.
+// LANDING_GEAR_ROOT stays the scratch root tests/helpers.mjs pins.
 function plugins(args) {
   return spawnSync(NODE, [join(ROOT, 'plugins.mjs'), ...args], { cwd: ROOT, env: process.env, encoding: 'utf8' });
 }
 
 {
   const cases = [
-    [{ author: 'fabrikam-dev', repo: 'https://github.com/contoso/career-ops-plugin-x' }, 'fabrikam-dev'],
-    [{ repo: 'https://github.com/contoso/career-ops-plugin-x' }, 'contoso'],
-    [{ author: '  ', repo: 'https://github.com/contoso/career-ops-plugin-x.git' }, 'contoso'],
+    [{ author: 'fabrikam-dev', repo: 'https://github.com/contoso/landing-gear-plugin-x' }, 'fabrikam-dev'],
+    [{ repo: 'https://github.com/contoso/landing-gear-plugin-x' }, 'contoso'],
+    [{ author: '  ', repo: 'https://github.com/contoso/landing-gear-plugin-x.git' }, 'contoso'],
     [{ repo: 'https://gitlab.example/contoso/x' }, null],
     [{}, null],
   ];

@@ -26,7 +26,7 @@
 //
 // Hermetic: every tracker, report and lock lives under a mkdtemp directory.
 // merge-tracker runs in-process through its exported mergeTracker(); the
-// set-status cases spawn the real CLI with CAREER_OPS_TRACKER pointing at the
+// set-status cases spawn the real CLI with LANDING_GEAR_TRACKER pointing at the
 // sandbox, as tests/set-status.test.mjs does.
 import { pass, fail, ROOT, NODE } from './helpers.mjs';
 import { execFileSync } from 'node:child_process';
@@ -271,10 +271,10 @@ function runSetStatus(sandbox, args) {
       // sentinel; point both into the sandbox so the real checkout is untouched.
       env: {
         ...process.env,
-        CAREER_OPS_ROOT: sandbox.root,
-        CAREER_OPS_ACTIVITY_DIR: join(sandbox.root, '.career-ops-locks', 'active'),
-        CAREER_OPS_TRACKER: sandbox.appsFile,
-        CAREER_OPS_TRACKER_LOCK: sandbox.lockDir,
+        LANDING_GEAR_ROOT: sandbox.root,
+        LANDING_GEAR_ACTIVITY_DIR: join(sandbox.root, '.landing-gear-locks', 'active'),
+        LANDING_GEAR_TRACKER: sandbox.appsFile,
+        LANDING_GEAR_TRACKER_LOCK: sandbox.lockDir,
       },
     });
     return { code: 0, out: stdout };
@@ -285,7 +285,7 @@ function runSetStatus(sandbox, args) {
 
 for (const seed of SEEDS) {
   const label = `seed ${seed}`;
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-seeded-tracker-'));
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-seeded-tracker-'));
   const failures = [];
   try {
     const { rng, rows, trackerLines, additions } = buildScenario(seed);
@@ -297,7 +297,7 @@ for (const seed of SEEDS) {
     const sandbox = {
       root: dir,
       appsFile,
-      lockDir: join(dir, 'career-ops-merge-tracker-seeded.lock'),
+      lockDir: join(dir, 'landing-gear-merge-tracker-seeded.lock'),
     };
     const options = {
       appsFile, dataRoot: dir, additionsDir,

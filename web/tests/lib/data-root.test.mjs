@@ -8,7 +8,7 @@ import { resolveDataRoot } from "../../src/lib/core/data-root.mjs";
 
 const CORE = path.resolve(import.meta.dirname, "../../..");
 
-/** resolveDataRoot wired to a real directory, like careerOpsRoot() wires it. */
+/** resolveDataRoot wired to a real directory, like landingGearRoot() wires it. */
 function resolve(coreRoot, env = {}) {
   const readMarker = (p) => {
     try {
@@ -31,29 +31,29 @@ test("no env, no marker → the core root itself", () => {
   assert.equal(resolve(core), core);
 });
 
-test("CAREER_OPS_ROOT (absolute) wins and is returned unchanged", () => {
+test("LANDING_GEAR_ROOT (absolute) wins and is returned unchanged", () => {
   const core = tmpdir();
   const other = tmpdir();
-  assert.equal(resolve(core, { CAREER_OPS_ROOT: other }), other);
+  assert.equal(resolve(core, { LANDING_GEAR_ROOT: other }), other);
 });
 
-test("CAREER_OPS_DATA_DIR is honored — the variable web/ previously ignored", () => {
+test("LANDING_GEAR_DATA_DIR is honored — the variable web/ previously ignored", () => {
   const core = tmpdir();
   const other = tmpdir();
-  assert.equal(resolve(core, { CAREER_OPS_DATA_DIR: other }), other);
+  assert.equal(resolve(core, { LANDING_GEAR_DATA_DIR: other }), other);
 });
 
-test("CAREER_OPS_ROOT beats CAREER_OPS_DATA_DIR when both are set", () => {
+test("LANDING_GEAR_ROOT beats LANDING_GEAR_DATA_DIR when both are set", () => {
   const core = tmpdir();
   const win = tmpdir();
   const lose = tmpdir();
-  assert.equal(resolve(core, { CAREER_OPS_ROOT: win, CAREER_OPS_DATA_DIR: lose }), win);
+  assert.equal(resolve(core, { LANDING_GEAR_ROOT: win, LANDING_GEAR_DATA_DIR: lose }), win);
 });
 
-test(".career-ops-data marker is honored — the file web/ previously ignored", () => {
+test(".landing-gear-data marker is honored — the file web/ previously ignored", () => {
   const core = tmpdir();
   const data = tmpdir();
-  fs.writeFileSync(path.join(core, ".career-ops-data"), data);
+  fs.writeFileSync(path.join(core, ".landing-gear-data"), data);
   assert.equal(resolve(core), data);
 });
 
@@ -61,20 +61,20 @@ test("env beats the marker", () => {
   const core = tmpdir();
   const viaMarker = tmpdir();
   const viaEnv = tmpdir();
-  fs.writeFileSync(path.join(core, ".career-ops-data"), viaMarker);
-  assert.equal(resolve(core, { CAREER_OPS_ROOT: viaEnv }), viaEnv);
+  fs.writeFileSync(path.join(core, ".landing-gear-data"), viaMarker);
+  assert.equal(resolve(core, { LANDING_GEAR_ROOT: viaEnv }), viaEnv);
 });
 
 test("an empty marker falls through to the core root, never resolving to it by accident", () => {
   const core = tmpdir();
-  fs.writeFileSync(path.join(core, ".career-ops-data"), "   \n");
+  fs.writeFileSync(path.join(core, ".landing-gear-data"), "   \n");
   assert.equal(resolve(core), core);
 });
 
 test("a trailing newline in the marker is trimmed (editors add one)", () => {
   const core = tmpdir();
   const data = tmpdir();
-  fs.writeFileSync(path.join(core, ".career-ops-data"), `${data}\n`);
+  fs.writeFileSync(path.join(core, ".landing-gear-data"), `${data}\n`);
   assert.equal(resolve(core), data);
 });
 
@@ -83,7 +83,7 @@ test("a trailing newline in the marker is trimmed (editors add one)", () => {
 test("RELATIVE values resolve against the CORE root, not web/", () => {
   const core = tmpdir();
   fs.mkdirSync(path.join(core, "web"), { recursive: true });
-  fs.writeFileSync(path.join(core, ".career-ops-data"), "./shared-data");
+  fs.writeFileSync(path.join(core, ".landing-gear-data"), "./shared-data");
 
   // The bug: resolving against process.cwd() (= <core>/web) yields
   // <core>/web/shared-data. The core yields <core>/shared-data.
@@ -93,7 +93,7 @@ test("RELATIVE values resolve against the CORE root, not web/", () => {
 
 test("a dot-dot relative marker escapes the checkout, as the core intends", () => {
   const core = tmpdir();
-  fs.writeFileSync(path.join(core, ".career-ops-data"), "../sibling-data");
+  fs.writeFileSync(path.join(core, ".landing-gear-data"), "../sibling-data");
   assert.equal(resolve(core), path.resolve(core, "../sibling-data"));
 });
 
@@ -112,11 +112,11 @@ test("AGREES with the core's path-resolver.mjs on every branch", async (t) => {
     { name: "relative marker", marker: "./shared-data", env: {} },
     { name: "dot-dot marker", marker: "../sibling-data", env: {} },
     { name: "empty marker", marker: "  \n", env: {} },
-    { name: "CAREER_OPS_ROOT absolute", marker: null, env: { CAREER_OPS_ROOT: "ABS" } },
-    { name: "CAREER_OPS_ROOT relative", marker: null, env: { CAREER_OPS_ROOT: "./from-env" } },
-    { name: "CAREER_OPS_DATA_DIR relative", marker: null, env: { CAREER_OPS_DATA_DIR: "./from-data-dir" } },
-    { name: "both env vars set", marker: null, env: { CAREER_OPS_ROOT: "./win", CAREER_OPS_DATA_DIR: "./lose" } },
-    { name: "env overrides marker", marker: "./from-marker", env: { CAREER_OPS_ROOT: "./from-env" } },
+    { name: "LANDING_GEAR_ROOT absolute", marker: null, env: { LANDING_GEAR_ROOT: "ABS" } },
+    { name: "LANDING_GEAR_ROOT relative", marker: null, env: { LANDING_GEAR_ROOT: "./from-env" } },
+    { name: "LANDING_GEAR_DATA_DIR relative", marker: null, env: { LANDING_GEAR_DATA_DIR: "./from-data-dir" } },
+    { name: "both env vars set", marker: null, env: { LANDING_GEAR_ROOT: "./win", LANDING_GEAR_DATA_DIR: "./lose" } },
+    { name: "env overrides marker", marker: "./from-marker", env: { LANDING_GEAR_ROOT: "./from-env" } },
   ];
 
   for (const c of cases) {
@@ -125,20 +125,20 @@ test("AGREES with the core's path-resolver.mjs on every branch", async (t) => {
     const subst = (v) => (v === "ABS" ? abs : v);
 
     fs.copyFileSync(src, path.join(core, "path-resolver.mjs"));
-    if (c.marker !== null) fs.writeFileSync(path.join(core, ".career-ops-data"), subst(c.marker));
+    if (c.marker !== null) fs.writeFileSync(path.join(core, ".landing-gear-data"), subst(c.marker));
 
     const env = Object.fromEntries(Object.entries(c.env).map(([k, v]) => [k, subst(v)]));
 
     const saved = { ...process.env };
-    delete process.env.CAREER_OPS_ROOT;
-    delete process.env.CAREER_OPS_DATA_DIR;
+    delete process.env.LANDING_GEAR_ROOT;
+    delete process.env.LANDING_GEAR_DATA_DIR;
     Object.assign(process.env, env);
 
     let core_answer;
     try {
       // cache-bust: each fixture is a distinct module instance
       const mod = await import(`${pathToFileURL(path.join(core, "path-resolver.mjs")).href}?c=${encodeURIComponent(c.name)}`);
-      core_answer = mod.getCareerOpsRoot();
+      core_answer = mod.getLandingGearRoot();
     } finally {
       for (const k of Object.keys(process.env)) delete process.env[k];
       Object.assign(process.env, saved);

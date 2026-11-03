@@ -33,7 +33,7 @@ test('a tab-layout tracker normalizes in place and keeps its layout', () => {
       cwd: ROOT,
       encoding: 'utf-8',
       timeout: 60_000,
-      env: { ...process.env, CAREER_OPS_ROOT: dataRoot, CAREER_OPS_TRACKER: '' },
+      env: { ...process.env, LANDING_GEAR_ROOT: dataRoot, LANDING_GEAR_TRACKER: '' },
     });
     assert.equal(r.status, 0, `normalize-statuses exited ${r.status}\n${r.stdout}\n${r.stderr}`);
 

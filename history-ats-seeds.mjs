@@ -3,7 +3,7 @@ import path from 'path';
 import { atsVendorOf } from './ats-vendor.mjs';
 import { parseScanHistoryLine } from './lib/scan-history-columns.mjs';
 import { detectColumns, extractCellUrl, isHeaderRow, isSeparatorRow, linkedReportNumbers, reportUrlForNumbers as reportUrlFromReports } from './tracker-parse.mjs';
-import { getCareerOpsRoot, resolveTrackerPath } from './path-resolver.mjs';
+import { getLandingGearRoot, resolveTrackerPath } from './path-resolver.mjs';
 import { resolveWorkspaceRoot } from './tracker-utils.mjs';
 
 const WEB_URL_RE = /https?:\/\/[^\s|)>]+/i;
@@ -120,9 +120,9 @@ function readIfPresent(file) {
  * Duplicate postings from the same board collapse to one provider fetch.
  */
 export function loadHistoryAtsSeeds({
-  dataRoot = getCareerOpsRoot(),
+  dataRoot = getLandingGearRoot(),
   trackerPath = resolveTrackerPath(dataRoot),
-  scanHistoryPath = process.env.CAREER_OPS_SCAN_HISTORY || path.join(dataRoot, 'data/scan-history.tsv'),
+  scanHistoryPath = process.env.LANDING_GEAR_SCAN_HISTORY || path.join(dataRoot, 'data/scan-history.tsv'),
 } = {}) {
   const reportsRoot = path.join(resolveWorkspaceRoot(trackerPath), 'reports');
   const combined = [

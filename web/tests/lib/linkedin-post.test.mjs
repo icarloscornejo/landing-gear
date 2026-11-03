@@ -9,6 +9,14 @@ import { dedupKey, judgePost, postLocation, postTitle, splitPost } from "../../s
 import { preTriage } from "../../src/lib/pre-triage.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
+
+test("the hybrid/on-site pattern is the same in linkedin-post.mjs and pre-triage.mjs", () => {
+  const line = (file, name) => fs.readFileSync(path.join(here, "../../src/lib", file), "utf8").split("\n").find((l) => l.startsWith(`const ${name} =`));
+  for (const name of ["WORK_MODE", "REMOTE_OPTION"]) {
+    assert.ok(line("linkedin-post.mjs", name), name);
+    assert.equal(line("linkedin-post.mjs", name), line("pre-triage.mjs", name), name);
+  }
+});
 const judgeFixture = (name) => {
   const { posts } = JSON.parse(fs.readFileSync(path.join(here, "../fixtures", name), "utf8"));
   return new Map(posts.map(({ id, lines }) => {

@@ -116,7 +116,7 @@ const mkErr = (code) => Object.assign(new Error(code), { code });
 // writeFileAtomic's own contract: the destination is replaced, and on failure
 // no `.applications.md.<pid>.<ts>.<uuid>.tmp` is left behind.
 {
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-rename-'));
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-rename-'));
   try {
     const target = join(dir, 'applications.md');
     writeFileSync(target, 'original\n');

@@ -108,7 +108,7 @@ check(
 // directories already committed in this repo (modes/de, modes/zh — both fully
 // translated, per AGENTS.md) rather than fabricating fake ones; only
 // config/profile.yml, cv.md and modes/_profile.md need to live in the sandbox,
-// via CAREER_OPS_ROOT (getCareerOpsRoot() in path-resolver.mjs honors it).
+// via LANDING_GEAR_ROOT (getLandingGearRoot() in path-resolver.mjs honors it).
 // Capture both streams because gemini-eval.mjs's missing-file warnings go
 // through console.warn (stderr). Use its deterministic --context-only seam so
 // these tests never contact Gemini (CodeRabbit, PR #3798).
@@ -126,7 +126,7 @@ function runGeminiEval(modesDirYaml) {
 
     const result = spawnSync(NODE, [join(ROOT, 'gemini-eval.mjs'), '--file', jdPath, '--no-save', '--context-only'], {
       cwd: tmp,
-      env: { ...process.env, GEMINI_API_KEY: 'mock-api-key-12345', CAREER_OPS_ROOT: tmp },
+      env: { ...process.env, GEMINI_API_KEY: 'mock-api-key-12345', LANDING_GEAR_ROOT: tmp },
       encoding: 'utf-8',
       timeout: 30000,
     });

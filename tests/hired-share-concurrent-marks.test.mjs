@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { ROOT, pass, fail } from './helpers.mjs';
-const root = realpathSync(mkdtempSync(join(tmpdir(), 'career-ops-state-writers-')));
+const root = realpathSync(mkdtempSync(join(tmpdir(), 'landing-gear-state-writers-')));
 mkdirSync(join(root, 'data'), { recursive: true });
 const hook = join(root, 'slow-ledger-read.mjs');
 // Delay the real read return to expose simultaneous read/modify/write reliably.
@@ -27,7 +27,7 @@ fs.readFileSync = (path, ...options) => {
   return bytes;
 };
 syncBuiltinESMExports();\n`);
-const env = { ...process.env, CAREER_OPS_ROOT: root, CAREER_OPS_TRACKER: join(root, 'data', 'applications.md') };
+const env = { ...process.env, LANDING_GEAR_ROOT: root, LANDING_GEAR_TRACKER: join(root, 'data', 'applications.md') };
 function check(label, fn) { try { fn(); pass(label); } catch (e) { fail(`${label}: ${e.message}`); process.exitCode = 1; } }
 const child = (script, args, extraEnv = {}) => new Promise((resolve, reject) => {
   const p = spawn(process.execPath, ['--import', pathToFileURL(hook).href, join(ROOT, script), ...args], { env: { ...env, ...extraEnv }, stdio: ['ignore', 'pipe', 'pipe'] });
@@ -37,7 +37,7 @@ const child = (script, args, extraEnv = {}) => new Promise((resolve, reject) => 
 });
 
 const reports = Array.from({ length: 8 }, (_, i) => String(i + 1));
-writeFileSync(env.CAREER_OPS_TRACKER, '| # | Date | Company | Role | Score | Status | PDF | Report | Notes |\n|---|---|---|---|---|---|---|---|---|\n' + reports.map(n => `| ${n} | 2026-01-05 | Fictional | Engineer | 4/5 | Hired | — | [#${n}](reports/${n}-fictional.md) | notes |`).join('\n'));
+writeFileSync(env.LANDING_GEAR_TRACKER, '| # | Date | Company | Role | Score | Status | PDF | Report | Notes |\n|---|---|---|---|---|---|---|---|---|\n' + reports.map(n => `| ${n} | 2026-01-05 | Fictional | Engineer | 4/5 | Hired | — | [#${n}](reports/${n}-fictional.md) | notes |`).join('\n'));
 const statePath = join(root, 'data', '.hired-share-state.json');
 env.STATE_PATH = statePath;
 const previous = { status: 'never', askedAt: '2026-01-01T00:00:00Z' };

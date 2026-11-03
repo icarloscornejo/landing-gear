@@ -136,9 +136,9 @@ function recordHire(tz) {
     env: {
       ...process.env,
       TZ: tz,
-      CAREER_OPS_ROOT: dir,
-      CAREER_OPS_DATA_DIR: '',
-      CAREER_OPS_TRACKER: join(dir, 'data', 'applications.md'),
+      LANDING_GEAR_ROOT: dir,
+      LANDING_GEAR_DATA_DIR: '',
+      LANDING_GEAR_TRACKER: join(dir, 'data', 'applications.md'),
     },
   });
 

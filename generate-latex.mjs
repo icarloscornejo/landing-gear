@@ -7,7 +7,7 @@
  *   node generate-latex.mjs <input.tex> [output.pdf]
  *   node generate-latex.mjs <input.tex> [output.pdf] --compile-only
  *
- * Default: validates career-ops template structure (from templates/cv-template.tex).
+ * Default: validates landing-gear template structure (from templates/cv-template.tex).
  * --compile-only: skip template validation; compile any user-owned .tex (latex-tex mode).
  * --source <path>: an extra fact-gate source, repeatable (latex-tex passes the user's own .tex).
  * --skip-fact-check: compile without the fact gate.
@@ -27,7 +27,7 @@ import { existsSync, mkdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { isMainModule } from './lib/is-main-module.mjs';
 import { validateFlags } from './lib/cli-flags.mjs';
-import { getCareerOpsRoot } from './path-resolver.mjs';
+import { getLandingGearRoot } from './path-resolver.mjs';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 
@@ -306,7 +306,7 @@ export async function compileLatexFile(absPath, content, outputPath, compileOnly
  *   latex-tex mode, which is user-authored and may hold facts cv.md lacks.
  * @returns {Promise<{verdict: 'pass'|'warn'|'block'|'skipped', reason?: string, result?: object}>}
  */
-export async function runLatexFactGate(content, { root = getCareerOpsRoot(), extraSources = [], label } = {}) {
+export async function runLatexFactGate(content, { root = getLandingGearRoot(), extraSources = [], label } = {}) {
   const cvPath = join(root, 'cv.md');
   if (!existsSync(cvPath)) return { verdict: 'skipped', reason: `no cv.md in ${root}` };
   // Imported lazily, as generate-pdf.mjs does: a test that copies this script
@@ -333,7 +333,7 @@ const KNOWN_FLAGS = ['--compile-only', '--skip-fact-check', '--source', '--help'
 const VALUE_FLAGS = ['--source'];
 
 const USAGE = `Usage:
-  node generate-latex.mjs <input.tex> [output.pdf]                 # fact-check, validate career-ops template structure, then compile
+  node generate-latex.mjs <input.tex> [output.pdf]                 # fact-check, validate landing-gear template structure, then compile
   node generate-latex.mjs <input.tex> [output.pdf] --compile-only  # skip template validation; compile any user-owned .tex (latex-tex mode)
   node generate-latex.mjs <input.tex> [output.pdf] --source <path> # add a fact-gate source (repeatable), e.g. the user's own .tex
   node generate-latex.mjs <input.tex> [output.pdf] --skip-fact-check

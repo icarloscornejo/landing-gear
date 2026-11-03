@@ -41,7 +41,7 @@ func CheckoutScriptPath(name string) (string, error) {
 			return filepath.Abs(script)
 		}
 	}
-	return "", fmt.Errorf("dashboard actions need %s in the career-ops checkout", name)
+	return "", fmt.Errorf("dashboard actions need %s in the landing-gear checkout", name)
 }
 
 func runStatusWriter(dataRoot, report, status, note string) error {
@@ -99,9 +99,9 @@ func runStatusWriter(dataRoot, report, status, note string) error {
 		}
 		return strconv.FormatInt(wait.Milliseconds(), 10)
 	}
-	cmd.Env = append(cmd.Environ(), "CAREER_OPS_ROOT="+root, "CAREER_OPS_TRACKER="+tracker,
-		"CAREER_OPS_TRACKER_LOCK_TIMEOUT_MS="+boundedWait("CAREER_OPS_TRACKER_LOCK_TIMEOUT_MS"),
-		"CAREER_OPS_FOLLOWUPS_LOCK_TIMEOUT_MS="+boundedWait("CAREER_OPS_FOLLOWUPS_LOCK_TIMEOUT_MS"))
+	cmd.Env = append(cmd.Environ(), "LANDING_GEAR_ROOT="+root, "LANDING_GEAR_TRACKER="+tracker,
+		"LANDING_GEAR_TRACKER_LOCK_TIMEOUT_MS="+boundedWait("LANDING_GEAR_TRACKER_LOCK_TIMEOUT_MS"),
+		"LANDING_GEAR_FOLLOWUPS_LOCK_TIMEOUT_MS="+boundedWait("LANDING_GEAR_FOLLOWUPS_LOCK_TIMEOUT_MS"))
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 	stdout, runErr := cmd.Output()

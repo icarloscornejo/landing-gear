@@ -69,7 +69,7 @@ test('a transport failure before response is an unverified zero when the provide
 });
 
 test('scan records a swallowed first-page HTTP failure as unverified_zero', () => {
-  const dataRoot = mkdtempSync(join(tmpdir(), 'career-ops-unverified-zero-'));
+  const dataRoot = mkdtempSync(join(tmpdir(), 'landing-gear-unverified-zero-'));
   try {
     mkdirSync(join(dataRoot, 'config'));
     writeFileSync(join(dataRoot, 'config', 'profile.yml'), '{}\n');
@@ -93,7 +93,7 @@ test('scan records a swallowed first-page HTTP failure as unverified_zero', () =
       '--import', pathToFileURL(preload).href, fileURLToPath(new URL('../scan.mjs', import.meta.url)), '--json', '--quiet',
     ], {
       cwd: dataRoot,
-      env: { ...process.env, CAREER_OPS_ROOT: dataRoot, CAREER_OPS_PORTALS: join(dataRoot, 'portals.yml') },
+      env: { ...process.env, LANDING_GEAR_ROOT: dataRoot, LANDING_GEAR_PORTALS: join(dataRoot, 'portals.yml') },
       encoding: 'utf8',
       timeout: 30000,
     });

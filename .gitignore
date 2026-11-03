@@ -7,7 +7,7 @@ local/
 # Data-root marker (DATA_CONTRACT.md "Custom Data Directory"). It holds a path
 # on this machine only, so committing it would point every other clone at a
 # directory that does not exist there.
-/.career-ops-data
+/.landing-gear-data
 # Everything under data/ is generated or personal at runtime — only .gitkeep
 # placeholders are tracked (verify with `git ls-files data/`). A blanket rule
 # means a new generated file (e.g. a future log/cache addition) is covered
@@ -117,7 +117,6 @@ modes/_brief.md
 voice-dna.md
 .update-dismissed
 .update-lock
-.manifesto-noted
 
 # Plugin layer — opt-in toggles + user-installed plugins + integrity lock (never auto-updated)
 config/plugins.yml
@@ -162,7 +161,7 @@ reports/*-RESERVED.md
 *.tmp*
 
 # The tracker and its follow-ups file in the LEGACY ROOT LAYOUT. resolveTrackerPath()
-# documents its own fallback chain — CAREER_OPS_TRACKER > <root>/data/applications.md
+# documents its own fallback chain — LANDING_GEAR_TRACKER > <root>/data/applications.md
 # > <root>/applications.md — and that third entry is a supported install shape, not a
 # mistake. data/ is covered by the blanket rule at the top of this file; the root
 # spelling was not covered by anything.
@@ -172,8 +171,8 @@ reports/*-RESERVED.md
 # already, and #3469 ignores the derived .db index on the argument that it "holds the
 # same PII as the tracker" — while the tracker itself sat beside it, unignored.
 #
-# Unanchored, like the .db rule below and for the same reason: getCareerOpsRoot()
-# resolves a relative CAREER_OPS_ROOT (or .career-ops-data marker) against the
+# Unanchored, like the .db rule below and for the same reason: getLandingGearRoot()
+# resolves a relative LANDING_GEAR_ROOT (or .landing-gear-data marker) against the
 # codebase directory, so a data root configured as `career-data` puts these inside
 # the checkout, where an anchored rule would not reach them. The upgrade fixtures
 # that share these names stay tracked via the `!test-fixtures/**` rule further down,
@@ -194,7 +193,7 @@ follow-ups.md
 # above match. SQLite's -wal/-shm sidecars travel with it.
 #
 # Deliberately not root-anchored. The index follows the tracker markdown, and
-# getCareerOpsRoot() resolves a relative CAREER_OPS_ROOT (or .career-ops-data
+# getLandingGearRoot() resolves a relative LANDING_GEAR_ROOT (or .landing-gear-data
 # marker) against the codebase directory — so a data root configured as
 # `career-data` puts both inside the checkout, in neither of the two places an
 # anchored rule would cover. Nothing tracked in this repo ends in .db, and an
@@ -242,7 +241,7 @@ playwright-report/
 plan/
 
 # Web — runtime cache/history the dashboard writes locally; nothing here is tracked.
-.career-ops-web/
+.landing-gear-web/
 
 # Upgrade-test fixtures are fictional system-layer data, never user data
 # (see DATA_CONTRACT.md). Re-include them past the unanchored user-layer
@@ -276,13 +275,13 @@ data/interview-prep/
 /tectonic.part.exe
 
 # Web UI local runtime and environment
-.career-ops.env
-**/.career-ops.env
+.landing-gear.env
+**/.landing-gear.env
 .next/
 web/.next/
 web/out/
 
-# Added by career-ops update-system.mjs.
+# Added by landing-gear update-system.mjs.
 # System-owned ignore rules that were missing from this file. Your own rules
 # are never modified, reordered or removed: the updater only appends patterns
 # it cannot already find somewhere in this file. Reordering these lines, or

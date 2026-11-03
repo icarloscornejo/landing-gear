@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import fs from "node:fs";
 import path from "node:path";
-import { careerOpsRoot } from "@/lib/career-ops";
+import { landingGearRoot } from "@/lib/landing-gear";
 import { setInboxSkip } from "@/lib/inbox-skip.mjs";
 import { readJsonObject } from "@/lib/json-body";
 
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
   }
   const done = body.done !== false;
 
-  const root = careerOpsRoot();
+  const root = landingGearRoot();
   const file = path.join(root, "data", "pipeline.md");
   const lockModule = path.join(root, "pipeline-lock.mjs");
   if (!fs.existsSync(lockModule)) {

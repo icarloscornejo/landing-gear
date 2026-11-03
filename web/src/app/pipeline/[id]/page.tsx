@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { notFound } from "next/navigation";
-import { readReport, findApplication, careerOpsRoot } from "@/lib/career-ops";
+import { readReport, findApplication, landingGearRoot } from "@/lib/landing-gear";
 import { ReportView } from "@/components/report-view";
 import { pipelineQuery } from "@/lib/pipeline-navigation.mjs";
 
@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 function readJdCapture(relPath: string): string | null {
   try {
-    return fs.readFileSync(path.join(careerOpsRoot(), relPath), "utf8");
+    return fs.readFileSync(path.join(landingGearRoot(), relPath), "utf8");
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === "ENOENT") return null;
     throw err;

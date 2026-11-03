@@ -11,7 +11,7 @@ import { describeSpawn } from './helpers/describe-spawn.mjs';
 const SCRIPT = join(ROOT, 'reply-watch.mjs');
 
 function setupWorkspace() {
-  const tmp = mkdtempSync(join(tmpdir(), 'career-ops-reply-watch-'));
+  const tmp = mkdtempSync(join(tmpdir(), 'landing-gear-reply-watch-'));
   const dataDir = join(tmp, 'data');
   mkdirSync(dataDir, { recursive: true });
   
@@ -29,7 +29,7 @@ function runReplyWatch(tmp, trackerFile, candidatesFile = null, input = '') {
     input,
     encoding: 'utf-8',
     timeout: 30000,
-    env: { ...process.env, CAREER_OPS_TRACKER: trackerFile }
+    env: { ...process.env, LANDING_GEAR_TRACKER: trackerFile }
   });
 }
 

@@ -84,7 +84,7 @@ test('a provider fetch to a name resolving to loopback is refused', async () => 
   try {
     await assert.rejects(
       () => fetchText(`http://localhost:${srv.port}/`, { timeoutMs: 4000 }),
-      (err) => codeOf(err) === 'ECAREEROPS_BLOCKED_ADDRESS',
+      (err) => codeOf(err) === 'ELANDINGGEAR_BLOCKED_ADDRESS',
       'localhost resolved to loopback and was connected to anyway',
     );
   } finally { srv.close(); }
@@ -99,7 +99,7 @@ test('a provider fetch to a LITERAL private address is refused, in every spellin
     for (const host of ['127.0.0.1', '[::ffff:127.0.0.1]', '[::1]', '2130706433', '0x7f000001', '0177.0.0.1', '127.1']) {
       await assert.rejects(
         () => fetchText(`http://${host}:${srv.port}/`, { timeoutMs: 4000 }),
-        (err) => codeOf(err) === 'ECAREEROPS_BLOCKED_ADDRESS',
+        (err) => codeOf(err) === 'ELANDINGGEAR_BLOCKED_ADDRESS',
         `http://${host}/ is loopback and was connected to anyway`,
       );
     }
@@ -111,7 +111,7 @@ test('a literal metadata or RFC1918 address is refused before any connection', a
     const started = Date.now();
     await assert.rejects(
       () => fetchText(`http://${host}/latest/meta-data/`, { timeoutMs: 4000 }),
-      (err) => codeOf(err) === 'ECAREEROPS_BLOCKED_ADDRESS',
+      (err) => codeOf(err) === 'ELANDINGGEAR_BLOCKED_ADDRESS',
       `http://${host}/ was dialled`,
     );
     assert.ok(Date.now() - started < 1000, `${host}: refused by the guard, not by a connect timeout`);
@@ -148,7 +148,7 @@ test('a cached lookup is guarded too, not just a fresh one', async () => {
       dnsModule.lookup('localhost', (err, addr) => (err ? reject(err) : resolve(addr))));
     await assert.rejects(
       () => fetchText(`http://localhost:${srv.port}/`, { timeoutMs: 4000 }),
-      (err) => codeOf(err) === 'ECAREEROPS_BLOCKED_ADDRESS',
+      (err) => codeOf(err) === 'ELANDINGGEAR_BLOCKED_ADDRESS',
       'a pre-warmed cache entry bypassed the guard',
     );
   } finally { srv.close(); }
@@ -162,7 +162,7 @@ test('the block code is not a resolver-failure code', () => {
   // counting it as the latter would negative-cache a refusal and could trip an
   // outage path over a config the user should be told about instead.
   const err = blockedAddressError('evil.example', '127.0.0.1');
-  assert.equal(err.code, 'ECAREEROPS_BLOCKED_ADDRESS');
+  assert.equal(err.code, 'ELANDINGGEAR_BLOCKED_ADDRESS');
   assert.equal(RESOLVER_FAILURE_CODES.has(err.code), false);
   assert.match(err.message, /evil\.example/);
   assert.match(err.message, /127\.0\.0\.1/);

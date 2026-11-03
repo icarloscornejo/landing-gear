@@ -16,7 +16,7 @@ import (
 )
 
 func TestTrackerLockDirMatchesNodeProtocol(t *testing.T) {
-	t.Setenv("CAREER_OPS_TRACKER_LOCK", "")
+	t.Setenv("LANDING_GEAR_TRACKER_LOCK", "")
 	_, trackerPath := writeTracker(t, insertedColumnTracker)
 	canonicalTracker, err := filepath.EvalSymlinks(trackerPath)
 	if err != nil {
@@ -27,7 +27,7 @@ func TestTrackerLockDirMatchesNodeProtocol(t *testing.T) {
 		t.Fatalf("canonical temp dir: %v", err)
 	}
 	sum := sha256.Sum256([]byte(canonicalTracker))
-	want := filepath.Join(canonicalTemp, fmt.Sprintf("career-ops-merge-tracker-%x.lock", sum[:8]))
+	want := filepath.Join(canonicalTemp, fmt.Sprintf("landing-gear-merge-tracker-%x.lock", sum[:8]))
 
 	got, err := trackerLockDirFor(trackerPath)
 	if err != nil {
@@ -39,7 +39,7 @@ func TestTrackerLockDirMatchesNodeProtocol(t *testing.T) {
 }
 
 func TestUpdateApplicationStatusWaitsForSharedLock(t *testing.T) {
-	t.Setenv("CAREER_OPS_TRACKER_LOCK", "")
+	t.Setenv("LANDING_GEAR_TRACKER_LOCK", "")
 	tempDir, trackerPath := writeTracker(t, insertedColumnTracker)
 	apps := mustParseApplications(t, tempDir)
 	if len(apps) != 1 {
@@ -249,7 +249,7 @@ func TestParseApplicationsResolvesTrackerRelativeReportLinks(t *testing.T) {
 		t.Fatalf("expected legacy root-relative link to resolve to %q, got %q", wantSecond, apps[1].ReportPath)
 	}
 
-	// Every consumer joins ReportPath against careerOpsPath — both rows
+	// Every consumer joins ReportPath against landingGearPath — both rows
 	// must point at files that exist.
 	for i, app := range apps {
 		if _, err := os.Stat(filepath.Join(tempDir, app.ReportPath)); err != nil {
@@ -259,7 +259,7 @@ func TestParseApplicationsResolvesTrackerRelativeReportLinks(t *testing.T) {
 }
 
 // A report named with parentheses must resolve whole: a `[^)]+` link regex
-// cut `001-acme-(berlin)-….md` at the first `)` (career-ops-hq/career-ops#5482).
+// cut `001-acme-(berlin)-….md` at the first `)` (upstream #5482).
 func TestParseApplicationsKeepsParenthesesInReportLink(t *testing.T) {
 	tempDir := t.TempDir()
 	dataDir := filepath.Join(tempDir, "data")
@@ -471,7 +471,7 @@ func TestResolveTrackerColumns(t *testing.T) {
 	}
 }
 
-func TestParseApplicationsRespectsCareerOpsTracker(t *testing.T) {
+func TestParseApplicationsRespectsLandingGearTracker(t *testing.T) {
 	tempDir := t.TempDir()
 
 	// Create a tracker file outside the tempDir's default search paths
@@ -487,7 +487,7 @@ func TestParseApplicationsRespectsCareerOpsTracker(t *testing.T) {
 		t.Fatalf("failed to write custom tracker: %v", err)
 	}
 
-	t.Setenv("CAREER_OPS_TRACKER", customTrackerPath)
+	t.Setenv("LANDING_GEAR_TRACKER", customTrackerPath)
 
 	apps := mustParseApplications(t, tempDir)
 	if len(apps) != 1 {

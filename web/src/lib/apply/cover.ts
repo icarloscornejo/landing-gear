@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { careerOpsRoot, findApplication, isRegularContainedFile } from "@/lib/career-ops";
+import { landingGearRoot, findApplication, isRegularContainedFile } from "@/lib/landing-gear";
 import { companySlug } from "@/lib/company-slug.mjs";
 import { hasToken, matchesTailoredCover, sortNewestFirst } from "./cv-match.mjs";
 
@@ -44,7 +44,7 @@ export async function resolveTailoredCover(company?: string, applicationNumber?:
 
   const key = companySlug(app?.company ?? company);
   if (!key) return null;
-  const dir = path.join(careerOpsRoot(), "output");
+  const dir = path.join(landingGearRoot(), "output");
 
   let files: string[];
   try {

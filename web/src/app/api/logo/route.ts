@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { careerOpsRoot } from "@/lib/career-ops";
+import { landingGearRoot } from "@/lib/landing-gear";
 import { companyDomain } from "@/lib/company";
 import { companyCacheKey } from "@/lib/core/logo-cache-key.mjs";
 import { companyDomains } from "@/lib/core/company-domains.mjs";
@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 // Localhost logo proxy + on-disk cache, FOREVER per key. Honors local-first: the
 // browser never talks to Google directly. Accepts `?domain=` (exact) OR
 // `?company=` (a name → we guess a handful of likely domains and resolve once).
-// Each key is fetched at most once ever, then served from .career-ops-web/logo-cache
+// Each key is fetched at most once ever, then served from .landing-gear-web/logo-cache
 // (a hit, or an empty sentinel for a known miss). On any miss → 404 so the
 // client's <img onError> falls back to the offline monogram. Because the cache is
 // keyed by company, once a company's logo resolves it's instant for that card AND
@@ -22,7 +22,7 @@ export const dynamic = "force-dynamic";
 const DOMAIN_RE = /^[a-z0-9.-]{1,253}\.[a-z]{2,}$/i;
 
 function cacheDir(): string {
-  return path.join(careerOpsRoot(), ".career-ops-web", "logo-cache");
+  return path.join(landingGearRoot(), ".landing-gear-web", "logo-cache");
 }
 
 /** Fetch a real favicon for one domain (Google's tokenless service). Returns the

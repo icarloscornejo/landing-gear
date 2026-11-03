@@ -1,6 +1,6 @@
 import { keepIfInstalled, pickSoleInstalled } from "./cli-pick.mjs";
 
-export const CONFIG_KEY = "career-ops:config";
+export const CONFIG_KEY = "landing-gear:config";
 
 export function readSavedCliId(): string | null {
   try {

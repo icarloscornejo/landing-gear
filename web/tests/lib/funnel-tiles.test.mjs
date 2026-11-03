@@ -25,19 +25,19 @@ test('Assessment, including a discarded assessment, is not an interview achievem
 test('history tiles resolve the configured checkout from an isolated runtime', async () => {
   const runtime = fs.mkdtempSync(path.join(os.tmpdir(), 'funnel-tiles-runtime-'));
   const previousCwd = process.cwd();
-  const previousCodeRoot = process.env.CAREER_OPS_CODE_ROOT;
+  const previousCodeRoot = process.env.LANDING_GEAR_CODE_ROOT;
   try {
     process.chdir(runtime);
     const apps = [{ n: '1', status: 'REJECTED' }];
     const ledger = '1\t2026-09-01\tOffer\tRejected';
     for (const override of [coreRoot, path.relative(process.cwd(), coreRoot)]) {
-      process.env.CAREER_OPS_CODE_ROOT = override;
+      process.env.LANDING_GEAR_CODE_ROOT = override;
       assert.deepEqual(await cumulativeTilesWithHistory(apps, ledger), { interviews: 1, offers: 1 });
     }
   } finally {
     process.chdir(previousCwd);
-    if (previousCodeRoot === undefined) delete process.env.CAREER_OPS_CODE_ROOT;
-    else process.env.CAREER_OPS_CODE_ROOT = previousCodeRoot;
+    if (previousCodeRoot === undefined) delete process.env.LANDING_GEAR_CODE_ROOT;
+    else process.env.LANDING_GEAR_CODE_ROOT = previousCodeRoot;
     fs.rmSync(runtime, { recursive: true, force: true });
   }
 });

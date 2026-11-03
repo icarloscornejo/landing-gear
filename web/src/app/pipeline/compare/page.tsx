@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { findApplication, readReport } from "@/lib/career-ops";
+import { findApplication, readReport } from "@/lib/landing-gear";
 import { legitimacyTone, parseReport, scoreTen, scoreTone } from "@/lib/format";
 import { compareIds, summaryFields } from "@/lib/pipeline-compare.mjs";
 import { Badge } from "@/components/ui/badge";

@@ -11,7 +11,7 @@
  *
  * resolveTargetRef() is the fix: the default ('release') channel resolves to
  * the newest published release tag via RELEASES_API; `--channel main` (flag
- * or, for the re-exec'd child, CAREER_OPS_UPDATE_CHANNEL=main) opts back into
+ * or, for the re-exec'd child, LANDING_GEAR_UPDATE_CHANNEL=main) opts back into
  * tracking main, with no network call at all. A failed release lookup on the
  * default channel throws — silently falling back to main would reintroduce
  * the exact bug this closes, on exactly the network blip that makes it matter.
@@ -19,11 +19,11 @@
  * One more failure mode this pins: this is a manifest-mode monorepo that also
  * releases a sibling `web` component (`web-vX.Y.Z`), and RELEASES_API's
  * `/releases/latest` returns correctly ONLY because release.yml's "Keep the
- * career-ops release marked as Latest" step re-asserts it on every push. If
+ * landing-gear release marked as Latest" step re-asserts it on every push. If
  * that step ever silently stopped doing its job, `/releases/latest` would
  * hand back a `web-*` tag and, without a guard, apply() would fetch and
  * install it without complaint. resolveTargetRef() rejects any tag not
- * prefixed `career-ops-v` for exactly this reason.
+ * prefixed `landing-gear-v` for exactly this reason.
  *
  * These tests drive the real export against an injected ctx.curlGet, the
  * same seam production uses (ctx.git elsewhere in this suite) — no real
@@ -41,11 +41,11 @@ console.log('\n🧪 Testing updater channel resolution (release tag vs. main)...
   const fakeCurlGet = async (url) => {
     calls++;
     if (!url.includes('/releases/latest')) return null;
-    return JSON.stringify({ tag_name: 'career-ops-v1.32.0' });
+    return JSON.stringify({ tag_name: 'landing-gear-v1.32.0' });
   };
 
   const ref = await resolveTargetRef([], {}, { curlGet: fakeCurlGet });
-  if (ref === 'career-ops-v1.32.0') {
+  if (ref === 'landing-gear-v1.32.0') {
     pass('default channel resolves to the release tag verbatim');
   } else {
     fail(`default channel resolved to '${ref}', expected the release tag`);
@@ -60,7 +60,7 @@ console.log('\n🧪 Testing updater channel resolution (release tag vs. main)...
 // ── 2. --channel main resolves to 'main' WITHOUT any network call ──────────
 {
   let calls = 0;
-  const fakeCurlGet = async () => { calls++; return JSON.stringify({ tag_name: 'career-ops-v9.9.9' }); };
+  const fakeCurlGet = async () => { calls++; return JSON.stringify({ tag_name: 'landing-gear-v9.9.9' }); };
 
   const ref = await resolveTargetRef(['apply', '--channel', 'main', '--confirm'], {}, { curlGet: fakeCurlGet });
   if (ref === 'main') {
@@ -75,26 +75,26 @@ console.log('\n🧪 Testing updater channel resolution (release tag vs. main)...
   }
 }
 
-// ── 3. CAREER_OPS_UPDATE_CHANNEL=main (the re-exec'd child's path) ─────────
+// ── 3. LANDING_GEAR_UPDATE_CHANNEL=main (the re-exec'd child's path) ─────────
 // The child reads its channel from env, not argv — its own argv is just
 // `apply --confirm` (see the reexec spawn in apply()). Same no-network
 // contract applies.
 {
   let calls = 0;
-  const fakeCurlGet = async () => { calls++; return JSON.stringify({ tag_name: 'career-ops-v9.9.9' }); };
+  const fakeCurlGet = async () => { calls++; return JSON.stringify({ tag_name: 'landing-gear-v9.9.9' }); };
 
-  const ref = await resolveTargetRef(['apply', '--confirm'], { CAREER_OPS_UPDATE_CHANNEL: 'main' }, { curlGet: fakeCurlGet });
+  const ref = await resolveTargetRef(['apply', '--confirm'], { LANDING_GEAR_UPDATE_CHANNEL: 'main' }, { curlGet: fakeCurlGet });
   if (ref === 'main' && calls === 0) {
-    pass('CAREER_OPS_UPDATE_CHANNEL=main resolves to main with no network call');
+    pass('LANDING_GEAR_UPDATE_CHANNEL=main resolves to main with no network call');
   } else {
     fail(`env channel=main gave ref='${ref}', curlGet calls=${calls}`);
   }
 }
 
-// ── 4. argv --channel wins over env CAREER_OPS_UPDATE_CHANNEL ──────────────
+// ── 4. argv --channel wins over env LANDING_GEAR_UPDATE_CHANNEL ──────────────
 {
-  const fakeCurlGet = async () => JSON.stringify({ tag_name: 'career-ops-v1.32.0' });
-  const ref = await resolveTargetRef(['apply', '--channel', 'main'], { CAREER_OPS_UPDATE_CHANNEL: 'release' }, { curlGet: fakeCurlGet });
+  const fakeCurlGet = async () => JSON.stringify({ tag_name: 'landing-gear-v1.32.0' });
+  const ref = await resolveTargetRef(['apply', '--channel', 'main'], { LANDING_GEAR_UPDATE_CHANNEL: 'release' }, { curlGet: fakeCurlGet });
   if (ref === 'main') {
     pass('an explicit --channel flag overrides the inherited env channel');
   } else {
@@ -139,7 +139,7 @@ console.log('\n🧪 Testing updater channel resolution (release tag vs. main)...
 // ── 7. An unknown --channel value throws before any network call ──────────
 {
   let calls = 0;
-  const fakeCurlGet = async () => { calls++; return JSON.stringify({ tag_name: 'career-ops-v1.32.0' }); };
+  const fakeCurlGet = async () => { calls++; return JSON.stringify({ tag_name: 'landing-gear-v1.32.0' }); };
   let threw = null;
   try {
     await resolveTargetRef(['apply', '--channel', 'nightly'], {}, { curlGet: fakeCurlGet });
@@ -154,7 +154,7 @@ console.log('\n🧪 Testing updater channel resolution (release tag vs. main)...
 }
 
 // ── 8. A tag from the sibling `web` component is rejected, not installed ───
-// Reproduces release.yml's "Keep the career-ops release marked as Latest"
+// Reproduces release.yml's "Keep the landing-gear release marked as Latest"
 // step silently not running: /releases/latest hands back web's tag instead.
 {
   const fakeCurlGet = async () => JSON.stringify({ tag_name: 'web-v0.10.0' });
@@ -173,42 +173,42 @@ console.log('\n🧪 Testing updater channel resolution (release tag vs. main)...
 
 // ── 9. A correctly-prefixed tag still resolves normally ─────────────────────
 // Pins the guard to the sibling-component case specifically, not to every
-// tag shape — a real career-ops-v* release must not start tripping this.
+// tag shape — a real landing-gear-v* release must not start tripping this.
 {
-  const fakeCurlGet = async () => JSON.stringify({ tag_name: 'career-ops-v1.32.0' });
+  const fakeCurlGet = async () => JSON.stringify({ tag_name: 'landing-gear-v1.32.0' });
   const ref = await resolveTargetRef([], {}, { curlGet: fakeCurlGet });
-  if (ref === 'career-ops-v1.32.0') {
-    pass('a correctly-prefixed career-ops tag passes the guard');
+  if (ref === 'landing-gear-v1.32.0') {
+    pass('a correctly-prefixed landing-gear tag passes the guard');
   } else {
-    fail(`expected the guard to pass a career-ops-v* tag through, got '${ref}'`);
+    fail(`expected the guard to pass a landing-gear-v* tag through, got '${ref}'`);
   }
 }
 
 // ── 10. A right-prefix, malformed-version tag is rejected too ──────────────
-// The prefix check alone would let 'career-ops-vnot-a-version' through —
+// The prefix check alone would let 'landing-gear-vnot-a-version' through —
 // same prefix, no real version. SEMVER_RE (shared with the VERSION/tag
 // parsing elsewhere in this file) is the same bar a genuine tag must clear.
 {
-  const fakeCurlGet = async () => JSON.stringify({ tag_name: 'career-ops-vnot-a-version' });
+  const fakeCurlGet = async () => JSON.stringify({ tag_name: 'landing-gear-vnot-a-version' });
   let threw = null;
   try {
     await resolveTargetRef([], {}, { curlGet: fakeCurlGet });
   } catch (err) {
     threw = err;
   }
-  if (threw && /career-ops-vnot-a-version/.test(threw.message) && /--channel main/.test(threw.message)) {
+  if (threw && /landing-gear-vnot-a-version/.test(threw.message) && /--channel main/.test(threw.message)) {
     pass('a right-prefix but non-semver tag is rejected, not silently fetched');
   } else {
     fail(threw ? `threw, but without naming the rejected tag: ${threw.message}` : 'a malformed tag resolved instead of throwing');
   }
 }
 
-// ── 11. The tag must be exactly career-ops-vX.Y.Z (#3845 review) ────────────
+// ── 11. The tag must be exactly landing-gear-vX.Y.Z (#3845 review) ────────────
 // SEMVER_RE is suffix-anchored, so the prefix check plus SEMVER_RE let
-// 'career-ops-vpreview-v1.32.0' through (right prefix, valid `-v1.32.0`
+// 'landing-gear-vpreview-v1.32.0' through (right prefix, valid `-v1.32.0`
 // suffix) and apply() would have fetched it. The check is now one anchored
 // match; these shapes must all throw, naming the tag.
-for (const tag of ['career-ops-vpreview-v1.32.0', 'career-ops-v', 'career-ops-v1.32', 'career-ops-v1.32.0-rc.1', 'career-ops-v1.32.0 ']) {
+for (const tag of ['landing-gear-vpreview-v1.32.0', 'landing-gear-v', 'landing-gear-v1.32', 'landing-gear-v1.32.0-rc.1', 'landing-gear-v1.32.0 ']) {
   const fakeCurlGet = async () => JSON.stringify({ tag_name: tag });
   let threw = null;
   try {
@@ -217,7 +217,7 @@ for (const tag of ['career-ops-vpreview-v1.32.0', 'career-ops-v', 'career-ops-v1
     threw = err;
   }
   const expected = tag.trim();
-  if (expected === 'career-ops-v1.32.0') {
+  if (expected === 'landing-gear-v1.32.0') {
     // Surrounding whitespace is trimmed before the match, as tag_name always was.
     if (!threw) pass(`'${JSON.stringify(tag)}' (whitespace only) still resolves after trimming`);
     else fail(`a whitespace-padded real tag threw: ${threw.message}`);
@@ -238,9 +238,9 @@ for (const tag of ['career-ops-vpreview-v1.32.0', 'career-ops-v', 'career-ops-v1
 {
   const { newerThanTarget } = await import('../update-system.mjs');
   const cases = [
-    ['1.40.0', 'career-ops-v1.39.0', '1.39.0', 'an install ahead of the release is refused'],
-    ['1.39.0', 'career-ops-v1.39.0', '', 'the same release is not refused (re-applying restores its files)'],
-    ['1.33.0', 'career-ops-v1.34.0', '', 'a newer release installs normally'],
+    ['1.40.0', 'landing-gear-v1.39.0', '1.39.0', 'an install ahead of the release is refused'],
+    ['1.39.0', 'landing-gear-v1.39.0', '', 'the same release is not refused (re-applying restores its files)'],
+    ['1.33.0', 'landing-gear-v1.34.0', '', 'a newer release installs normally'],
     ['1.40.0', 'main', '', '--channel main is never refused'],
   ];
   for (const [local, ref, expected, what] of cases) {

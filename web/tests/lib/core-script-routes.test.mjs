@@ -13,7 +13,7 @@
 // as "0 broken".
 //
 // Driven for real: the handlers are imported under the @/ loader, the core
-// scripts they run are stand-ins in a temp checkout (CAREER_OPS_CODE_ROOT), and
+// scripts they run are stand-ins in a temp checkout (LANDING_GEAR_CODE_ROOT), and
 // node:child_process.execFile is wrapped so each launch is recorded and then
 // performed. That console failure itself cannot be reproduced off Windows,
 // so the stand-ins exit the way it does: non-zero, and silent.
@@ -29,17 +29,17 @@ import "../helpers/web-ts-alias-loader.mjs";
 
 const codeRoot = mkdtempSync(join(tmpdir(), "co-core-routes-code-"));
 const dataRoot = mkdtempSync(join(tmpdir(), "co-core-routes-data-"));
-const ENV_KEYS = ["CAREER_OPS_CODE_ROOT", "CAREER_OPS_ROOT", "CAREER_OPS_DATA_DIR", "CAREER_OPS_TRACKER"];
+const ENV_KEYS = ["LANDING_GEAR_CODE_ROOT", "LANDING_GEAR_ROOT", "LANDING_GEAR_DATA_DIR", "LANDING_GEAR_TRACKER"];
 const savedEnv = Object.fromEntries(ENV_KEYS.map((k) => [k, process.env[k]]));
 const realExecFile = childProcess.execFile;
 const launches = [];
 
 before(() => {
-  process.env.CAREER_OPS_CODE_ROOT = codeRoot;
-  process.env.CAREER_OPS_ROOT = dataRoot;
+  process.env.LANDING_GEAR_CODE_ROOT = codeRoot;
+  process.env.LANDING_GEAR_ROOT = dataRoot;
   // Would each pull a read back out of the sandbox.
-  process.env.CAREER_OPS_DATA_DIR = "";
-  process.env.CAREER_OPS_TRACKER = "";
+  process.env.LANDING_GEAR_DATA_DIR = "";
+  process.env.LANDING_GEAR_TRACKER = "";
   // portals/verify answers "not configured" without ever spawning when there is
   // no portals.yml; the stand-in verifier never reads it.
   writeFileSync(join(dataRoot, "portals.yml"), "tracked_companies: []\n");
@@ -182,11 +182,11 @@ test("portals/verify reports a failed sweep instead of an empty, healthy list", 
 test("portals/verify names an uncaught crash, not Node's version banner", async () => {
   // Given the verifier dies at import (root deps not installed): Node prints
   // the error, a stack, and ends stderr with "Node.js vXX"
-  standIn("verify-portals", 'import "career-ops-dependency-that-is-not-installed";');
+  standIn("verify-portals", 'import "landing-gear-dependency-that-is-not-installed";');
   const { GET } = await route("portals/verify");
   const { body } = await call(GET);
   assert.equal(body.available, false);
-  assert.match(body.error, /^Error \[ERR_MODULE_NOT_FOUND\]: Cannot find package 'career-ops-dependency/);
+  assert.match(body.error, /^Error \[ERR_MODULE_NOT_FOUND\]: Cannot find package 'landing-gear-dependency/);
 });
 
 test("portals/verify keeps how the run ended ahead of a stray warning", async () => {

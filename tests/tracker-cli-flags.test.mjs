@@ -11,7 +11,7 @@
 // the "unknown command" branch, which treats any truthy `command` as an
 // error and exited 1 despite printing usage.
 //
-// HERMETIC: every run below points CAREER_OPS_TRACKER at a throwaway fixture
+// HERMETIC: every run below points LANDING_GEAR_TRACKER at a throwaway fixture
 // under tmpdir(); nothing reads or writes the developer's own tracker.
 import { pass, fail, ROOT, NODE, rmSync } from './helpers.mjs';
 import { spawnSync } from 'child_process';
@@ -43,13 +43,13 @@ function makeSandbox() {
 function runTracker(args, sandbox) {
   const env = {
     ...process.env,
-    CAREER_OPS_ROOT: sandbox.dir,
-    CAREER_OPS_DATA_DIR: '',
-    CAREER_OPS_TRACKER: sandbox.tracker,
-    // An inherited CAREER_OPS_TRACKER_DB outranks the path derived from the
+    LANDING_GEAR_ROOT: sandbox.dir,
+    LANDING_GEAR_DATA_DIR: '',
+    LANDING_GEAR_TRACKER: sandbox.tracker,
+    // An inherited LANDING_GEAR_TRACKER_DB outranks the path derived from the
     // tracker (tracker.mjs dbPath()), so `sync` would rebuild the developer's
     // own index from this fixture.
-    CAREER_OPS_TRACKER_DB: join(sandbox.dir, 'data', 'applications.db'),
+    LANDING_GEAR_TRACKER_DB: join(sandbox.dir, 'data', 'applications.db'),
   };
   const r = spawnSync(NODE, [join(ROOT, 'tracker.mjs'), ...args], {
     cwd: ROOT, encoding: 'utf-8', timeout: 30_000, env,
@@ -202,23 +202,23 @@ for (const { args, flag } of MISSING_OPERANDS) {
 }
 
 // ── Test 9: the sandbox holds the SQLite index too — an inherited
-//    CAREER_OPS_TRACKER_DB must not send `sync` to a database outside it. ──
+//    LANDING_GEAR_TRACKER_DB must not send `sync` to a database outside it. ──
 {
   const sb = makeSandbox();
   const outside = mkdtempSync(join(tmpdir(), 'co-tracker-cli-outside-'));
   const outsideDb = join(outside, 'applications.db');
-  const saved = process.env.CAREER_OPS_TRACKER_DB;
-  process.env.CAREER_OPS_TRACKER_DB = outsideDb;
+  const saved = process.env.LANDING_GEAR_TRACKER_DB;
+  process.env.LANDING_GEAR_TRACKER_DB = outsideDb;
   try {
     const r = runTracker(['sync'], sb);
     if (r.status === 0 && !existsSync(outsideDb) && existsSync(join(sb.dir, 'data', 'applications.db'))) {
-      pass('sync ignores an inherited CAREER_OPS_TRACKER_DB and indexes inside the sandbox');
+      pass('sync ignores an inherited LANDING_GEAR_TRACKER_DB and indexes inside the sandbox');
     } else {
-      fail(`sync with an inherited CAREER_OPS_TRACKER_DB — expected the index inside the sandbox only, got exit ${r.status}: ${r.all}`);
+      fail(`sync with an inherited LANDING_GEAR_TRACKER_DB — expected the index inside the sandbox only, got exit ${r.status}: ${r.all}`);
     }
   } finally {
-    if (saved === undefined) delete process.env.CAREER_OPS_TRACKER_DB;
-    else process.env.CAREER_OPS_TRACKER_DB = saved;
+    if (saved === undefined) delete process.env.LANDING_GEAR_TRACKER_DB;
+    else process.env.LANDING_GEAR_TRACKER_DB = saved;
     rmSync(outside, { recursive: true, force: true });
     cleanup(sb);
   }

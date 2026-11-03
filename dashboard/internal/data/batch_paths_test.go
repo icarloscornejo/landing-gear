@@ -9,8 +9,8 @@ import (
 )
 
 // batch/batch-runner.sh keeps batch-input.tsv and batch-state.tsv beside
-// itself in the checkout, even when CAREER_OPS_ROOT / CAREER_OPS_DATA_DIR / a
-// .career-ops-data marker put the data root somewhere else (#5115, #5116). The
+// itself in the checkout, even when LANDING_GEAR_ROOT / LANDING_GEAR_DATA_DIR / a
+// .landing-gear-data marker put the data root somewhere else (#5115, #5116). The
 // dashboard's batch-based job URL fallbacks must read them from there, not
 // from the data root, or those rows lose their posting link.
 
@@ -79,7 +79,7 @@ func assertBatchTierURLs(t *testing.T, dataRoot string) {
 }
 
 func TestParseApplicationsReadsBatchFilesFromTheCheckout(t *testing.T) {
-	t.Setenv("CAREER_OPS_TRACKER", "")
+	t.Setenv("LANDING_GEAR_TRACKER", "")
 
 	checkout := t.TempDir()
 	writeBatchCheckout(t, checkout)
@@ -103,7 +103,7 @@ func writeStaleBatchDataRoot(t *testing.T, root string) {
 }
 
 func TestParseApplicationsPrefersCheckoutBatchFilesOverDataRootCopies(t *testing.T) {
-	t.Setenv("CAREER_OPS_TRACKER", "")
+	t.Setenv("LANDING_GEAR_TRACKER", "")
 
 	checkout := t.TempDir()
 	writeBatchCheckout(t, checkout)
@@ -124,7 +124,7 @@ func TestParseApplicationsDoesNotFallBackWhenTheCheckoutBatchFileIsUnreadable(t 
 	if os.Geteuid() == 0 {
 		t.Skip("root ignores directory permissions")
 	}
-	t.Setenv("CAREER_OPS_TRACKER", "")
+	t.Setenv("LANDING_GEAR_TRACKER", "")
 
 	checkout := t.TempDir()
 	writeBatchCheckout(t, checkout)
@@ -148,7 +148,7 @@ func TestParseApplicationsDoesNotFallBackWhenTheCheckoutBatchFileIsUnreadable(t 
 
 func TestParseApplicationsReadsBatchFilesInTheDefaultLayout(t *testing.T) {
 	// Control: with the data root and the checkout the same directory, nothing moves.
-	t.Setenv("CAREER_OPS_TRACKER", "")
+	t.Setenv("LANDING_GEAR_TRACKER", "")
 
 	root := t.TempDir()
 	writeBatchCheckout(t, root)
@@ -160,7 +160,7 @@ func TestParseApplicationsReadsBatchFilesInTheDefaultLayout(t *testing.T) {
 
 func TestParseApplicationsFallsBackToDataRootBatchFilesWithoutACheckout(t *testing.T) {
 	// No checkout can be found from cwd: the data root's batch/ is read, as before.
-	t.Setenv("CAREER_OPS_TRACKER", "")
+	t.Setenv("LANDING_GEAR_TRACKER", "")
 
 	dataRoot := t.TempDir()
 	writeBatchDataRoot(t, dataRoot)
@@ -176,7 +176,7 @@ func TestParseApplicationsFallsBackToDataRootBatchFilesWithoutACheckout(t *testi
 
 func TestParseApplicationsFallsBackToDataRootBatchFilesTheCheckoutLacks(t *testing.T) {
 	// A checkout with no batch files of its own must not hide the data root's.
-	t.Setenv("CAREER_OPS_TRACKER", "")
+	t.Setenv("LANDING_GEAR_TRACKER", "")
 
 	checkout := t.TempDir()
 	writeTestFile(t, filepath.Join(checkout, repoRootMarker), "// marker\n")

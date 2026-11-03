@@ -24,7 +24,7 @@ for (const args of [
     // Node is an offline CLI stand-in on every platform. If validation falls
     // through, its -p invocation fails on the rank prompt instead of spending tokens.
     const result = spawnSync(process.execPath, [join(ROOT, 'rank-pipeline.mjs'), '--cli', process.execPath, ...args], {
-      env: { ...process.env, CAREER_OPS_ROOT: root, CAREER_OPS_DATA_DIR: root },
+      env: { ...process.env, LANDING_GEAR_ROOT: root, LANDING_GEAR_DATA_DIR: root },
       encoding: 'utf8', timeout: 15_000,
     });
     assert.ifError(result.error);

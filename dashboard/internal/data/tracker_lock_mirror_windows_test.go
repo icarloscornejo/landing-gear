@@ -46,7 +46,7 @@ func TestLockDirectoryMatchesNodeThroughAShortName(t *testing.T) {
 		t.Skip("this volume does not generate 8.3 names")
 	}
 
-	t.Setenv("CAREER_OPS_TRACKER_LOCK", "")
+	t.Setenv("LANDING_GEAR_TRACKER_LOCK", "")
 	got, err := trackerLockDirFor(short)
 	if err != nil {
 		t.Fatalf("go trackerLockDirFor(%q): %v", short, err)

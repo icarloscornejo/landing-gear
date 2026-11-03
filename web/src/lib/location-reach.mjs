@@ -56,6 +56,7 @@ const HOURS = [
   [/\b(us hours|us time ?zones?)\b/, "US"],
 ];
 const US_WORDS = /\b(us|usa|u\.s\.a?\.?|united states)\b/;
+const US_SCHEDULE = /\b(?:us|u\.s\.?|usa|united states)\s+(?:business\s+|working\s+|work\s+)?(?:hours|time\s?zones?)\b/gi;
 const UK_WORDS = /\b(uk|united kingdom)\b/;
 
 /** Lowercase without accents, so "México" and "Mexico" read the same. */
@@ -120,7 +121,9 @@ export function readReach(location, url = "") {
   const remote = REMOTE_RE.test(text);
   const hours = HOURS.find(([re]) => re.test(text))?.[1];
   const withHours = (label) => (hours ? `${label}, ${hours} hours` : label);
-  const { openScope, latam, others } = placesIn(raw);
+  // "US hours" or "US time zones" is a schedule, not a place: without this, "Remote, US time
+  // zones" read as remote limited to the United States and pre-triage closed the row.
+  const { openScope, latam, others } = placesIn(raw.replace(US_SCHEDULE, " "));
   const list = (names) => (names.length > 3 ? `${names.slice(0, 3).join(", ")} +${names.length - 3}` : names.join(", "));
 
   // House rule 10 exception: on Workday, "Remote" plus one pin means remote from inside that country.

@@ -3,7 +3,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { spawn } from "node:child_process";
 import { pathToFileURL } from "node:url";
-import { careerOpsRoot, findReportFile, isRegularContainedFile, pdfPathStatusForReport, rootScript } from "@/lib/career-ops";
+import { landingGearRoot, findReportFile, isRegularContainedFile, pdfPathStatusForReport, rootScript } from "@/lib/landing-gear";
 import { atomicWrite } from "@/lib/core/safe-write";
 import { matchesTailoredCv, sortNewestFirst } from "@/lib/apply/cv-match.mjs";
 import { markTrackerReady, spawnGeneratePdf } from "@/lib/pdf-render.mjs";
@@ -42,7 +42,7 @@ function originalOf(htmlPath: string) {
  * made against the original the tailor wrote.
  */
 async function findTailoredHtml(n: string, slug: string): Promise<string | null> {
-  const dir = path.join(careerOpsRoot(), "output");
+  const dir = path.join(landingGearRoot(), "output");
   const indexed = await pdfPathStatusForReport(n);
   if (indexed.status === "found") {
     const sibling = originalOf(indexed.path.replace(/\.pdf$/i, ".html"));
@@ -67,7 +67,7 @@ async function findTailoredHtml(n: string, slug: string): Promise<string | null>
 }
 
 function editsPath(reportNum: string) {
-  return path.join(careerOpsRoot(), ".career-ops-web", "cv-studio", `${reportNum}.json`);
+  return path.join(landingGearRoot(), ".landing-gear-web", "cv-studio", `${reportNum}.json`);
 }
 
 function companyOf(reportText: string, slug: string) {
@@ -92,7 +92,7 @@ export async function loadStudio(n: string): Promise<StudioLoad> {
 
   let cvMd = "";
   try {
-    cvMd = fs.readFileSync(path.join(careerOpsRoot(), "cv.md"), "utf8");
+    cvMd = fs.readFileSync(path.join(landingGearRoot(), "cv.md"), "utf8");
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
   }
@@ -150,7 +150,7 @@ export type RenderOutcome = { ok: true; pdf: string; indexed: boolean; warnings:
  * the render succeeded but the index still names another PDF.
  */
 export async function renderEditedPdf(load: Extract<StudioLoad, { ok: true }>, edits: StudioEdits): Promise<RenderOutcome> {
-  const root = careerOpsRoot();
+  const root = landingGearRoot();
   const { view, added } = resolveStudio(load.doc, edits);
   const html = renderBlocks(load.tree, view, { added });
   const outDir = path.join(root, "output");

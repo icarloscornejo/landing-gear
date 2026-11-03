@@ -30,10 +30,10 @@ import { join, dirname, resolve, relative, isAbsolute } from 'path';
 import { fileURLToPath } from 'url';
 import { isIP } from 'net';
 import { isMainModule } from './lib/is-main-module.mjs';
-import { getCareerOpsRoot } from './path-resolver.mjs';
+import { getLandingGearRoot } from './path-resolver.mjs';
 import { sectionKind } from './lib/pipeline-sections.mjs';
 
-const CAREER_OPS = getCareerOpsRoot();
+const LANDING_GEAR = getLandingGearRoot();
 const CHECKOUT_ROOT = dirname(fileURLToPath(import.meta.url));
 
 /** Batch source label written into the source column. */
@@ -315,21 +315,21 @@ if (isMainModule(import.meta.url)) {
     return value;
   }
 
-  function resolveInsideRepo(inputPath, fallbackPath, flag, root = CAREER_OPS) {
+  function resolveInsideRepo(inputPath, fallbackPath, flag, root = LANDING_GEAR) {
     // Explicit user-passed paths are trusted as-is; only defaults are checked.
     if (inputPath) return resolve(inputPath);
     const abs = resolve(fallbackPath);
     const rel = relative(root, abs);
     if (rel.startsWith('..') || isAbsolute(rel)) {
-      console.error(`Invalid ${flag}: path must stay inside the career-ops root (${abs})`);
+      console.error(`Invalid ${flag}: path must stay inside the landing-gear root (${abs})`);
       process.exit(1);
     }
     return abs;
   }
 
-  const defaultPipeline = existsSync(join(CAREER_OPS, 'data/pipeline.md'))
-    ? join(CAREER_OPS, 'data/pipeline.md')
-    : join(CAREER_OPS, 'pipeline.md');
+  const defaultPipeline = existsSync(join(LANDING_GEAR, 'data/pipeline.md'))
+    ? join(LANDING_GEAR, 'data/pipeline.md')
+    : join(LANDING_GEAR, 'pipeline.md');
   const PIPELINE_FILE = resolveInsideRepo(argValue('--pipeline'), defaultPipeline, '--pipeline');
   const INPUT_FILE = resolveInsideRepo(argValue('--input'), join(CHECKOUT_ROOT, 'batch', 'batch-input.tsv'), '--input', CHECKOUT_ROOT);
   const STATE_FILE = resolveInsideRepo(argValue('--state'), join(CHECKOUT_ROOT, 'batch', 'batch-state.tsv'), '--state', CHECKOUT_ROOT);

@@ -29,7 +29,7 @@ import { pass, fail, hermeticGitEnv, hermeticGitRunner, importSuiteContained } f
 
 console.log('\nhermetic git env — ambient GIT_CONFIG* must not reach a fixture');
 
-const root = mkdtempSync(join(tmpdir(), 'career-ops-hermetic-env-'));
+const root = mkdtempSync(join(tmpdir(), 'landing-gear-hermetic-env-'));
 try {
   const pinned = join(root, 'gitconfig');
   writeFileSync(pinned, '');
@@ -100,7 +100,7 @@ try {
 // contributor's shell, not an argument. Asserted, again, on what git saw.
 console.log('\nhermetic git env — makeUpdaterRepo builds and runs under an ambient injection');
 
-const ambientRoot = mkdtempSync(join(tmpdir(), 'career-ops-hermetic-fixture-'));
+const ambientRoot = mkdtempSync(join(tmpdir(), 'landing-gear-hermetic-fixture-'));
 let fixtureDir = '';
 try {
   const excludes = join(ambientRoot, 'ambient-excludes');
@@ -201,7 +201,7 @@ try {
 // in for ~/.gitconfig (it replaces it), which keeps the test off the real one.
 console.log('\nhermetic git env — the #3052 release fixture builds under ambient signing config');
 
-const signingRoot = mkdtempSync(join(tmpdir(), 'career-ops-hermetic-signing-'));
+const signingRoot = mkdtempSync(join(tmpdir(), 'landing-gear-hermetic-signing-'));
 try {
   const signingConfig = join(signingRoot, 'gitconfig');
   writeFileSync(signingConfig, [
@@ -247,7 +247,7 @@ try {
 // that does not pin its own hooksPath cannot commit at all under it.
 console.log('\nhermetic git env — fixture commits survive a global core.hooksPath');
 
-const hooksRoot = mkdtempSync(join(tmpdir(), 'career-ops-hermetic-hooks-'));
+const hooksRoot = mkdtempSync(join(tmpdir(), 'landing-gear-hermetic-hooks-'));
 try {
   const hooksDir = join(hooksRoot, 'hooks');
   mkdirSync(hooksDir, { recursive: true });
@@ -265,7 +265,6 @@ try {
     'update-system',
     'updater-commit-file-modes',
     'updater-drift-detection',
-    'updater-signature-ledger-drift',
     'updater-status-paths',
     'updater-upgrade-safety',
   ]) {
@@ -295,7 +294,7 @@ try {
 // reachable. A suite that loses its seal cannot build a fixture under this.
 console.log('\nhermetic git env — process-sealed suites survive ambient signing config');
 
-const sealedRoot = mkdtempSync(join(tmpdir(), 'career-ops-hermetic-sealed-'));
+const sealedRoot = mkdtempSync(join(tmpdir(), 'landing-gear-hermetic-sealed-'));
 try {
   const signingConfig = join(sealedRoot, 'gitconfig');
   writeFileSync(signingConfig, [
@@ -342,7 +341,7 @@ try {
 // drop too.
 console.log('\nhermetic git env — a process seal ends with the in-process suite that made it');
 
-const unsealRoot = mkdtempSync(join(tmpdir(), 'career-ops-hermetic-unseal-'));
+const unsealRoot = mkdtempSync(join(tmpdir(), 'landing-gear-hermetic-unseal-'));
 const savedEnv = { GIT_CONFIG_GLOBAL: process.env.GIT_CONFIG_GLOBAL, Git_Dir: process.env.Git_Dir };
 try {
   const ambientConfig = join(unsealRoot, 'ambient-gitconfig');

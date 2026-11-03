@@ -9,8 +9,8 @@
 // — a normal run claims and releases cleanly, and a pre-existing claim on the
 // same key changes nothing about the outcome except the warning.
 //
-// Every claim lives under CAREER_OPS_ACTIVITY_DIR pointed at a per-test temp
-// dir, so nothing here ever touches the real repo's .career-ops-locks/.
+// Every claim lives under LANDING_GEAR_ACTIVITY_DIR pointed at a per-test temp
+// dir, so nothing here ever touches the real repo's .landing-gear-locks/.
 //
 // Run:  node --test tests/set-status-session-activity.test.mjs
 
@@ -28,7 +28,7 @@ const HEADER = '| # | Date | Company | Role | Score | Status | PDF | Report | No
 const SEP = '|---|---|---|---|---|---|---|---|---|';
 
 function sandbox({ status = 'Evaluated', reportCell = '[7](../reports/007-acme-2026-02-01.md)' } = {}) {
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-session-activity-'));
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-session-activity-'));
   mkdirSync(join(dir, 'data'), { recursive: true });
   writeFileSync(join(dir, 'data', 'applications.md'), [
     '# Applications Tracker', '', HEADER, SEP,
@@ -45,8 +45,8 @@ function setStatus(dir, args, { activityDir } = {}) {
     timeout: 30_000,
     env: {
       ...process.env,
-      CAREER_OPS_TRACKER: join(dir, 'data', 'applications.md'),
-      ...(activityDir ? { CAREER_OPS_ACTIVITY_DIR: activityDir } : {}),
+      LANDING_GEAR_TRACKER: join(dir, 'data', 'applications.md'),
+      ...(activityDir ? { LANDING_GEAR_ACTIVITY_DIR: activityDir } : {}),
     },
   });
   assert.equal(r.error, undefined, `spawn failed: ${r.error?.message}`);

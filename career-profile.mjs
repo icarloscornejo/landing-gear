@@ -11,13 +11,13 @@ import { dirname, isAbsolute, join, relative, resolve, sep } from 'path';
 import { createInterface } from 'readline';
 import * as yaml from 'js-yaml';
 import { loadYaml } from './lib/yaml-document.mjs';
-import { getCareerOpsRoot } from './path-resolver.mjs';
+import { getLandingGearRoot } from './path-resolver.mjs';
 import { withPipelineLock } from './pipeline-lock.mjs';
 import { validateProfile, loadValidatedProfile } from './lib/career-profile.mjs';
 import { prepareCvSelection, verifyCvSelection } from './lib/profile-cv-selection.mjs';
 import { flagValue, validateFlags } from './lib/cli-flags.mjs';
 
-const root = getCareerOpsRoot();
+const root = getLandingGearRoot();
 const profilePath = join(root, 'data', 'career-profile.yml');
 const HELP = `Master Career Profile
 

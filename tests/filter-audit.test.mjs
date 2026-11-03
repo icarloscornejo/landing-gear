@@ -2,7 +2,7 @@
 // over scan-history.tsv and ranks keywords by the offers only they catch.
 //
 // Network-free: audit(), readHistory() and readScoresByUrl() are pure, and the
-// CLI case runs against a scratch CAREER_OPS_ROOT.
+// CLI case runs against a scratch LANDING_GEAR_ROOT.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
@@ -90,7 +90,7 @@ test('a posting with two reports takes the latest one, whatever the directory or
     'a report without a numeric score contributes nothing');
 });
 
-test('the CLI reads the user layer under CAREER_OPS_ROOT', () => {
+test('the CLI reads the user layer under LANDING_GEAR_ROOT', () => {
   const dir = mkdtempSync(join(tmpdir(), 'filter-audit-'));
   try {
     mkdirSync(join(dir, 'data'));
@@ -98,9 +98,9 @@ test('the CLI reads the user layer under CAREER_OPS_ROOT', () => {
     writeFileSync(join(dir, 'portals.yml'), 'title_filter:\n  positive:\n    - Inference\n    - Inference\n    - Quantization\n');
     writeFileSync(join(dir, 'data', 'scan-history.tsv'), `${HEADER}\nhttps://x.example/1\t2026-10-01\tgh\tInference Engineer\tA\tadded\n`);
     writeFileSync(join(dir, 'reports', '001-a-2026-10-02.md'), '**URL:** https://x.example/1\n**Score:** 3.5/5\n');
-    const env = { ...process.env, CAREER_OPS_ROOT: dir };
-    delete env.CAREER_OPS_PORTALS;
-    delete env.CAREER_OPS_SCAN_HISTORY;
+    const env = { ...process.env, LANDING_GEAR_ROOT: dir };
+    delete env.LANDING_GEAR_PORTALS;
+    delete env.LANDING_GEAR_SCAN_HISTORY;
     const json = JSON.parse(execFileSync(process.execPath, [SCRIPT], { env, encoding: 'utf-8', timeout: 20000 }));
     assert.equal(json.offers, 1);
     assert.deepEqual(json.dead, ['Quantization']);

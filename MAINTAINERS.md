@@ -1,6 +1,6 @@
 # Maintainers
 
-This file lists who maintains career-ops and how contributors grow into review and maintenance roles. It exists so the project doesn't depend on any single person and so the path forward is legible to everyone.
+This file lists who maintains landing-gear and how contributors grow into review and maintenance roles. It exists so the project doesn't depend on any single person and so the path forward is legible to everyone.
 
 ## Current maintainers
 
@@ -24,7 +24,7 @@ How each rung of the ladder is earned lives in [GOVERNANCE.md](GOVERNANCE.md#con
 
 ## Trust & access
 
-Because career-ops handles people's personal career data, access is granted carefully:
+Because landing-gear handles people's personal career data, access is granted carefully:
 
 - **Generous with credit, careful with access.** Praise and shout-outs are public and frequent; merge/admin rights are earned and verified.
 - **Identity is verified** before granting review/maintainer access (real-identity footprint, account history). This protects the candidate side of the project.

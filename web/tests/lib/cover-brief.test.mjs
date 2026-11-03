@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { parseCoverRequest } from "../../src/lib/cover-brief.mjs";
 
-const ROOT = path.join(path.sep, "tmp", "career-ops");
+const ROOT = path.join(path.sep, "tmp", "landing-gear");
 const REPORT = path.join(ROOT, "reports", "041-acme-2026-10-01.md");
 const findReportFile = (n) => (Number(n) === 41 ? REPORT : null);
 const BRIEF = {

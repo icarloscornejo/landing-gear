@@ -187,7 +187,7 @@ console.log('\n🧪 Testing lib/update-manifest.mjs (#5554)...');
 // its own REEXEC_FALLBACK_FILES. This repeats that gate against the files on
 // disk, the same check upgrade-tests.mjs makes end to end from the tag.
 {
-  const tag = 'career-ops-v1.37.0';
+  const tag = 'landing-gear-v1.37.0';
   let legacySource = null;
   try {
     legacySource = execFileSync('git', ['show', `${tag}:update-system.mjs`], {

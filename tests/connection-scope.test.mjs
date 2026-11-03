@@ -13,10 +13,10 @@ console.log('\nconnection scope — per-board connection pools');
 const mod = await import(pathToFileURL(join(ROOT, 'providers/_connection-scope.mjs')).href);
 const { withConnectionScope, currentConnectionScope, _resetConnectionScopeForTests } = mod;
 
-// An inherited CAREER_OPS_CONNECTION_SCOPE=0 would turn scoping off for every
+// An inherited LANDING_GEAR_CONNECTION_SCOPE=0 would turn scoping off for every
 // test below; run them with it on and put the caller's setting back at the end.
-const originalScopeSetting = process.env.CAREER_OPS_CONNECTION_SCOPE;
-delete process.env.CAREER_OPS_CONNECTION_SCOPE;
+const originalScopeSetting = process.env.LANDING_GEAR_CONNECTION_SCOPE;
+delete process.env.LANDING_GEAR_CONNECTION_SCOPE;
 
 // A scope exists inside the unit and nowhere else.
 {
@@ -62,13 +62,13 @@ delete process.env.CAREER_OPS_CONNECTION_SCOPE;
   else fail(`passthrough: value=${value} error=${error?.message}`);
 }
 
-// Opt-out: CAREER_OPS_CONNECTION_SCOPE=0 runs the unit with the default pool.
+// Opt-out: LANDING_GEAR_CONNECTION_SCOPE=0 runs the unit with the default pool.
 {
-  process.env.CAREER_OPS_CONNECTION_SCOPE = '0';
+  process.env.LANDING_GEAR_CONNECTION_SCOPE = '0';
   let inside;
   await withConnectionScope(async () => { inside = currentConnectionScope(); });
-  delete process.env.CAREER_OPS_CONNECTION_SCOPE;
-  if (inside === undefined) pass('CAREER_OPS_CONNECTION_SCOPE=0 disables scoping');
+  delete process.env.LANDING_GEAR_CONNECTION_SCOPE;
+  if (inside === undefined) pass('LANDING_GEAR_CONNECTION_SCOPE=0 disables scoping');
   else fail('opt-out still created a scope');
 }
 
@@ -115,5 +115,5 @@ delete process.env.CAREER_OPS_CONNECTION_SCOPE;
   else fail(`singleHost flags: ${JSON.stringify(Object.fromEntries(Object.entries(SOURCES).map(([k, v]) => [k, v.singleHost])))}`);
 }
 
-if (originalScopeSetting === undefined) delete process.env.CAREER_OPS_CONNECTION_SCOPE;
-else process.env.CAREER_OPS_CONNECTION_SCOPE = originalScopeSetting;
+if (originalScopeSetting === undefined) delete process.env.LANDING_GEAR_CONNECTION_SCOPE;
+else process.env.LANDING_GEAR_CONNECTION_SCOPE = originalScopeSetting;

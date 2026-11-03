@@ -10,16 +10,16 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/santifer/career-ops/dashboard/internal/data"
-	"github.com/santifer/career-ops/dashboard/internal/model"
-	"github.com/santifer/career-ops/dashboard/internal/theme"
-	"github.com/santifer/career-ops/dashboard/internal/ui/screens"
+	"github.com/icarloscornejo/landing-gear/dashboard/internal/data"
+	"github.com/icarloscornejo/landing-gear/dashboard/internal/model"
+	"github.com/icarloscornejo/landing-gear/dashboard/internal/theme"
+	"github.com/icarloscornejo/landing-gear/dashboard/internal/ui/screens"
 )
 
 func TestRefreshPreservesMetricsWhenFunnelHistoryCannotBeRead(t *testing.T) {
 	root := t.TempDir()
 	tracker := filepath.Join(root, "applications.md")
-	t.Setenv("CAREER_OPS_TRACKER", tracker)
+	t.Setenv("LANDING_GEAR_TRACKER", tracker)
 	content := "| # | Date | Company | Role | Score | Status | PDF | Report | Notes |\n" +
 		"|---|---|---|---|---|---|---|---|---|\n" +
 		"| 1 | 2026-09-01 | Example | Engineer | 4.0/5 | Responded | ❌ | | |\n"
@@ -34,7 +34,7 @@ func TestRefreshPreservesMetricsWhenFunnelHistoryCannotBeRead(t *testing.T) {
 	want := data.ComputeProgressMetrics(apps, map[int]int{1: 5})
 	theme := theme.NewTheme("auto")
 	m := appModel{
-		careerOpsPath:   root,
+		landingGearPath:   root,
 		theme:           theme,
 		pipeline:        screens.NewPipelineModel(theme, apps, data.ComputeMetrics(apps), root, 120, 40),
 		progressMetrics: want,
@@ -84,7 +84,7 @@ func TestRefreshPreservesMetricsWhenFunnelHistoryCannotBeRead(t *testing.T) {
 }
 
 func TestStartupRejectsUnreadableFunnelHistory(t *testing.T) {
-	if root := os.Getenv("CAREER_OPS_TEST_STARTUP"); root != "" {
+	if root := os.Getenv("LANDING_GEAR_TEST_STARTUP"); root != "" {
 		flag.CommandLine = flag.NewFlagSet("career-dashboard", flag.ExitOnError)
 		os.Args = []string{"career-dashboard", "--path", root}
 		main()
@@ -104,7 +104,7 @@ func TestStartupRejectsUnreadableFunnelHistory(t *testing.T) {
 	}
 	cmd := exec.Command(testBinary, "-test.run=^TestStartupRejectsUnreadableFunnelHistory$")
 	cmd.Dir = root
-	cmd.Env = append(os.Environ(), "CAREER_OPS_TEST_STARTUP="+root, "CAREER_OPS_ROOT="+root, "CAREER_OPS_TRACKER="+tracker)
+	cmd.Env = append(os.Environ(), "LANDING_GEAR_TEST_STARTUP="+root, "LANDING_GEAR_ROOT="+root, "LANDING_GEAR_TRACKER="+tracker)
 	out, err := cmd.CombinedOutput()
 	var exitErr *exec.ExitError
 	if !errors.As(err, &exitErr) || exitErr.ExitCode() != 1 {

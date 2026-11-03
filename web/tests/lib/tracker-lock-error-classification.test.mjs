@@ -1,4 +1,4 @@
-// tracker-lock.ts imports `@/lib/career-ops` (the path alias), which plain
+// tracker-lock.ts imports `@/lib/landing-gear` (the path alias), which plain
 // `node --test` cannot resolve without the Next.js build — same constraint as
 // pipeline.ts, same workaround already established in
 // tests/lib/pipeline-local-today.test.mjs: read the source and assert the
@@ -75,7 +75,7 @@ test("anything not tagged LOCK_TIMEOUT propagates as-is, not swallowed", () => {
 // Same core-resolution / skip-if-absent pattern as tracker-lock.test.mjs.
 
 const CORE =
-  process.env.CAREER_OPS_ROOT ||
+  process.env.LANDING_GEAR_ROOT ||
   path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const coreLock = path.join(CORE, "tracker-utils.mjs");
 

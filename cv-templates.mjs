@@ -23,7 +23,7 @@ export { parseMeta, PARTIAL_SECTIONS, declaredSections, checkDeclaredSections };
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // templates/ is System Layer (code root); config/profile.yml is User Layer and
-// follows the data root. CAREER_OPS_PROFILE still wins over both.
+// follows the data root. LANDING_GEAR_PROFILE still wins over both.
 const DEFAULT_TEMPLATES_DIR = resolve(__dirname, 'templates');
 const DEFAULT_PROFILE_PATH = getProfilePath();
 
@@ -121,7 +121,7 @@ function entryFor(parsed, path, pack) {
 // recurses; a link pointing at its own ancestor is read once as a directory
 // and contributes whatever template files sit at its top level.
 //
-// The deciding cost is silent invisibility. career-ops sanctions a symlinked
+// The deciding cost is silent invisibility. landing-gear sanctions a symlinked
 // user layer (#524), so a pack maintained outside the repo is a supported
 // setup, and skipping it would drop the template from the registry with
 // nothing said — the same failure this file refuses to accept for name

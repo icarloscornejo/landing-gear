@@ -204,23 +204,23 @@ test("the chart width leaves every column room for its side labels", () => {
 // ── readStatusLog(): the ledger read behind the Sankey ──────────────────────
 // A missing data/status-log.tsv is normal and charts from the snapshot; any
 // other read failure must surface instead of passing for an empty log. It lives
-// in career-ops.ts, reached through the shared @/ alias hook, with
-// CAREER_OPS_ROOT pointed at a scratch data root.
-const skipTs = !process.features?.typescript && "this Node cannot import career-ops.ts (no type stripping)";
-const { readStatusLog, readApplicationStatusLog } = skipTs ? {} : await import("@/lib/career-ops");
+// in landing-gear.ts, reached through the shared @/ alias hook, with
+// LANDING_GEAR_ROOT pointed at a scratch data root.
+const skipTs = !process.features?.typescript && "this Node cannot import landing-gear.ts (no type stripping)";
+const { readStatusLog, readApplicationStatusLog } = skipTs ? {} : await import("@/lib/landing-gear");
 
 function withDataRoot(setup, fn) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "sankey-status-log-"));
   fs.mkdirSync(path.join(root, "data"));
   fs.writeFileSync(path.join(root, "data/applications.md"), "");
   setup(path.join(root, "data"));
-  const prev = process.env.CAREER_OPS_ROOT;
-  process.env.CAREER_OPS_ROOT = root;
+  const prev = process.env.LANDING_GEAR_ROOT;
+  process.env.LANDING_GEAR_ROOT = root;
   try {
     return fn();
   } finally {
-    if (prev === undefined) delete process.env.CAREER_OPS_ROOT;
-    else process.env.CAREER_OPS_ROOT = prev;
+    if (prev === undefined) delete process.env.LANDING_GEAR_ROOT;
+    else process.env.LANDING_GEAR_ROOT = prev;
     fs.rmSync(root, { recursive: true, force: true });
   }
 }
@@ -238,12 +238,12 @@ test("readStatusLog: a missing log is an empty log", { skip: skipTs }, () => {
 
 test("Sankey and cumulative tiles read the same active tracker's ledger", { skip: skipTs }, (t) => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "sankey-tracker-"));
-  const priorRoot = process.env.CAREER_OPS_ROOT;
-  const priorTracker = process.env.CAREER_OPS_TRACKER;
+  const priorRoot = process.env.LANDING_GEAR_ROOT;
+  const priorTracker = process.env.LANDING_GEAR_TRACKER;
   const ledger = (num) => `${num}\t2026-08-26\tOffer\tRejected\tset-status\t\n`;
   try {
-    process.env.CAREER_OPS_ROOT = root;
-    delete process.env.CAREER_OPS_TRACKER;
+    process.env.LANDING_GEAR_ROOT = root;
+    delete process.env.LANDING_GEAR_TRACKER;
     for (const [dir, num] of [["", 1], ["data", 2], ["custom", 3]]) {
       fs.mkdirSync(path.join(root, dir), { recursive: true });
       fs.writeFileSync(path.join(root, dir, "applications.md"), "");
@@ -257,9 +257,9 @@ test("Sankey and cumulative tiles read the same active tracker's ledger", { skip
     fs.unlinkSync(path.join(root, "data/applications.md"));
     check(1);
     const custom = path.join(root, "custom/applications.md");
-    process.env.CAREER_OPS_TRACKER = custom;
+    process.env.LANDING_GEAR_TRACKER = custom;
     check(3);
-    process.env.CAREER_OPS_TRACKER = path.relative(process.cwd(), custom);
+    process.env.LANDING_GEAR_TRACKER = path.relative(process.cwd(), custom);
     check(3);
     // A FILE symlink needs a privilege a non-elevated Windows shell lacks, and
     // a junction only links directories, so this one leg has no stand-in there.
@@ -273,14 +273,14 @@ test("Sankey and cumulative tiles read the same active tracker's ledger", { skip
       t.diagnostic("symlinked-tracker leg skipped: no symlink privilege (EPERM)");
     }
     if (linked) {
-      process.env.CAREER_OPS_TRACKER = path.join(root, "linked.md");
+      process.env.LANDING_GEAR_TRACKER = path.join(root, "linked.md");
       check(3);
     }
   } finally {
-    if (priorRoot === undefined) delete process.env.CAREER_OPS_ROOT;
-    else process.env.CAREER_OPS_ROOT = priorRoot;
-    if (priorTracker === undefined) delete process.env.CAREER_OPS_TRACKER;
-    else process.env.CAREER_OPS_TRACKER = priorTracker;
+    if (priorRoot === undefined) delete process.env.LANDING_GEAR_ROOT;
+    else process.env.LANDING_GEAR_ROOT = priorRoot;
+    if (priorTracker === undefined) delete process.env.LANDING_GEAR_TRACKER;
+    else process.env.LANDING_GEAR_TRACKER = priorTracker;
     fs.rmSync(root, { recursive: true, force: true });
   }
 });

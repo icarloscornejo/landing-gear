@@ -2,7 +2,7 @@
 //
 // buildSnapshot() used to read a fixed DATA_ROOT/data/applications.md with a
 // private table parser keyed by the literal lowercased header. A tracker set
-// through CAREER_OPS_TRACKER or kept at the legacy root location was never
+// through LANDING_GEAR_TRACKER or kept at the legacy root location was never
 // read, and a localized header (`| # | Datum | Firma | Rolle |`) produced rows
 // with no `company` / `role` key, which the Notion export skips: both ended
 // in "pushed 0 record(s)". The snapshot now resolves the tracker with
@@ -38,7 +38,7 @@ const GERMAN = [
   '',
 ].join('\n');
 
-const ENV_KEYS = ['CAREER_OPS_ROOT', 'CAREER_OPS_DATA_DIR', 'CAREER_OPS_TRACKER'];
+const ENV_KEYS = ['LANDING_GEAR_ROOT', 'LANDING_GEAR_DATA_DIR', 'LANDING_GEAR_TRACKER'];
 
 async function snapshotWith(env) {
   const prev = Object.fromEntries(ENV_KEYS.map((k) => [k, process.env[k]]));
@@ -62,9 +62,9 @@ function check(cond, ok, bad) {
   else fail(bad);
 }
 
-const dir = mkdtempSync(join(tmpdir(), 'career-ops-plugin-snapshot-'));
+const dir = mkdtempSync(join(tmpdir(), 'landing-gear-plugin-snapshot-'));
 try {
-  // 1. CAREER_OPS_TRACKER points outside the data root entirely.
+  // 1. LANDING_GEAR_TRACKER points outside the data root entirely.
   const root1 = join(dir, 'root1');
   mkdirSync(join(root1, 'data'), { recursive: true });
   writeFileSync(join(root1, 'data', 'applications.md'), GERMAN); // must NOT be read
@@ -72,14 +72,14 @@ try {
   mkdirSync(join(dir, 'elsewhere'));
   writeFileSync(custom, ENGLISH);
   {
-    const { path, snap } = await snapshotWith({ CAREER_OPS_ROOT: root1, CAREER_OPS_TRACKER: custom });
+    const { path, snap } = await snapshotWith({ LANDING_GEAR_ROOT: root1, LANDING_GEAR_TRACKER: custom });
     check(path === canonicalizeTrackerPath(custom),
-      'CAREER_OPS_TRACKER: the snapshot reads the overridden tracker path',
-      `CAREER_OPS_TRACKER: expected ${canonicalizeTrackerPath(custom)}, got ${path}`);
+      'LANDING_GEAR_TRACKER: the snapshot reads the overridden tracker path',
+      `LANDING_GEAR_TRACKER: expected ${canonicalizeTrackerPath(custom)}, got ${path}`);
     const companies = snap.applications.map((r) => r.company);
     check(JSON.stringify(companies) === JSON.stringify(['Acme Corp', 'Globex']),
-      'CAREER_OPS_TRACKER: every row of the overridden tracker reaches the snapshot',
-      `CAREER_OPS_TRACKER: snapshot companies ${JSON.stringify(companies)}`);
+      'LANDING_GEAR_TRACKER: every row of the overridden tracker reaches the snapshot',
+      `LANDING_GEAR_TRACKER: snapshot companies ${JSON.stringify(companies)}`);
     const [acme, globex] = snap.applications;
     check(acme?.num === '1' && acme?.role === 'Staff Engineer' && acme?.score === '4.5/5' && acme?.status === 'Interview',
       'rows carry canonical field names with string values',
@@ -97,7 +97,7 @@ try {
   mkdirSync(root2);
   writeFileSync(join(root2, 'applications.md'), ENGLISH);
   {
-    const { path, snap } = await snapshotWith({ CAREER_OPS_ROOT: root2 });
+    const { path, snap } = await snapshotWith({ LANDING_GEAR_ROOT: root2 });
     check(path === canonicalizeTrackerPath(join(root2, 'applications.md')),
       'legacy root tracker: the snapshot falls back to {root}/applications.md',
       `legacy root tracker: got ${path}`);
@@ -111,7 +111,7 @@ try {
   mkdirSync(join(root3, 'data'), { recursive: true });
   writeFileSync(join(root3, 'data', 'applications.md'), GERMAN);
   {
-    const { snap } = await snapshotWith({ CAREER_OPS_ROOT: root3 });
+    const { snap } = await snapshotWith({ LANDING_GEAR_ROOT: root3 });
     const [row] = snap.applications;
     check(row?.company === 'Beispiel GmbH' && row?.role === 'Backend-Entwickler',
       'localized header: Firma/Rolle map to company/role, so an export plugin sees the row',

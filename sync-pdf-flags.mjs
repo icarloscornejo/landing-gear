@@ -24,7 +24,7 @@ import { readFileSync, existsSync } from 'fs';
 import { join, resolve, dirname } from 'path';
 import { extractTrackerReportNumbers, resolveColumns, parseTrackerRow } from './tracker-parse.mjs';
 import { rebuildRow, resolveTrackerPath, resolvePdfIndexPath, openTrackerTransaction, writeFileAtomic, resolveWorkspaceRoot, pathIsInsideCanonical } from './tracker-utils.mjs';
-import { getCareerOpsRoot } from './path-resolver.mjs';
+import { getLandingGearRoot } from './path-resolver.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
 import { parsePdfIndex, livePdfIndex } from './find.mjs';
 
@@ -323,14 +323,14 @@ if (isMainModule(import.meta.url)) {
     else console.error(`Error: ${error}\n${USAGE}`);
     process.exitCode = 1;
   } else {
-    const DATA_ROOT = getCareerOpsRoot();
+    const DATA_ROOT = getLandingGearRoot();
     const appsFile = resolveTrackerPath(DATA_ROOT);
     // exitCode, not exit(): the transaction is closed on every path inside, and
     // a natural exit lets piped output (--json) flush.
     process.exitCode = await syncTrackerPdfFlags({
       appsFile,
       // Derived from the TRACKER, not from this script's location, so a redirected
-      // CAREER_OPS_TRACKER moves the whole workspace together (#2471).
+      // LANDING_GEAR_TRACKER moves the whole workspace together (#2471).
       pdfManifest: resolvePdfIndexPath(appsFile),
       dataRoot: DATA_ROOT,
       flags,

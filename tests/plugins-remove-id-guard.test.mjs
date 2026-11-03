@@ -15,7 +15,7 @@
 // inherited-tree walk, and a failure reason instead of a silent catch). A guard
 // regression that re-opens
 // the hole can only delete that fixture — a test that destroys the files it is
-// testing is worse than no test. CAREER_OPS_ROOT points at a separate temp dir,
+// testing is worse than no test. LANDING_GEAR_ROOT points at a separate temp dir,
 // so config writes never reach the developer's data root either.
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -88,7 +88,7 @@ function run(...args) {
     cwd: checkout,
     encoding: 'utf-8',
     timeout: 30_000,
-    env: { ...process.env, CAREER_OPS_ROOT: dataRoot },
+    env: { ...process.env, LANDING_GEAR_ROOT: dataRoot },
   });
   assert.equal(r.error, undefined, `plugins.mjs failed to spawn: ${r.error?.message}`);
   assert.equal(r.signal, null, `plugins.mjs was killed by ${r.signal} (timeout?)`);

@@ -2,7 +2,7 @@
 // Reads ONLY the job's terminal step label — the exact, structured message
 // job-store.tsx (client) or /api/run (server) set when the run ended — never
 // the free-form assistant output. Scanning accumulated assistant text used to
-// false-positive: career-ops evaluates AI/tech job postings, so the output
+// false-positive: landing-gear evaluates AI/tech job postings, so the output
 // routinely contains words like "credential", "sign-in", "authenticate" as
 // ordinary JD/CV prose, unrelated to whether the CLI itself is signed in.
 //
@@ -20,7 +20,7 @@
 //   the error text itself is the explanation.
 
 // "auth" as a bare substring matched inside unrelated words like "author" —
-// career-ops evaluates AI/tech job postings, so a terminal label can
+// landing-gear evaluates AI/tech job postings, so a terminal label can
 // legitimately read something like "Failed to parse author metadata".
 // authenticat\w* matches authenticate/authenticated/authentication (the
 // actual terminal-label forms listed above) without matching author/authority.

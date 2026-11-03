@@ -2,7 +2,8 @@
 // Recent postings from freehire.me (public API, no key), which collects postings from ~50 ATSs and
 // job boards. Idea from ai-job-search (MIT), rewritten. Opt-in: it runs only when portals.yml has a
 // `freehire:` block, e.g. `freehire: { regions: latam, work_mode: remote }`. Offers go through
-// admitAndWrite, so the portals.yml filters apply as in scan.mjs.
+// admitAndWrite, so the portals.yml filters apply as in scan.mjs. `exclude_hosts: [whatjobs.com]`
+// drops postings whose link is on one of those hosts (or a subdomain), such as repost boards.
 // Usage: node scan-freehire.mjs [--dry-run]
 import { isMainModule } from './lib/is-main-module.mjs';
 import { admitAndWrite, loadPortals } from './lib/source-writer.mjs';
@@ -54,6 +55,20 @@ export function offerFromJob(job, fallbackLocation = 'Remote') {
   };
 }
 
+/** Whether a posting link is on one of the excluded hosts or their subdomains. */
+export function onExcludedHost(url, hosts = []) {
+  let host;
+  try {
+    host = new URL(url).hostname.toLowerCase();
+  } catch {
+    return false;
+  }
+  return [hosts].flat().some((excluded) => {
+    const domain = String(excluded ?? '').trim().toLowerCase();
+    return domain && (host === domain || host.endsWith(`.${domain}`));
+  });
+}
+
 /** A blank location reads as "Remote, <regions>" so a location_filter that allows the region sees it. */
 export function fallbackLocationFor(settings = {}) {
   const regions = [settings.regions].flat().filter(Boolean).join(', ').toUpperCase();
@@ -87,8 +102,9 @@ async function main() {
     if (pageRows.length < PAGE_SIZE || rows.length >= total) break;
   }
   const fallback = fallbackLocationFor(settings);
-  const offers = rows.map((row) => offerFromJob(row, fallback)).filter(Boolean);
-  console.log(`freehire: ${rows.length} postings, ${offers.length} readable`);
+  const readable = rows.map((row) => offerFromJob(row, fallback)).filter(Boolean);
+  const offers = readable.filter((offer) => !onExcludedHost(offer.url, settings.exclude_hosts));
+  console.log(`freehire: ${rows.length} postings, ${readable.length} readable, ${readable.length - offers.length} on excluded hosts`);
   await admitAndWrite(offers, { source: 'freehire', dryRun, config });
 }
 

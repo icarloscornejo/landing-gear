@@ -152,3 +152,36 @@ test("preTriage runs the eligibility check only when the profile is not US-autho
   assert.deepEqual(preTriage(role, tracker, jd, {}), PASS);
   assert.deepEqual(preTriage(role, tracker, jd), PASS);
 });
+
+test("profile-gated drops from the LinkedIn script: off by default, on when the profile asks", () => {
+  const ON = { usAuthorized: false, skipJunior: true, onsiteOnlyIn: ["El Salvador"], blockedPlaces: ["india", "bangalore"] };
+  const check = (role, location, jd, options = ON) => preTriage(row(role, location), tracker, { text: jd }, options).reason ?? "pass";
+
+  // Junior titles.
+  assert.equal(check("Junior Android Developer", "Remote", JD), "junior role");
+  assert.equal(check("Junior Android Developer", "Remote", JD, {}), "pass");
+
+  // US contract terms only when the profile is not US-authorized.
+  const w2 = `${JD} This is a W2 position.`;
+  assert.match(check("Android Engineer", "Remote", w2), /^US contract terms: "w2"$/);
+  assert.equal(check("Android Engineer", "Remote", w2, { ...ON, usAuthorized: true }), "pass");
+
+  // Hybrid or on-site as a requirement, unless remote is offered or the place is the user's country.
+  const hybrid = `${JD} This is a hybrid role, three days a week in our Bogota office.`;
+  assert.match(check("Android Engineer", "Bogota", hybrid), /^hybrid or on-site: "This is a hybrid role/);
+  assert.equal(check("Android Engineer", "San Salvador, El Salvador", hybrid), "pass");
+  assert.equal(check("Android Engineer", "Remote", `${JD} We work remote or hybrid, your choice.`), "pass");
+  assert.equal(check("Android Engineer", "Remote", `${JD} You will build hybrid apps and onsite interviews happen online.`), "pass");
+  // Real false positives from the pipeline (RevenueCat, Miratech, Parser): not the job's arrangement.
+  for (const line of ["It also requires contributing to our hybrid SDKs.", "You will evolve hybrid React Native and native applications.", "A flexible and hybrid working environment."]) {
+    assert.equal(check("Android Engineer", "Bogota", `${JD} ${line}`), "pass", line);
+  }
+  assert.match(check("Android Engineer", "Santiago", `${JD}\nModalidad: Híbrido (3 días en la oficina).`), /^hybrid or on-site/);
+  assert.match(check("Android Engineer", "Santiago", `${JD}\nHybrid\n`), /^hybrid or on-site: "Hybrid"$/);
+  assert.equal(check("Android Engineer", "Bogota", hybrid, { ...ON, onsiteOnlyIn: [] }), "pass");
+
+  // Blocked places, unless the JD also names LATAM or an open scope.
+  assert.equal(check("Android Engineer", "Remote", `${JD} Team based in Bangalore.`), "blocked place: bangalore");
+  assert.equal(check("Android Engineer", "Remote", `${JD} Remote from LATAM or India.`), "pass");
+  assert.equal(check("Android Engineer", "Remote", `${JD} Team based in Bangalore.`, { ...ON, blockedPlaces: [] }), "pass");
+});

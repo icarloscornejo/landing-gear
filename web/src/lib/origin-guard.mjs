@@ -23,14 +23,14 @@
 //
 //   Origin layer (F1): trust Sec-Fetch-Site when the browser sends it, fall
 //     back to comparing Origin against Host for older/non-browser clients.
-//     An opt-in allowlist of extra origins (CAREER_OPS_ALLOWED_ORIGINS, empty
+//     An opt-in allowlist of extra origins (LANDING_GEAR_ALLOWED_ORIGINS, empty
 //     by default) passes this layer regardless of Sec-Fetch-Site: the browser
 //     sets Origin itself and a page cannot forge it, so naming an origin is as
 //     sound a signal as same-origin is. That is what a local companion client
 //     needs — a browser extension speaks from a chrome-extension:// origin,
 //     which is always "cross-site" to Fetch Metadata and so blocked outright.
 //   Host filter: answer only for loopback OR a host that was opted in via
-//     CAREER_OPS_WEB_ALLOWED_HOSTS. Note the loopback half is unconditional and
+//     LANDING_GEAR_WEB_ALLOWED_HOSTS. Note the loopback half is unconditional and
 //     is NOT derived from that variable.
 //
 // Nothing here closes F2, and nothing here can: Host is chosen by the client,
@@ -139,7 +139,7 @@ export function checkRequest({ secFetchSite, origin, host, allowedHosts, allowed
   const hostAllowed = isLoopbackHost(normalizedHost) || (allowedHosts && allowedHosts.has(normalizedHost));
   if (!hostAllowed) {
     return block(
-      "this host is not allowed; the dashboard serves loopback only unless CAREER_OPS_WEB_ALLOWED_HOSTS opts it in",
+      "this host is not allowed; the dashboard serves loopback only unless LANDING_GEAR_WEB_ALLOWED_HOSTS opts it in",
     );
   }
 

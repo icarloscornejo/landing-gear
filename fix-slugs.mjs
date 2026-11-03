@@ -41,14 +41,14 @@ import { verifyPortalsFile } from './verify-portals.mjs';
 import { replaceUserFile } from './tracker-utils.mjs';
 import { flagValue, hasFlag, validateFlags } from './lib/cli-flags.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
-import { getCareerOpsRoot } from './path-resolver.mjs';
+import { getLandingGearRoot } from './path-resolver.mjs';
 
 // The data root's portals.yml, the same default verify-portals.mjs sweeps
 // (#4254). A bare 'portals.yml' resolved against the cwd, so under an external
-// data root (CAREER_OPS_ROOT / CAREER_OPS_DATA_DIR / .career-ops-data) this
+// data root (LANDING_GEAR_ROOT / LANDING_GEAR_DATA_DIR / .landing-gear-data) this
 // reported "nothing to fix" for the file verify-portals had just flagged, or
 // with --fix rewrote a stale copy in whatever directory it was run from.
-const DEFAULT_PORTALS_PATH = process.env.CAREER_OPS_PORTALS || join(getCareerOpsRoot(), 'portals.yml');
+const DEFAULT_PORTALS_PATH = process.env.LANDING_GEAR_PORTALS || join(getLandingGearRoot(), 'portals.yml');
 
 const KNOWN_FLAGS = ['--apply', '--dry-run', '--file', '--fix', '--help', '-h'];
 const VALUE_FLAGS = ['--file'];

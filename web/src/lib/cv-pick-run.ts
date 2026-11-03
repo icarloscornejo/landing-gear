@@ -1,4 +1,4 @@
-import { rootScript } from "@/lib/career-ops";
+import { rootScript } from "@/lib/landing-gear";
 import { runNodeScript, type CliResult } from "@/lib/set-status-run";
 
 // my-tools/cv-pick.mjs (the engineer's CV A/B log, house rule 6) rewrites

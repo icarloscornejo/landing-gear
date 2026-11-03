@@ -1,6 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cleanUrl, fallbackLocationFor, offerFromJob, searchUrl } from '../scan-freehire.mjs';
+import { cleanUrl, fallbackLocationFor, offerFromJob, onExcludedHost, searchUrl } from '../scan-freehire.mjs';
+
+test('onExcludedHost drops a host and its subdomains, nothing else', () => {
+  assert.equal(onExcludedHost('https://ar.whatjobs.com/pub_api__cpl__1', ['whatjobs.com']), true);
+  assert.equal(onExcludedHost('https://whatjobs.com/x', 'whatjobs.com'), true);
+  assert.equal(onExcludedHost('https://notwhatjobs.com/x', ['whatjobs.com']), false);
+  assert.equal(onExcludedHost('https://jobs.lever.co/acme/1', ['whatjobs.com']), false);
+  assert.equal(onExcludedHost('https://jobs.lever.co/acme/1'), false);
+});
 
 test('searchUrl sends the configured regions and work mode, one page at a time', () => {
   const url = new URL(searchUrl(2, { regions: 'latam', work_mode: 'remote' }));

@@ -23,7 +23,7 @@ const [command, ...extra] = process.argv.slice(2);
 const plan = planNextRun({
   command,
   extra,
-  envValue: process.env.CAREER_OPS_WEB_ALLOWED_HOSTS,
+  envValue: process.env.LANDING_GEAR_WEB_ALLOWED_HOSTS,
 });
 if (!plan.ok) {
   console.error(plan.error);
@@ -49,7 +49,7 @@ if (plan.hostFlagSupplied) {
     // `Host: localhost`. A list of only loopback spellings counts as naming
     // nobody, which is why this asks what the list grants rather than its length.
     console.error(
-      "landing-gear web: CAREER_OPS_WEB_ALLOWED_HOSTS names no host beyond loopback, so if that " +
+      "landing-gear web: LANDING_GEAR_WEB_ALLOWED_HOSTS names no host beyond loopback, so if that " +
         "flag opens the socket the request guard will refuse honest clients on this interface " +
         "and admit spoofed loopback ones. Name the hosts that should reach it in that variable.",
     );
@@ -85,9 +85,9 @@ try {
   process.exit(1);
 }
 
-// cwd is pinned to this file's directory rather than inherited: career-ops.ts
+// cwd is pinned to this file's directory rather than inherited: landing-gear.ts
 // resolves the checkout as `resolve(process.cwd(), "..")`, so a run started from
-// the repo root would otherwise read the repo's PARENT as the career-ops root.
+// the repo root would otherwise read the repo's PARENT as the landing-gear root.
 //
 // spawnSync because the child runs until Ctrl-C and this process has nothing to
 // do meanwhile. The terminal delivers SIGINT to the whole foreground group, so

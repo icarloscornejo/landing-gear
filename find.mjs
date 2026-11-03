@@ -30,11 +30,11 @@ import { fileURLToPath } from 'url';
 import { resolveColumns, parseTrackerRow, parseMarkdownLinks } from './tracker-parse.mjs';
 import { resolvePdfIndexPath, resolveWorkspaceRootFor, pathIsInside, pathIsInsideCanonical } from './tracker-utils.mjs';
 import { roleFuzzyMatch } from './role-matcher.mjs';
-import { getCareerOpsRoot, resolveTrackerPath } from './path-resolver.mjs';
+import { getLandingGearRoot, resolveTrackerPath } from './path-resolver.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
-const DATA_ROOT = getCareerOpsRoot();
+const DATA_ROOT = getLandingGearRoot();
 
 // "008" and "8" are the same report — zero-padded report-link form vs unpadded
 // tracker-# form (same normalization as the manifest writer in generate-pdf.mjs).
@@ -51,7 +51,7 @@ const cleanStatus = (s) =>
  * The report number and path come from the Report cell's markdown link. The
  * path is normalized to be root-relative: trackers at `data/applications.md`
  * carry `../reports/...` links (relative to the tracker file, see #760), which
- * would be misleading when printed from the career-ops root.
+ * would be misleading when printed from the landing-gear root.
  *
  * @param {string} text - Full contents of applications.md.
  * @returns {Array<{trackerNum:number,date:string,company:string,role:string,score:string,status:string,reportNum:string|null,reportPath:string|null}>}
@@ -121,7 +121,7 @@ export function parsePdfIndex(text) {
  * cannot fail a batch.
  *
  * @param {Map<string,string>} pdfIndex - parsePdfIndex() output.
- * @param {string} dataRoot - The career-ops data root, getCareerOpsRoot().
+ * @param {string} dataRoot - The landing-gear data root, getLandingGearRoot().
  * @param {(message: string) => void} [warn]
  * @returns {Map<string,string>} The rows whose file exists.
  */
@@ -227,7 +227,7 @@ function main() {
   const rows = parseTrackerRows(readFileSync(trackerPath, 'utf-8'));
 
   // Derived from the tracker resolved just above, not from ROOT: a redirected
-  // CAREER_OPS_TRACKER must not be searched against this install's manifest (#2471).
+  // LANDING_GEAR_TRACKER must not be searched against this install's manifest (#2471).
   const manifestPath = resolvePdfIndexPath(trackerPath);
   const pdfIndex = existsSync(manifestPath)
     ? parsePdfIndex(readFileSync(manifestPath, 'utf-8'))

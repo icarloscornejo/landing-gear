@@ -2,7 +2,7 @@
 // rule (#5303).
 //
 // Hosts that title sessions automatically name them after the invocation, so a
-// week of `/landing-gear <url>` runs leaves a sidebar of identical "Career ops
+// week of `/landing-gear <url>` runs leaves a sidebar of identical "Landing gear
 // LinkedIn job" titles. The router now tells an interactive single-posting mode
 // to rename the session `{Role}, {Company}` once the JD is read.
 //

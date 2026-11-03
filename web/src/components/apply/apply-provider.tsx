@@ -49,7 +49,7 @@ function closeSession(id: string) {
   void fetch("/api/apply/close", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId: id }), keepalive: true }).catch(() => {});
 }
 
-const CONFIG_KEY = "career-ops:config";
+const CONFIG_KEY = "landing-gear:config";
 function cliId(): string | null {
   try {
     return JSON.parse(localStorage.getItem(CONFIG_KEY) || "{}").cliId || null;

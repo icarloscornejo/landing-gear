@@ -162,7 +162,7 @@ export function blockedAddressError(hostname, address) {
   const err = new Error(
     `Refusing to connect to ${hostname}: resolves to non-public address ${address}`,
   );
-  /** @type {any} */ (err).code = 'ECAREEROPS_BLOCKED_ADDRESS';
+  /** @type {any} */ (err).code = 'ELANDINGGEAR_BLOCKED_ADDRESS';
   /** @type {any} */ (err).hostname = hostname;
   /** @type {any} */ (err).address = address;
   return err;

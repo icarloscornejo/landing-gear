@@ -39,11 +39,11 @@ import { extractTrackerReportNumbers, resolveColumns, parseTrackerRow } from './
 import {
   rebuildRow, resolveTrackerPath, writeFileAtomic, CLI_EXIT, makeCliFailWith, makeCliFailUsage, acquireTrackerLockForCli,
 } from './tracker-utils.mjs';
-import { getCareerOpsRoot } from './path-resolver.mjs';
+import { getLandingGearRoot } from './path-resolver.mjs';
 
 // The USER's data root, not this file's directory — same defect, same fix as
 // set-status.mjs above it in this change.
-const DATA_ROOT = getCareerOpsRoot();
+const DATA_ROOT = getLandingGearRoot();
 
 // LOCK_TIMEOUT is not destructured here — that exit path is raised inside
 // acquireTrackerLockForCli() itself (tracker-utils.mjs), via CLI_EXIT.LOCK_TIMEOUT.

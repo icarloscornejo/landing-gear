@@ -5,7 +5,7 @@ import path from "node:path";
 // tracker-files.test.mjs checks parity against the core resolver, including
 // overrides, legacy layouts, and symlinks.
 export function resolveTrackerPath(root) {
-  const override = process.env.CAREER_OPS_TRACKER?.trim();
+  const override = process.env.LANDING_GEAR_TRACKER?.trim();
   const candidate = path.resolve(override || (
     fs.existsSync(path.join(root, "data/applications.md"))
       ? path.join(root, "data/applications.md")

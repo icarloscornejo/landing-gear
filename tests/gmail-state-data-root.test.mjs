@@ -2,7 +2,7 @@
 // processed-id cursor under the data root, not the working directory.
 //
 // The cursor was `data/gmail-state.json` resolved against process.cwd(). With
-// the user layer outside the checkout (CAREER_OPS_ROOT, or a .career-ops-data
+// the user layer outside the checkout (LANDING_GEAR_ROOT, or a .landing-gear-data
 // marker) that put it in whichever directory the command happened to run from:
 // run the plugin from somewhere else and it found no cursor, and every message
 // it had already processed was fetched and offered to the pipeline again. It

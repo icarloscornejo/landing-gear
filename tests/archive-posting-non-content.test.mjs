@@ -16,7 +16,7 @@
 // benefit. The fake page satisfies exactly the Playwright surface
 // archiveUrl() calls (goto/url/title/$eval/waitForTimeout/evaluate/pdf) so the
 // REAL function logic runs end to end; only the browser layer underneath it
-// is faked. CAREER_OPS_ROOT is set to a temp dir BEFORE import, so JDS_DIR
+// is faked. LANDING_GEAR_ROOT is set to a temp dir BEFORE import, so JDS_DIR
 // resolves there instead of the real project's jds/.
 //
 // Run:  node --test tests/archive-posting-non-content.test.mjs
@@ -27,8 +27,8 @@ import { mkdtempSync, existsSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-const tmp = mkdtempSync(join(tmpdir(), 'career-ops-archive-nc-'));
-process.env.CAREER_OPS_ROOT = tmp;
+const tmp = mkdtempSync(join(tmpdir(), 'landing-gear-archive-nc-'));
+process.env.LANDING_GEAR_ROOT = tmp;
 
 const { archiveUrl } = await import('../archive-posting.mjs');
 

@@ -33,11 +33,11 @@ const TRACKER = [
   '',
 ].join('\n');
 
-// Every child inherits a sanitized env. CAREER_OPS_TRACKER outranks the
+// Every child inherits a sanitized env. LANDING_GEAR_TRACKER outranks the
 // resolved root (DATA_CONTRACT.md), so leaving a developer's own export in
 // place would point these writers at their real tracker (#3988).
 function env(root) {
-  return { ...process.env, CAREER_OPS_ROOT: root, CAREER_OPS_DATA_DIR: '', CAREER_OPS_TRACKER: '' };
+  return { ...process.env, LANDING_GEAR_ROOT: root, LANDING_GEAR_DATA_DIR: '', LANDING_GEAR_TRACKER: '' };
 }
 
 function runScript(script, args, root) {

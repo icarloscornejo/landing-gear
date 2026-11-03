@@ -1,6 +1,6 @@
 // @ts-check
 /**
- * plugins/_engine.mjs — the career-ops plugin engine.
+ * plugins/_engine.mjs — the landing-gear plugin engine.
  *
  * Generalizes the proven providers/ auto-loader (scan.mjs `loadProviders`) into
  * a sibling `plugins/` layer for integrations that need a KEY or talk to an
@@ -29,7 +29,7 @@ import path from 'path';
 import { pathToFileURL } from 'url';
 import { resolveAndValidate } from './_net.mjs';
 import { normalizeUrl, aggregatorPostingId } from '../url-key.mjs';
-import { getCareerOpsRoot } from '../path-resolver.mjs';
+import { getLandingGearRoot } from '../path-resolver.mjs';
 import { readLock, writeLockEntry, diffPlugin, describeDrift, hashPluginTree, consentSurface } from './_lock.mjs';
 import { loadRegistry } from './_registry.mjs';
 
@@ -45,10 +45,10 @@ export const HOOK_KINDS = ['provider', 'ingest', 'search', 'notify', 'export'];
  */
 export const RESERVED_ENV = new Set([
   'GEMINI_API_KEY', 'GEMINI_MODEL',
-  'OPENROUTER_API_KEY', 'CAREER_OPS_MODEL',
+  'OPENROUTER_API_KEY', 'LANDING_GEAR_MODEL',
   'OPENAI_API_KEY', 'OPENAI_BASE_URL', 'OPENAI_MODEL',
   'ANTHROPIC_API_KEY',
-  'CAREER_OPS_PORTALS', 'CAREER_OPS_PROFILE',
+  'LANDING_GEAR_PORTALS', 'LANDING_GEAR_PROFILE',
   'PATH', 'HOME', 'NODE_OPTIONS', 'LD_PRELOAD', 'NODE_EXTRA_CA_CERTS',
 ]);
 
@@ -142,7 +142,7 @@ const USER_CONFIG_FILES = [
  * data root stays the only place these files are read from. Silent when both
  * roots are the same folder.
  * @param {string} root       Code root (where plugins/ lives).
- * @param {string} dataRoot   Data root (getCareerOpsRoot()).
+ * @param {string} dataRoot   Data root (getLandingGearRoot()).
  */
 export function warnConfigLeftInCodeRoot(root, dataRoot) {
   if (path.resolve(root) === path.resolve(dataRoot)) return;
@@ -521,7 +521,7 @@ export function buildCtx(manifest, opts = {}) {
     // the working directory, which is the data root only when the two coincide.
     // The engine's callers pass the root they resolved; a ctx built without one
     // gets the same answer from the resolver they use.
-    dataRoot: path.resolve(opts.dataRoot ?? getCareerOpsRoot()),
+    dataRoot: path.resolve(opts.dataRoot ?? getLandingGearRoot()),
     // The canonical posting-URL key, so a plugin can deduplicate the postings it
     // returns the way the tracker and scanner do. Reaching it through ctx keeps
     // plugin and core callers equivalent without a repository-relative import or

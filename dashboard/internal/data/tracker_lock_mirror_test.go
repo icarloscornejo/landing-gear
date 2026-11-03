@@ -90,7 +90,7 @@ func nodeLockDirFor(t *testing.T, root, trackerPath, lockOverride string) string
 	cmd.Dir = root
 	// Cleared rather than inherited: the override is part of what is being
 	// compared, so it must be exactly what the Go side was given.
-	cmd.Env = append(os.Environ(), "CAREER_OPS_TRACKER_LOCK="+lockOverride)
+	cmd.Env = append(os.Environ(), "LANDING_GEAR_TRACKER_LOCK="+lockOverride)
 
 	out, err := cmd.Output()
 	if err != nil {
@@ -135,7 +135,7 @@ func TestLockDirectoryMatchesNodeForTheSameTracker(t *testing.T) {
 			t.Fatalf("write %s: %v", name, err)
 		}
 
-		t.Setenv("CAREER_OPS_TRACKER_LOCK", "")
+		t.Setenv("LANDING_GEAR_TRACKER_LOCK", "")
 		got, err := trackerLockDirFor(full)
 		if err != nil {
 			t.Fatalf("go trackerLockDirFor(%q): %v", name, err)
@@ -152,7 +152,7 @@ func TestLockDirectoryMatchesNodeForTheSameTracker(t *testing.T) {
 func TestLockOverrideIsAcceptedAndRejectedIdentically(t *testing.T) {
 	// The intricate half, and the likelier place to drift: both sides accept an
 	// override only when it is absolute, lives under the OS temp directory, and
-	// carries the career-ops lock prefix — and silently fall back otherwise. An
+	// carries the landing-gear lock prefix — and silently fall back otherwise. An
 	// asymmetry here is worse than an outright mismatch, because one side would
 	// honour a path the other ignores and neither would report anything.
 	root := lockMirrorRepoRoot(t)
@@ -166,13 +166,13 @@ func TestLockOverrideIsAcceptedAndRejectedIdentically(t *testing.T) {
 	tmp := os.TempDir()
 	for _, override := range []string{
 		"", // absent -> fallback
-		"relative/career-ops-merge-tracker-x.lock",                 // not absolute -> fallback
-		filepath.Join(tmp, "career-ops-merge-tracker-ok.lock"),     // valid
+		"relative/landing-gear-merge-tracker-x.lock",                 // not absolute -> fallback
+		filepath.Join(tmp, "landing-gear-merge-tracker-ok.lock"),     // valid
 		filepath.Join(tmp, "not-the-prefix.lock"),                  // wrong prefix -> fallback
-		filepath.Join(trackerDir, "career-ops-merge-tracker.lock"), // outside temp -> fallback
-		filepath.Join(tmp, "nested", "career-ops-merge-tracker-n.lock"),
+		filepath.Join(trackerDir, "landing-gear-merge-tracker.lock"), // outside temp -> fallback
+		filepath.Join(tmp, "nested", "landing-gear-merge-tracker-n.lock"),
 	} {
-		t.Setenv("CAREER_OPS_TRACKER_LOCK", override)
+		t.Setenv("LANDING_GEAR_TRACKER_LOCK", override)
 		got, err := trackerLockDirFor(tracker)
 		if err != nil {
 			t.Fatalf("go trackerLockDirFor with override %q: %v", override, err)
@@ -187,7 +187,7 @@ func TestLockOverrideIsAcceptedAndRejectedIdentically(t *testing.T) {
 
 func TestLockDirectoryMatchesNodeWhateverTheCaseOfThePath(t *testing.T) {
 	// The corpus above names each tracker in the case it was created with. A
-	// user's CAREER_OPS_TRACKER, or a path typed into a shell, need not be: on
+	// user's LANDING_GEAR_TRACKER, or a path typed into a shell, need not be: on
 	// Windows the filesystem accepts any case, Go's EvalSymlinks returns the
 	// stored one, and Node's realpath returned the case it was given, so one
 	// tracker had a lock per spelling. On a case-sensitive filesystem the other
@@ -213,7 +213,7 @@ func TestLockDirectoryMatchesNodeWhateverTheCaseOfThePath(t *testing.T) {
 		spellings = append(spellings, strings.ToLower(vol)+stored[len(vol):])
 	}
 
-	t.Setenv("CAREER_OPS_TRACKER_LOCK", "")
+	t.Setenv("LANDING_GEAR_TRACKER_LOCK", "")
 	for _, spelled := range spellings {
 		got, err := trackerLockDirFor(spelled)
 		if err != nil {

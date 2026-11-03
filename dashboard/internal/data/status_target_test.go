@@ -1,7 +1,7 @@
 package data
 
 import (
-	"github.com/santifer/career-ops/dashboard/internal/model"
+	"github.com/icarloscornejo/landing-gear/dashboard/internal/model"
 	"os"
 	"path/filepath"
 	"strings"
@@ -33,8 +33,8 @@ func assertStatusTargetBytes(t *testing.T, path, want string) {
 func TestStatusTargetUsesReaderPath(t *testing.T) {
 	for _, layout := range []string{"canonical", "legacy", "both", "absolute", "relative", "missing-override"} {
 		t.Run(layout, func(t *testing.T) {
-			t.Setenv("CAREER_OPS_TRACKER", "")
-			t.Setenv("CAREER_OPS_TRACKER_LOCK", "")
+			t.Setenv("LANDING_GEAR_TRACKER", "")
+			t.Setenv("LANDING_GEAR_TRACKER_LOCK", "")
 			root := t.TempDir()
 			if layout == "relative" {
 				// Windows runners can put the checkout and system temp on
@@ -70,7 +70,7 @@ func TestStatusTargetUsesReaderPath(t *testing.T) {
 						t.Fatal(err)
 					}
 				}
-				t.Setenv("CAREER_OPS_TRACKER", override)
+				t.Setenv("LANDING_GEAR_TRACKER", override)
 				decoys = append(decoys, canonical, legacy)
 			}
 			for _, p := range decoys {
@@ -121,7 +121,7 @@ func TestStatusTargetUsesOnlyReportColumn(t *testing.T) {
 		{"empty-report", "", "", true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Setenv("CAREER_OPS_TRACKER", "")
+			t.Setenv("LANDING_GEAR_TRACKER", "")
 			root, path := writeTracker(t, statusTargetHeader+tc.other+statusTargetRow)
 			before, err := os.ReadFile(path)
 			if err != nil {
@@ -145,7 +145,7 @@ func TestStatusTargetUsesOnlyReportColumn(t *testing.T) {
 func TestStatusTargetStaleStatusNeverMatchesAnotherCell(t *testing.T) {
 	for _, format := range []string{"pipe", "tabs", "tabs-status-last"} {
 		t.Run(format, func(t *testing.T) {
-			t.Setenv("CAREER_OPS_TRACKER", "")
+			t.Setenv("LANDING_GEAR_TRACKER", "")
 			header := "| # | Date | Company | Via | Role | Score | Status | PDF | Report | Notes |\n"
 			row := "| 42 | 2026-09-01 | Applied | Agency | Engineer | 4.2/5 | Responded | ❌ | [7](reports/007.md) | Applied |\n"
 			if format == "tabs-status-last" {
@@ -192,7 +192,7 @@ func TestStatusTargetRejectsMalformedStatusAndUnsafeNotes(t *testing.T) {
 		{"tab-note", "Applied", "line1\tline2"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Setenv("CAREER_OPS_TRACKER", "")
+			t.Setenv("LANDING_GEAR_TRACKER", "")
 			row := strings.Replace(statusTargetRow, "| Applied |", "| "+tc.status+" |", 1)
 			row = strings.Replace(row, "| original |", "| Applied |", 1)
 			root, path := writeTracker(t, statusTargetHeader+row)
@@ -208,7 +208,7 @@ func TestStatusTargetRejectsMalformedStatusAndUnsafeNotes(t *testing.T) {
 func TestStatusTargetRejectsInvalidNewStatus(t *testing.T) {
 	for _, status := range []string{"", "???", "Applied | Interview", "Applied\nInterview", "not applied", "Applied Materials", "**Applied**", "Applied 2026-09-06", " Applied "} {
 		t.Run(status, func(t *testing.T) {
-			t.Setenv("CAREER_OPS_TRACKER", "")
+			t.Setenv("LANDING_GEAR_TRACKER", "")
 			before := statusTargetHeader + statusTargetRow
 			root, path := writeTracker(t, before)
 			if err := UpdateApplicationStatus(root, model.CareerApplication{ReportNumber: "7", Status: "Applied"}, status); err == nil {
@@ -220,7 +220,7 @@ func TestStatusTargetRejectsInvalidNewStatus(t *testing.T) {
 }
 
 func TestStatusTargetRejectsMissingNotesCell(t *testing.T) {
-	t.Setenv("CAREER_OPS_TRACKER", "")
+	t.Setenv("LANDING_GEAR_TRACKER", "")
 	row := strings.Replace(statusTargetRow, " original |", "", 1)
 	before := statusTargetHeader + row
 	root, path := writeTracker(t, before)
@@ -232,7 +232,7 @@ func TestStatusTargetRejectsMissingNotesCell(t *testing.T) {
 }
 
 func TestStatusTargetAppendsToCompactEmptyNotes(t *testing.T) {
-	t.Setenv("CAREER_OPS_TRACKER", "")
+	t.Setenv("LANDING_GEAR_TRACKER", "")
 	row := strings.Replace(statusTargetRow, "| original |", "||", 1)
 	root, path := writeTracker(t, statusTargetHeader+row)
 	err := UpdateApplicationStatusAndNotes(root, model.CareerApplication{ReportNumber: "7", Status: "Applied"}, "Interview", "follow-up")
@@ -253,7 +253,7 @@ func TestStatusTargetRejectsMalformedReportCell(t *testing.T) {
 		"[7](reports/007.md) [7](reports/007.md)",
 	} {
 		t.Run(report, func(t *testing.T) {
-			t.Setenv("CAREER_OPS_TRACKER", "")
+			t.Setenv("LANDING_GEAR_TRACKER", "")
 			row := strings.Replace(statusTargetRow, "[7](reports/007.md)", report, 1)
 			before := statusTargetHeader + row
 			root, path := writeTracker(t, before)
@@ -276,7 +276,7 @@ func TestStatusTargetRejectsMalformedReportCell(t *testing.T) {
 func TestStatusTargetAcceptsCanonicalNames(t *testing.T) {
 	for _, status := range []string{"Evaluated", "Applied", "Responded", "Interview", "Offer", "Hired", "Rejected", "Discarded", "SKIP", "Skip", "skip"} {
 		t.Run(status, func(t *testing.T) {
-			t.Setenv("CAREER_OPS_TRACKER", "")
+			t.Setenv("LANDING_GEAR_TRACKER", "")
 			before := statusTargetHeader + statusTargetRow
 			root, path := writeTracker(t, before)
 			if err := UpdateApplicationStatus(root, model.CareerApplication{ReportNumber: "7", Status: "Applied"}, status); err != nil {
@@ -288,7 +288,7 @@ func TestStatusTargetAcceptsCanonicalNames(t *testing.T) {
 }
 
 func TestStatusTargetStillReadsLegacyDiskStatus(t *testing.T) {
-	t.Setenv("CAREER_OPS_TRACKER", "")
+	t.Setenv("LANDING_GEAR_TRACKER", "")
 	before := statusTargetHeader + strings.Replace(statusTargetRow, "| Applied |", "| **Applied** |", 1)
 	root, path := writeTracker(t, before)
 	if err := UpdateApplicationStatus(root, model.CareerApplication{ReportNumber: "7", Status: "Applied"}, "Interview"); err != nil {

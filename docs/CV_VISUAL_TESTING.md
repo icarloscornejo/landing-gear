@@ -19,10 +19,10 @@ so page breaks and continuation pages are reviewed alongside the first page.
 Run these commands from the repository root with Docker installed:
 
 ```bash
-docker build --platform linux/amd64 --tag career-ops-cv-visual tests/cv-visual
+docker build --platform linux/amd64 --tag landing-gear-cv-visual tests/cv-visual
 docker run --rm --init --ipc=host --platform linux/amd64 \
   --volume "$PWD:/work" --volume /work/node_modules \
-  career-ops-cv-visual \
+  landing-gear-cv-visual \
   sh -c 'npm install --ignore-scripts --package-lock=false && npm run test:cv-visual'
 ```
 
@@ -63,7 +63,7 @@ macOS, Windows, or ARM screenshots as the Linux baseline.
    ```bash
    docker run --rm --init --ipc=host --platform linux/amd64 \
      --volume "$PWD:/work" --volume /work/node_modules \
-     career-ops-cv-visual \
+     landing-gear-cv-visual \
      sh -c 'npm install --ignore-scripts --package-lock=false && npm run test:cv-visual:update'
    ```
 

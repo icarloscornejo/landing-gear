@@ -10,7 +10,7 @@ import { rmSync } from './helpers.mjs';
 const root = fileURLToPath(new URL('..', import.meta.url));
 
 test('doctor finds the CLI extractor in the code checkout with a separate data root', () => {
-  const dataRoot = mkdtempSync(join(tmpdir(), 'career-ops-extractor-'));
+  const dataRoot = mkdtempSync(join(tmpdir(), 'landing-gear-extractor-'));
   try {
     mkdirSync(join(dataRoot, 'config'));
     writeFileSync(join(dataRoot, 'config', 'profile.yml'), 'scan:\n  extractor: cli\n');

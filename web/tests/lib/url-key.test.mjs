@@ -87,8 +87,8 @@ test("generic hash-route jobs keep distinct identity in both core and web keys",
 });
 
 test("promoted fragment identity does not overwrite pre-existing internal comparison params", () => {
-  const input = "https://jobs.example.com/careers?_career_ops_fragment_job_id=query-id#/jobs/hash-id";
-  const expected = "https://jobs.example.com/careers?_career_ops_fragment_job_id=hash-id&_career_ops_fragment_job_id=query-id";
+  const input = "https://jobs.example.com/careers?_landing_gear_fragment_job_id=query-id#/jobs/hash-id";
+  const expected = "https://jobs.example.com/careers?_landing_gear_fragment_job_id=hash-id&_landing_gear_fragment_job_id=query-id";
   assert.equal(webKey(input), expected);
   assert.equal(coreKey(input), expected);
 });

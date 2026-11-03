@@ -17,7 +17,8 @@ const ROLE_NOUN = /\b(engineers?|developers?|devs?|programmers?|consultants?|con
 const STACK = /(android|kotlin|mobile|movil|flutter|react native|\bios\b|\bai\b|llm|agentic)/;
 // The title must name the profile's stack (2026-10-28): .NET, WordPress, Shopify or data roles often
 // mention "mobile" or "AI" somewhere in the body, so a body check lets them through.
-const TITLE_STACK = /(android|kotlin|jetpack|\bkmp\b|mobile|movil|\bios\b|swift|flutter|react native|\bai\b|\bia\b|llm|agent\w*|agentic|genai|machine learning)/;
+// Forward Deployed Engineer is a target role (FDE plan, 2026-11-02): the X run dropped one as off stack.
+const TITLE_STACK = /(android|kotlin|jetpack|\bkmp\b|mobile|movil|\bios\b|swift|flutter|react native|\bai\b|\bia\b|llm|agent\w*|agentic|genai|machine learning|forward[- ]deployed|\bfde\b)/;
 const LOCATION_LINE = /(?:📍|\b(?:location|ubicaci[oó]n|work mode|modalidad)\s*:)\s*(.+)/iu;
 const LOCATION_LABEL = /^(location|ubicaci[oó]n|work mode|modalidad)\s*:\s*/i;
 
@@ -47,7 +48,21 @@ const MIN_BARE_LINKS = 5;
 // "WE ARE HIRING, REMOTE POSITIONS AVAILABLE | USA & UK" spam stays out.
 const US_CONTRACT = /\b(only (us|usa|india|uk)|(us|usa|uk|north america) only|based in the (united states|us|usa) or canada|h1b|w2|c2c|1099|visa status|green card|us citizens?|us residents|candidates? based in (the )?(usa|us|india|uk))\b/i;
 const PLATFORM = /(we are hiring . remote positions available)/i;
-const WORK_MODE = /\b(onsite|on-site|hybrid|presencial)\b(?!\s+(apps?|mobile|development))/i;
+// The job's own arrangement only, as pre-triage.mjs reads it (same pattern, kept in sync by its test):
+// "hybrid SDKs", "hybrid React Native apps" or "a hybrid working environment" are not a requirement.
+// Runs on folded text, one sentence at a time, and a sentence that also offers remote passes.
+const WORK_MODE = /\b(hybrid (role|position|model|schedule|work(ing)? (model|arrangement|schedule)|setup)|(100% )?(on-?site|in[- ]office|presencial) (role|position|job|work|only|required|requirement)|(position|role|job) is (100% )?(on-?site|in[- ]office|hybrid|presencial)|(posicion|puesto|trabajo|modalidad)\b[^.]{0,25}\b(presencial|hibrid[oa])|\d+ days? (a|per) week (in|at) (the|our|an) office|(work ?model|work ?mode|modelo|modalidad|location|ubicacion|remote|remoto)\s*:[^.\n]{0,40}\b(hybrid|on-?site|presencial|hibrid[oa])|(hybrid|on-?site|presencial|hibrid[oa]) (in|en) [a-z]+)\b|\((hybrid|on-?site|presencial|hibrid[oa])\)|^\s*(hybrid|on-?site|presencial|hibrid[oa])\s*$/;
+const WORK_MODE_WORD = /\b(hybrid|on-?site|presencial|h[ií]brid[oa])\b/i;
+// "Remote: Hybrid" is a label, not a remote option.
+const REMOTE_OPTION = /\b(remote|remoto|remota|teletrabajo|work from (home|anywhere))\b(?!\s*:)/;
+const workMode = (text) => {
+  for (const sentence of text.split(/(?<=[.;!?])\s+|\n+/)) {
+    const folded = fold(sentence);
+    // The reason names the word as the post wrote it ("Hybrid", "Presencial").
+    if (WORK_MODE.test(folded) && !REMOTE_OPTION.test(folded)) return WORK_MODE_WORD.exec(sentence) ?? [sentence.trim()];
+  }
+  return null;
+};
 // The engineer (2026-10-29): junior posts are out here. Pre-triage keeps them on purpose for Discovered rows.
 const JUNIOR = /\b(junior|jr)\b/;
 // Places (and Indian pay words) the old searches drowned in. A bare mention only counts when the post names
@@ -143,7 +158,7 @@ export function judgePost(post, preTriage, options = {}) {
   const bareLinks = post.body.filter((line) => BARE_LINK.test(line)).length;
   if (listLines >= MIN_LIST || bareLinks >= MIN_BARE_LINKS) return out("jobList", "no es oferta (lista de empleos)");
 
-  const blocked = US_CONTRACT.exec(text) ?? PLATFORM.exec(text) ?? WORK_MODE.exec(text);
+  const blocked = US_CONTRACT.exec(text) ?? PLATFORM.exec(text) ?? workMode(text);
   if (blocked) return out("blocked", `bloqueado: ${blocked[0]}`);
   const place = NOISE_PLACE.exec(text);
   if (place) {

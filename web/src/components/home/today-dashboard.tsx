@@ -10,7 +10,7 @@ function dayLabel(date: string): string {
   const parsed = new Date(`${date}T12:00:00`);
   return Number.isNaN(parsed.getTime()) ? date : parsed.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
 }
-import type { Application, InboxJob } from "@/lib/career-ops";
+import type { Application, InboxJob } from "@/lib/landing-gear";
 import { FollowUpCard, type FollowUp } from "@/components/home/follow-up-card";
 import { DecisionCard } from "@/components/home/decision-card";
 import { LinkedinScanReminder } from "@/components/home/linkedin-scan-reminder";
@@ -38,6 +38,7 @@ export function TodayDashboard({
   inBetween,
   overview,
   linkedinScan,
+  xScan,
   dailyScan,
 }: {
   applications: Application[];
@@ -53,6 +54,7 @@ export function TodayDashboard({
     upcoming: { n: string; company: string; role: string; phase: string; at: string; soon: boolean }[];
   };
   linkedinScan: LinkedinScanState;
+  xScan: LinkedinScanState;
   dailyScan: DailyScanStatus;
 }) {
   const [followups, setFollowups] = useState<FollowUp[]>([]);
@@ -180,6 +182,7 @@ export function TodayDashboard({
       </nav>
 
       <LinkedinScanReminder state={linkedinScan} />
+      <LinkedinScanReminder state={xScan} name="X" site="x.com" />
       <DailyScanCard initial={dailyScan} />
 
       {dataError && !dataLoading && (

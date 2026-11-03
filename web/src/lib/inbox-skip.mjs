@@ -216,7 +216,7 @@ async function editPipeline(pipelinePath, apply, options) {
   }
   try {
     return await mod.withPipelineLock(pipelinePath, run, {
-      timeoutMs: options.timeoutMs ?? (Number(process.env.CAREER_OPS_WEB_LOCK_TIMEOUT_MS) || 5_000),
+      timeoutMs: options.timeoutMs ?? (Number(process.env.LANDING_GEAR_WEB_LOCK_TIMEOUT_MS) || 5_000),
       retryMs: 50,
     });
   } catch (err) {

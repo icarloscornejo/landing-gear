@@ -62,7 +62,7 @@ test('search_query fallback and scan_query precedence match scanner handoff', ()
 });
 
 test('CLI is offline, advisory, data-root aware, filterable and read-only', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-query-audit-'));
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-query-audit-'));
   try {
     const file = join(dir, 'portals.yml');
     const content = 'title_filter:\n  positive: [Design]\ntracked_companies:\n  - name: Old Target\n    scan_method: websearch\n    scan_query: AI\n    careers_url: https://example.invalid/jobs\n  - name: Current Target\n    scan_method: websearch\n    scan_query: Design\n';
@@ -79,8 +79,8 @@ test('CLI is offline, advisory, data-root aware, filterable and read-only', () =
     // A recognized provider would fetch if --queries fell through to live auditing.
     const guardedContent = content + '  - name: Live Board\n    careers_url: https://job-boards.greenhouse.io/example\n';
     writeFileSync(file, guardedContent);
-    const env = { ...process.env, CAREER_OPS_ROOT: dir, CAREER_OPS_DATA_DIR: dir };
-    delete env.CAREER_OPS_PORTALS;
+    const env = { ...process.env, LANDING_GEAR_ROOT: dir, LANDING_GEAR_DATA_DIR: dir };
+    delete env.LANDING_GEAR_PORTALS;
     const run = (...args) => spawnSync(process.execPath, [
       '--require', guard,
       fileURLToPath(new URL('../audit-portals.mjs', import.meta.url)), '--queries', ...args,

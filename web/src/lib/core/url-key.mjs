@@ -6,8 +6,8 @@
  * bundles can import it without a TS runner or Node-only deps — this file has
  * none, same as the core it mirrors (only the global `URL`).
  *
- * WHY A COPY EXISTS AT ALL: the live core lives in the user's career-ops
- * checkout and is resolved at runtime via careerOpsRoot() — unavailable to the
+ * WHY A COPY EXISTS AT ALL: the live core lives in the user's landing-gear
+ * checkout and is resolved at runtime via landingGearRoot() — unavailable to the
  * client bundle. Unlike normalize-text-key.mjs's split (a Node-only live
  * loader server-side, this mirror client-side), the URL key here is used to
  * build ONE Set server-side (assembleDedupContext, from data/scan-history.tsv)
@@ -53,7 +53,7 @@ export function promoteKnownFragmentIdentity(url) {
     url.searchParams.append("mokahr_job_id", jobId);
     return;
   }
-  url.searchParams.append("_career_ops_fragment_job_id", jobId);
+  url.searchParams.append("_landing_gear_fragment_job_id", jobId);
 }
 
 /**

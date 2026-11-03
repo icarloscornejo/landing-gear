@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft, FileText, ExternalLink, ChevronDown } from "lucide-react";
-import type { Application } from "@/lib/career-ops";
+import type { Application } from "@/lib/landing-gear";
 import { Badge } from "@/components/ui/badge";
 import { scoreTen, scoreTone, legitimacyTone, parseReport } from "@/lib/format";
 import {

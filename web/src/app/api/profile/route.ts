@@ -2,7 +2,7 @@ import fs from "node:fs";
 import { profilePatchError } from "@/lib/profile-patch.mjs";
 import path from "node:path";
 import * as yaml from "js-yaml";
-import { careerOpsRoot } from "@/lib/career-ops";
+import { landingGearRoot } from "@/lib/landing-gear";
 import { atomicWriteWithBackup } from "@/lib/core/safe-write";
 import { isMapping } from "@/lib/portals-config.mjs";
 
@@ -69,7 +69,7 @@ export async function POST(req: Request) {
   const proposed = patchToProfile(payload as ProfilePatch);
   if (Object.keys(proposed).length === 0) return Response.json({ error: "nothing to write" }, { status: 400 });
 
-  const root = careerOpsRoot();
+  const root = landingGearRoot();
   const file = path.join(root, "config", "profile.yml");
   let base: Record<string, unknown> = {};
   let seeded = false;

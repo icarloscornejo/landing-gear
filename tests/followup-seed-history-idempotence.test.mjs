@@ -27,8 +27,8 @@ try {
     writeFileSync(followups, item.content);
     const result = spawnSync(NODE, [join(ROOT, 'followup-seed.mjs'), ...item.args, '--json'], {
       encoding: 'utf8', timeout: 10000,
-      env: { ...process.env, CAREER_OPS_ROOT: dir, CAREER_OPS_DATA_DIR: dir,
-        CAREER_OPS_TRACKER: tracker, CAREER_OPS_FOLLOWUPS: followups, CAREER_OPS_PROFILE: profile },
+      env: { ...process.env, LANDING_GEAR_ROOT: dir, LANDING_GEAR_DATA_DIR: dir,
+        LANDING_GEAR_TRACKER: tracker, LANDING_GEAR_FOLLOWUPS: followups, LANDING_GEAR_PROFILE: profile },
     });
     const content = readFileSync(followups, 'utf8');
     const correct = result.status === 0 && (item.expectWrite

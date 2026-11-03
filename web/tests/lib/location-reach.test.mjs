@@ -5,6 +5,13 @@ import { readReach, usAuthorizedFrom } from "../../src/lib/location-reach.mjs";
 const kind = (location, url) => readReach(location, url).kind;
 const label = (location, url) => readReach(location, url).label;
 
+test("US hours or US time zones is a schedule, not a US-only location", () => {
+  assert.equal(label("Remote, US time zones (Pacific preferred)"), "Remote, region not stated, US hours");
+  assert.equal(kind("Remote (US hours)"), "unstated");
+  assert.equal(kind("Remote, US business hours, LATAM"), "open");
+  assert.equal(kind("Remote - United States"), "limited");
+});
+
 test("open: El Salvador, LATAM, Americas and explicit worldwide words", () => {
   assert.equal(label("El Salvador"), "El Salvador ok");
   assert.equal(label("Remote - LATAM"), "Remote, LATAM ok");

@@ -1,12 +1,12 @@
 /**
  * updater-nested-checkout-guard.test.mjs — nested .git-less install guard (#3334).
  *
- * A career-ops install with no `.git` of its own that sits inside another
+ * A landing-gear install with no `.git` of its own that sits inside another
  * repository (a ZIP unpacked into an existing project) used to make every git
  * call in update-system.mjs resolve to that OUTER repo: check() reported a
  * phantom system-files-changed against a stranger's history, and apply()
  * created its backup branch and fetched upstream into a repository that has
- * nothing to do with career-ops, then failed on pathspecs prefixed by the
+ * nothing to do with landing-gear, then failed on pathspecs prefixed by the
  * install's subpath — `git checkout FETCH_HEAD -- update-system.mjs` is the
  * failing path from the original report.
  *
@@ -27,7 +27,7 @@ console.log('\n🧪 Testing updater nested-checkout guard (#3334)...');
 
 const canonicalize = realpathSync.native ?? realpathSync;
 
-// An outer repo with a .git-less career-ops copy at tools/career-ops, committed
+// An outer repo with a .git-less landing-gear copy at tools/landing-gear, committed
 // as vendored content — the layout the ZIP install produces.
 function makeNestedFixture() {
   const dir = mkdtempSync(join(tmpdir(), 'co-nested-'));
@@ -42,7 +42,7 @@ function makeNestedFixture() {
   // The vendored copy is added with LF content; without this, Windows git
   // prints a CRLF warning per file into every section's output.
   g('config', 'core.autocrlf', 'false');
-  const nested = join(dir, 'tools', 'career-ops');
+  const nested = join(dir, 'tools', 'landing-gear');
   mkdirSync(nested, { recursive: true });
   copyFileSync(join(ROOT, 'update-system.mjs'), join(nested, 'update-system.mjs'));
   copyFileSync(join(ROOT, 'VERSION'), join(nested, 'VERSION'));

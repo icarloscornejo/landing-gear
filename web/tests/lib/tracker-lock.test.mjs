@@ -23,7 +23,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 // the repo root, where `cwd/..` points outside the checkout and every core case
 // skipped as "not resolvable" while reporting green.
 const CORE =
-  process.env.CAREER_OPS_ROOT ||
+  process.env.LANDING_GEAR_ROOT ||
   path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const coreLock = path.join(CORE, "tracker-utils.mjs");
 

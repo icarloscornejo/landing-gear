@@ -38,7 +38,7 @@ test("'is it installed and authenticated?' canned message -> auth hint", () => {
 
 test("'no output' canned message -> auth hint", () => {
   const hint = jobErrorHint(
-    errorJob("The CLI produced no output — is it installed and authenticated? (career-ops is best on Claude Code.)"),
+    errorJob("The CLI produced no output — is it installed and authenticated? (landing-gear is best on Claude Code.)"),
   );
   assert.equal(hint?.kind, "auth");
 });
@@ -48,7 +48,7 @@ test("a raw 401 unauthorized label -> auth hint", () => {
 });
 
 test("'author' in an unrelated terminal label -> NO auth hint (the bug this fixes)", () => {
-  // career-ops evaluates AI/tech job postings, so a terminal label can
+  // landing-gear evaluates AI/tech job postings, so a terminal label can
   // legitimately read something like "Failed to parse author metadata" —
   // a bare "auth" substring matched inside it and produced the sign-in prompt.
   assert.equal(jobErrorHint(errorJob("Failed to parse author metadata")), null);
@@ -102,7 +102,7 @@ test("interrupted with unrelated auth-flavored assistant text -> still interrupt
 
 test("other terminal errors -> no hint", () => {
   assert.equal(jobErrorHint(errorJob("Failed to start")), null);
-  assert.equal(jobErrorHint(errorJob("This needs a complete career-ops checkout (modes/oferta.md).")), null);
+  assert.equal(jobErrorHint(errorJob("This needs a complete landing-gear checkout (modes/oferta.md).")), null);
   assert.equal(jobErrorHint(errorJob("Add your CV first so I can score this against you — drop it on the home page.")), null);
   assert.equal(
     jobErrorHint(errorJob("This evaluation didn't save a report, so it's not in your tracker. Full evaluation is verified on Claude Code.")),

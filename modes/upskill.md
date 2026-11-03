@@ -8,7 +8,7 @@ Phase 1 (this mode): aggregate gap map from tracked reports, with an optional LL
 
 **Targeted mode** (`node upskill.mjs --url-text <url-or-file>`, #1739) analyses a *single* JD instead of the tracked history: it extracts the JD's required skills, suppresses the ones already in `cv.md`/`config/profile.yml`, and prints the remaining gaps as JSON (`{ mode: "targeted", gaps, excludedAsKnown, knownSkills }`). Known-skill suppression uses the same canonical extraction as the aggregate path, so a CV skill is never reported as a gap and a real gap is never hidden. `--url-text` accepts either an `http(s)` URL (Playwright, then a redirect-refusing fetch fallback) or a local file path. The web-searched learning plan (Step 3, #1740) is generated for the aggregate report; the targeted single-JD path prints gaps only.
 
-Pattern credit: [MadsLorentzen/ai-job-search](https://github.com/MadsLorentzen/ai-job-search)'s `/upskill`, adapted to career-ops' tracker and A–F scoring model.
+Pattern credit: [MadsLorentzen/ai-job-search](https://github.com/MadsLorentzen/ai-job-search)'s `/upskill`, adapted to landing-gear' tracker and A–F scoring model.
 
 ## Inputs
 

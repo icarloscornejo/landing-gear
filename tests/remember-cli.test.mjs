@@ -1,7 +1,7 @@
 // tests/remember-cli.test.mjs — setup records the agent CLI once, and doctor and
 // the ranker both use it.
 //
-// Nothing wrote CAREER_OPS_CLI, so doctor fell back to claude even where claude
+// Nothing wrote LANDING_GEAR_CLI, so doctor fell back to claude even where claude
 // was not installed, and rank-pipeline.mjs ran the first CLI on PATH instead of
 // the one the user set up in.
 
@@ -20,8 +20,8 @@ function sandbox(t) {
 }
 
 function baseEnv(dir, extra = {}) {
-  const env = { ...process.env, CAREER_OPS_ROOT: dir, CAREER_OPS_DATA_DIR: '', CAREER_OPS_RANK_CLI: '', ...extra };
-  delete env.CAREER_OPS_CLI;
+  const env = { ...process.env, LANDING_GEAR_ROOT: dir, LANDING_GEAR_DATA_DIR: '', LANDING_GEAR_RANK_CLI: '', ...extra };
+  delete env.LANDING_GEAR_CLI;
   delete env.OPENCODE;
   return env;
 }
@@ -32,18 +32,18 @@ function node(dir, args, extra) {
   return result;
 }
 
-test('remember-cli writes CAREER_OPS_CLI to the data root .env and keeps other lines', (t) => {
+test('remember-cli writes LANDING_GEAR_CLI to the data root .env and keeps other lines', (t) => {
   const dir = sandbox(t);
-  writeFileSync(join(dir, '.env'), 'OPENROUTER_MODEL=example/model\nCAREER_OPS_CLI=claude\n');
+  writeFileSync(join(dir, '.env'), 'OPENROUTER_MODEL=example/model\nLANDING_GEAR_CLI=claude\n');
   const result = node(dir, [join(ROOT, 'remember-cli.mjs'), 'grok']);
   assert.equal(result.status, 0, result.stderr);
-  assert.equal(readFileSync(join(dir, '.env'), 'utf8'), 'OPENROUTER_MODEL=example/model\nCAREER_OPS_CLI=grok\n');
+  assert.equal(readFileSync(join(dir, '.env'), 'utf8'), 'OPENROUTER_MODEL=example/model\nLANDING_GEAR_CLI=grok\n');
 });
 
 test('remember-cli creates .env when there is none', (t) => {
   const dir = sandbox(t);
   assert.equal(node(dir, [join(ROOT, 'remember-cli.mjs'), 'codex']).status, 0);
-  assert.equal(readFileSync(join(dir, '.env'), 'utf8'), 'CAREER_OPS_CLI=codex\n');
+  assert.equal(readFileSync(join(dir, '.env'), 'utf8'), 'LANDING_GEAR_CLI=codex\n');
 });
 
 test('remember-cli refuses an unknown CLI and writes nothing', (t) => {
@@ -62,7 +62,7 @@ test('remember-cli keeps the .env file mode', {
   chmodSync(join(dir, '.env'), 0o600);
   assert.equal(node(dir, [join(ROOT, 'remember-cli.mjs'), 'codex']).status, 0);
   assert.equal(statSync(join(dir, '.env')).mode & 0o777, 0o600);
-  assert.equal(readFileSync(join(dir, '.env'), 'utf8'), 'EXAMPLE_API_KEY=fake\nCAREER_OPS_CLI=codex\n');
+  assert.equal(readFileSync(join(dir, '.env'), 'utf8'), 'EXAMPLE_API_KEY=fake\nLANDING_GEAR_CLI=codex\n');
 });
 
 test('doctor reports the remembered CLI', (t) => {

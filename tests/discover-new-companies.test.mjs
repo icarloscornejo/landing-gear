@@ -4,12 +4,12 @@
  * discover-new-companies.mjs is a CLI script (no exported functions), so it is
  * driven end-to-end via execFileSync against scratch fixtures — no live
  * network, no LLM. Both inputs are redirected with env overrides
- * (CAREER_OPS_SCAN_HISTORY, CAREER_OPS_PORTALS) so the real data/ directory is
+ * (LANDING_GEAR_SCAN_HISTORY, LANDING_GEAR_PORTALS) so the real data/ directory is
  * never read or written.
  *
  * Covered:
  * - --help exits 0; missing history/value → nonzero exit; bad --since → nonzero exit
- * - default user-layer inputs resolve through CAREER_OPS_ROOT, independent of cwd
+ * - default user-layer inputs resolve through LANDING_GEAR_ROOT, independent of cwd
  * - --json subtracts already-tracked companies (canonical-name + alias match,
  *   disabled entries count as tracked, and a row on a board an entry reads)
  * - --min-rows, --added-only, --since window (undated rows pass)
@@ -22,7 +22,7 @@
  *      A discovered suite reports through the shared counters; running the file
  *      directly returns 0 even when assertions fail.
  *
- * Issue #4181 — github.com/career-ops-hq/career-ops
+ * Issue #4181 (upstream)
  */
 
 import { writeFileSync, mkdtempSync, mkdirSync, rmSync } from 'fs';
@@ -70,7 +70,7 @@ function run(historyRows, portalsObj, args, { parse = 'json', blacklist = null }
     if (blacklist !== null) writeFileSync(blacklistPath, blacklist);
     const out = execFileSync('node', [scriptPath, ...args], {
       encoding: 'utf-8', timeout: 20000, cwd: dirname(scriptPath),
-      env: { ...process.env, CAREER_OPS_SCAN_HISTORY: hist, CAREER_OPS_PORTALS: portals, CAREER_OPS_BLACKLIST: blacklistPath },
+      env: { ...process.env, LANDING_GEAR_SCAN_HISTORY: hist, LANDING_GEAR_PORTALS: portals, LANDING_GEAR_BLACKLIST: blacklistPath },
     });
     return parse === 'json' ? JSON.parse(out) : out;
   } finally {
@@ -88,7 +88,7 @@ let missingExit = 0;
 try {
   execFileSync('node', [scriptPath, '--json'], {
     encoding: 'utf-8', timeout: 15000, cwd: dirname(scriptPath),
-    env: { ...process.env, CAREER_OPS_SCAN_HISTORY: join(tmpdir(), 'does-not-exist-xyz.tsv') },
+    env: { ...process.env, LANDING_GEAR_SCAN_HISTORY: join(tmpdir(), 'does-not-exist-xyz.tsv') },
   });
 } catch (e) { missingExit = e.status; }
 ok('missing history file → nonzero exit', missingExit !== 0);
@@ -136,13 +136,13 @@ for (const args of [
       encoding: 'utf-8', timeout: 15000, cwd: decoyCwd,
       env: {
         ...process.env,
-        CAREER_OPS_ROOT: dataRoot,
-        CAREER_OPS_DATA_DIR: '',
-        CAREER_OPS_SCAN_HISTORY: '',
-        CAREER_OPS_PORTALS: '',
+        LANDING_GEAR_ROOT: dataRoot,
+        LANDING_GEAR_DATA_DIR: '',
+        LANDING_GEAR_SCAN_HISTORY: '',
+        LANDING_GEAR_PORTALS: '',
       },
     });
-    eq('default inputs follow CAREER_OPS_ROOT instead of cwd',
+    eq('default inputs follow LANDING_GEAR_ROOT instead of cwd',
       JSON.parse(out).companies.map((company) => company.name), ['DataRootCo']);
   } finally {
     rmSync(dataRoot, { recursive: true, force: true });
@@ -162,10 +162,10 @@ for (const args of [
       encoding: 'utf-8', timeout: 15000, cwd: decoyCwd,
       env: {
         ...process.env,
-        CAREER_OPS_ROOT: dataRoot,
-        CAREER_OPS_DATA_DIR: '',
-        CAREER_OPS_SCAN_HISTORY: '',
-        CAREER_OPS_PORTALS: '',
+        LANDING_GEAR_ROOT: dataRoot,
+        LANDING_GEAR_DATA_DIR: '',
+        LANDING_GEAR_SCAN_HISTORY: '',
+        LANDING_GEAR_PORTALS: '',
       },
     });
   } catch (e) {
@@ -372,7 +372,7 @@ console.log('\n--- 6. Headerless legacy history ---');
     writeFileSync(portals, '{}\n');
     const out = execFileSync('node', [scriptPath, '--min-rows', '1', '--json'], {
       encoding: 'utf-8', timeout: 20000, cwd: dirname(scriptPath),
-      env: { ...process.env, CAREER_OPS_SCAN_HISTORY: hist, CAREER_OPS_PORTALS: portals, CAREER_OPS_BLACKLIST: join(dir, 'blacklist.md') },
+      env: { ...process.env, LANDING_GEAR_SCAN_HISTORY: hist, LANDING_GEAR_PORTALS: portals, LANDING_GEAR_BLACKLIST: join(dir, 'blacklist.md') },
     });
     const names = JSON.parse(out).companies.map((c) => c.name).sort();
     eq('headerless file keeps its first company row', names, ['FirstRowCo', 'SecondCo']);

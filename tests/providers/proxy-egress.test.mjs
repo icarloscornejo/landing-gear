@@ -10,7 +10,7 @@ async function listening(server) {
 }
 
 async function withProxyEnv(values, run) {
-  const keys = ['CAREER_OPS_TRUST_PROXY_EGRESS', 'http_proxy', 'HTTP_PROXY', 'https_proxy', 'HTTPS_PROXY', 'no_proxy', 'NO_PROXY'];
+  const keys = ['LANDING_GEAR_TRUST_PROXY_EGRESS', 'http_proxy', 'HTTP_PROXY', 'https_proxy', 'HTTPS_PROXY', 'no_proxy', 'NO_PROXY'];
   const prior = Object.fromEntries(keys.map((key) => [key, process.env[key]]));
   try {
     for (const key of keys) delete process.env[key];
@@ -40,14 +40,14 @@ test(`opted-in provider request uses a scoped proxy (empty lowercase: ${emptyLow
   });
   const proxyUrl = await listening(proxy);
   try {
-    await withProxyEnv({ CAREER_OPS_TRUST_PROXY_EGRESS: '1', HTTP_PROXY: proxyUrl.replace('127.0.0.1', 'localhost'), NO_PROXY: 'localhost,127.0.0.1', ...(emptyLowercase ? { http_proxy: '', no_proxy: '' } : {}) }, async () => {
+    await withProxyEnv({ LANDING_GEAR_TRUST_PROXY_EGRESS: '1', HTTP_PROXY: proxyUrl.replace('127.0.0.1', 'localhost'), NO_PROXY: 'localhost,127.0.0.1', ...(emptyLowercase ? { http_proxy: '', no_proxy: '' } : {}) }, async () => {
       assert.equal(await fetchText('http://unresolvable.invalid/job', { redirect: 'error' }), 'PROXIED!');
       assert.deepEqual(destinations, ['unresolvable.invalid:80']);
       // NO_PROXY goes direct and still meets the private-address guard.
       await assert.rejects(fetchText('http://localhost:8080/'), (err) =>
-        (err.cause ?? err).code === 'ECAREEROPS_BLOCKED_ADDRESS');
+        (err.cause ?? err).code === 'ELANDINGGEAR_BLOCKED_ADDRESS');
       await assert.rejects(fetchText('http://127.0.0.1:8080/'), (err) =>
-        (err.cause ?? err).code === 'ECAREEROPS_BLOCKED_ADDRESS');
+        (err.cause ?? err).code === 'ELANDINGGEAR_BLOCKED_ADDRESS');
       assert.equal(destinations.length, 1);
     });
   } finally { proxy.close(); }
@@ -59,7 +59,7 @@ test('unrelated fetch is never assigned the provider proxy', async () => {
   const server = http.createServer((_req, res) => res.end('LOCAL'));
   const url = await listening(server);
   try {
-    await withProxyEnv({ CAREER_OPS_TRUST_PROXY_EGRESS: '1', HTTP_PROXY: url, NO_PROXY: '' }, async () => {
+    await withProxyEnv({ LANDING_GEAR_TRUST_PROXY_EGRESS: '1', HTTP_PROXY: url, NO_PROXY: '' }, async () => {
       assert.equal(await (await fetch(url)).text(), 'LOCAL');
     });
   } finally { server.close(); }
@@ -75,7 +75,7 @@ test('proxied manual redirects remain inspectable only through fetchResponse', a
   });
   const proxyUrl = await listening(proxy);
   try {
-    await withProxyEnv({ CAREER_OPS_TRUST_PROXY_EGRESS: '1', HTTP_PROXY: proxyUrl }, async () => {
+    await withProxyEnv({ LANDING_GEAR_TRUST_PROXY_EGRESS: '1', HTTP_PROXY: proxyUrl }, async () => {
       const response = await fetchResponse('http://unresolvable.invalid/job', { redirect: 'manual' });
       assert.equal(response.status, 302);
       assert.equal(response.headers.get('location'), 'http://127.0.0.1/private');
@@ -89,14 +89,14 @@ test('proxied manual redirects remain inspectable only through fetchResponse', a
 test('proxy environment alone does not silently bypass the address guard', async () => {
   await withProxyEnv({ HTTP_PROXY: 'http://127.0.0.1:3128' }, async () => {
     await assert.rejects(fetchText('http://localhost:8080/job', { timeoutMs: 2000 }),
-      (err) => (err.cause ?? err).code === 'ECAREEROPS_BLOCKED_ADDRESS');
+      (err) => (err.cause ?? err).code === 'ELANDINGGEAR_BLOCKED_ADDRESS');
   });
 });
 
 test('private IPv6 literals are blocked before a trusted proxy can receive them', async () => {
-  await withProxyEnv({ CAREER_OPS_TRUST_PROXY_EGRESS: '1', HTTP_PROXY: 'http://127.0.0.1:3128' }, async () => {
+  await withProxyEnv({ LANDING_GEAR_TRUST_PROXY_EGRESS: '1', HTTP_PROXY: 'http://127.0.0.1:3128' }, async () => {
     await assert.rejects(fetchText('http://[::1]:8080/'),
-      (err) => err.code === 'ECAREEROPS_BLOCKED_ADDRESS');
+      (err) => err.code === 'ELANDINGGEAR_BLOCKED_ADDRESS');
   });
 });
 
@@ -109,7 +109,7 @@ test('HTTPS_PROXY receives HTTPS provider destinations without local DNS', async
   });
   const proxyUrl = await listening(proxy);
   try {
-    await withProxyEnv({ CAREER_OPS_TRUST_PROXY_EGRESS: '1', HTTPS_PROXY: proxyUrl }, async () => {
+    await withProxyEnv({ LANDING_GEAR_TRUST_PROXY_EGRESS: '1', HTTPS_PROXY: proxyUrl }, async () => {
       await assert.rejects(fetchText('https://unresolvable.invalid/job', { timeoutMs: 1000 }));
       assert.ok(destinations.includes('unresolvable.invalid:443'));
     });
@@ -126,10 +126,10 @@ test('direct requests work without undici; opting in explains how to install it'
     import assert from 'node:assert/strict';
     const { fetchText } = await import(${JSON.stringify(moduleUrl)});
     globalThis.fetch = async () => new Response('DIRECT');
-    delete process.env.CAREER_OPS_TRUST_PROXY_EGRESS;
+    delete process.env.LANDING_GEAR_TRUST_PROXY_EGRESS;
     process.env.HTTP_PROXY = 'http://localhost:3128';
     assert.equal(await fetchText('http://public.example/'), 'DIRECT');
-    process.env.CAREER_OPS_TRUST_PROXY_EGRESS = '1';
+    process.env.LANDING_GEAR_TRUST_PROXY_EGRESS = '1';
     await assert.rejects(fetchText('http://public.example/'), /run npm install/);
   `;
   const result = spawnSync(process.execPath, ['--experimental-loader', loader, '--input-type=module', '-e', script], { encoding: 'utf8' });
@@ -138,7 +138,7 @@ test('direct requests work without undici; opting in explains how to install it'
 
 test('credential-bearing HTTP proxies are rejected without exposing their credentials', async () => {
   for (const proxyVariable of ['HTTP_PROXY', 'HTTPS_PROXY']) {
-    await withProxyEnv({ CAREER_OPS_TRUST_PROXY_EGRESS: '1', [proxyVariable]: 'http://user:secret@proxy.example:3128' }, async () => {
+    await withProxyEnv({ LANDING_GEAR_TRUST_PROXY_EGRESS: '1', [proxyVariable]: 'http://user:secret@proxy.example:3128' }, async () => {
       await assert.rejects(fetchText('https://public.example/'), (error) => {
         assert.match(error.message, /credentials must use HTTPS/);
         assert.ok(!error.message.includes('secret'));
@@ -161,7 +161,7 @@ test('credential-bearing HTTPS proxies remain available to provider requests', a
   });
   const { port } = new URL(await listening(proxy));
   try {
-    await withProxyEnv({ CAREER_OPS_TRUST_PROXY_EGRESS: '1', HTTPS_PROXY: `https://user:secret@localhost:${port}` }, async () => {
+    await withProxyEnv({ LANDING_GEAR_TRUST_PROXY_EGRESS: '1', HTTPS_PROXY: `https://user:secret@localhost:${port}` }, async () => {
       await assert.rejects(fetchText('https://public.example/', { timeoutMs: 2000 }), (error) => {
         assert.doesNotMatch(error.message, /credentials must use HTTPS/);
         return true;
@@ -184,7 +184,7 @@ test('proxy path does not use globalThis.fetch', async () => {
   // The proxy agent must be paired with undici's own fetch, never Node's bundled one.
   globalThis.fetch = () => { throw new Error('global fetch must not be used on the proxy path'); };
   try {
-    await withProxyEnv({ CAREER_OPS_TRUST_PROXY_EGRESS: '1', HTTP_PROXY: proxyUrl.replace('127.0.0.1', 'localhost'), NO_PROXY: 'localhost,127.0.0.1' }, async () => {
+    await withProxyEnv({ LANDING_GEAR_TRUST_PROXY_EGRESS: '1', HTTP_PROXY: proxyUrl.replace('127.0.0.1', 'localhost'), NO_PROXY: 'localhost,127.0.0.1' }, async () => {
       assert.equal(await fetchText('http://unresolvable.invalid/job', { redirect: 'error' }), 'PROXIED!');
       assert.deepEqual(destinations, ['unresolvable.invalid:80']);
     });

@@ -89,7 +89,7 @@ test('the adjacent-suffix behaviour is unchanged', () => {
 // ────────────────────────────────────────────────────────────────── the CLI gate
 
 function run({ source, generated }, args = []) {
-  const dataRoot = mkdtempSync(join(tmpdir(), 'career-ops-magnitude-'));
+  const dataRoot = mkdtempSync(join(tmpdir(), 'landing-gear-magnitude-'));
   writeFileSync(join(dataRoot, 'cv.md'), `# CV\n\n- ${source}\n`);
   writeFileSync(join(dataRoot, 'generated.md'), `# Generated CV\n\n- ${generated}\n`);
   try {
@@ -100,7 +100,7 @@ function run({ source, generated }, args = []) {
         cwd: dataRoot,
         encoding: 'utf-8',
         timeout: 60_000,
-        env: { ...process.env, CAREER_OPS_ROOT: dataRoot, CAREER_OPS_DATA_DIR: '' },
+        env: { ...process.env, LANDING_GEAR_ROOT: dataRoot, LANDING_GEAR_DATA_DIR: '' },
       },
     );
     assert.equal(r.error, undefined, `spawn failed: ${r.error?.message}`);

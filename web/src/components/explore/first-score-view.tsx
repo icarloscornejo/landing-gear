@@ -7,7 +7,7 @@ import { cn } from "@/lib/cn";
 import { parseReport, scoreTen, scoreTone, legitimacyTone } from "@/lib/format";
 import { useJobs, type Job } from "@/components/jobs/job-store";
 
-const SEEN_KEY = "career-ops:first-score-seen";
+const SEEN_KEY = "landing-gear:first-score-seen";
 
 // THE AHA — fires once, the first time an evaluation completes. The maintainer's
 // north star: the WHY is the hero (a sentence that clearly read THIS CV and reasoned

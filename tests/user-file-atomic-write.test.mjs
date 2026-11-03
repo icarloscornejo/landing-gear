@@ -109,7 +109,7 @@ try {
       try {
         out = execFileSync(NODE, [join(ROOT, 'add-entry.mjs'), payload], {
           encoding: 'utf8', timeout: 30000,
-          env: { ...process.env, CAREER_OPS_ROOT: dataRoot, CAREER_OPS_CV: linkCv, CAREER_OPS_ARTICLE_DIGEST: digest },
+          env: { ...process.env, LANDING_GEAR_ROOT: dataRoot, LANDING_GEAR_CV: linkCv, LANDING_GEAR_ARTICLE_DIGEST: digest },
         });
       } catch (e) {
         out = `${e.stdout || ''}${e.stderr || ''}`;

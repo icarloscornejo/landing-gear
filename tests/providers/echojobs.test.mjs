@@ -108,7 +108,7 @@ try {
 
   // fetch() — retired (#2976): throws immediately, names the cause, and never
   // touches the network (the feed sits behind a bot-protection checkpoint, and
-  // career-ops does not work around bot protection).
+  // landing-gear does not work around bot protection).
   let networkCalls = 0;
   const ctx = {
     transport: 'http',

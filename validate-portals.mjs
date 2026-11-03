@@ -16,7 +16,7 @@ import { tmpdir } from 'os';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { loadYaml } from './lib/yaml-document.mjs';
 import { flagValue, hasFlag, validateFlags } from './lib/cli-flags.mjs';
-import { getCareerOpsRoot } from './path-resolver.mjs';
+import { getLandingGearRoot } from './path-resolver.mjs';
 import { barePrefixDomainKeywords } from './title-keywords.mjs';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
@@ -26,7 +26,7 @@ const PROVIDERS_DIR = join(ROOT, 'providers');
 // the cwd instead, so `npm run validate:portals` (npm always runs it from the
 // checkout) could not find an external data root's file, and a run from any
 // other directory validated whatever copy sat there.
-const DEFAULT_PORTALS_PATH = process.env.CAREER_OPS_PORTALS || join(getCareerOpsRoot(), 'portals.yml');
+const DEFAULT_PORTALS_PATH = process.env.LANDING_GEAR_PORTALS || join(getLandingGearRoot(), 'portals.yml');
 
 function hasText(value) {
   return typeof value === 'string' && value.trim() !== '';
@@ -510,7 +510,7 @@ async function validateFile(filePath) {
 }
 
 async function runSelfTest() {
-  const tmp = mkdtempSync(join(tmpdir(), 'career-ops-validate-portals-self-test-'));
+  const tmp = mkdtempSync(join(tmpdir(), 'landing-gear-validate-portals-self-test-'));
   try {
     const file = join(tmp, 'bad.yml');
     writeFileSync(file, `

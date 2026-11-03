@@ -192,7 +192,7 @@ if (!bash || !detect || !act) {
     chmodSync(join(bin, 'claude'), 0o755);
     const cli = (...args) => {
       const r = spawnSync(bash, [join(proj, 'batch', 'batch-runner.sh'), ...args], {
-        cwd: proj, encoding: 'utf-8', timeout: 60000, env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, CAREER_OPS_ROOT: proj },
+        cwd: proj, encoding: 'utf-8', timeout: 60000, env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, LANDING_GEAR_ROOT: proj },
       });
       return { code: r.status, out: `${r.stdout || ''}${r.stderr || ''}` };
     };

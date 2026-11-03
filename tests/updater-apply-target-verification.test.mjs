@@ -40,7 +40,7 @@ const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 // Built on makeUpdaterRepo, whose runner seals the contributor's git config out
 // of the fixture. This suite used to run git through the updater's own gitIn(),
 // which inherits the environment: with `tag.gpgSign = true` in ~/.gitconfig the
-// lightweight `git tag career-ops-v1.33.0` below became a signed, annotated tag
+// lightweight `git tag landing-gear-v1.33.0` below became a signed, annotated tag
 // with no message, git died with "no tag message?", and every assertion after
 // it never ran. The same config signed each fixture commit with the
 // contributor's own key.
@@ -259,7 +259,7 @@ console.log('\n🧪 Testing that apply() verifies its update target (#3052)...')
     fail('an unparseable installed version was compared anyway');
   }
 
-  // Control: the shapes career-ops actually ships stay allowed, so the
+  // Control: the shapes landing-gear actually ships stay allowed, so the
   // validator is a filter and not a blanket refusal.
   if (isComparableVersion('1.32.0') && downgradeRefusal('1.32.0', '1.33.0') === null) {
     pass('control: a real release version is still accepted');
@@ -352,7 +352,7 @@ console.log('\n🧪 Testing that apply() verifies its update target (#3052)...')
 {
   const mapping = [
     ['main', 'refs/heads/main'],
-    ['career-ops-v1.34.0', 'refs/tags/career-ops-v1.34.0'],
+    ['landing-gear-v1.34.0', 'refs/tags/landing-gear-v1.34.0'],
   ];
   const wrong = mapping.filter(([ref, want]) => refspecForTarget(ref) !== want);
   if (wrong.length === 0) {
@@ -362,11 +362,11 @@ console.log('\n🧪 Testing that apply() verifies its update target (#3052)...')
   }
   // resolveTargetRef() only ever yields those two shapes; anything else is not
   // something to fetch, including the `web-v*` sibling component's tags.
-  const refused = ['web-v0.10.0', 'career-ops-vpreview-v1.32.0', 'refs/heads/main', 'feature', ''].filter((ref) => {
+  const refused = ['web-v0.10.0', 'landing-gear-vpreview-v1.32.0', 'refs/heads/main', 'feature', ''].filter((ref) => {
     try { refspecForTarget(ref); return false; } catch { return true; }
   });
   if (refused.length === 5) {
-    pass('a ref that is neither main nor a career-ops release tag is refused, not fetched');
+    pass('a ref that is neither main nor a landing-gear release tag is refused, not fetched');
   } else {
     fail(`refspecForTarget accepted a ref it should refuse (refused ${refused.length}/5)`);
   }
@@ -374,17 +374,17 @@ console.log('\n🧪 Testing that apply() verifies its update target (#3052)...')
   const { dir, g, ctx, quietCtx } = makeRepo('co-3052-release-');
   writeFixture(dir, 'VERSION', '1.33.0\n');
   g('add', '-A'); g('commit', '-qm', 'release 1.33.0');
-  g('tag', 'career-ops-v1.33.0');
+  g('tag', 'landing-gear-v1.33.0');
   const older = g('rev-parse', 'HEAD');
   writeFixture(dir, 'VERSION', '1.34.0\n');
   g('add', '-A'); g('commit', '-qm', 'release 1.34.0');
-  g('tag', '-a', '-m', 'annotated', 'career-ops-v1.34.0');
+  g('tag', '-a', '-m', 'annotated', 'landing-gear-v1.34.0');
   const tagged = g('rev-parse', 'HEAD');
-  const tagObject = g('rev-parse', 'career-ops-v1.34.0');
+  const tagObject = g('rev-parse', 'landing-gear-v1.34.0');
   writeFixture(dir, 'VERSION', '1.35.0\n');
   g('add', '-A'); g('commit', '-qm', 'main moves on past the release');
   const mainTip = g('rev-parse', 'HEAD');
-  const tagRefspec = refspecForTarget('career-ops-v1.34.0');
+  const tagRefspec = refspecForTarget('landing-gear-v1.34.0');
 
   if (targetIdentityRefusal(tagged, tagged, tagRefspec, ctx) === null) {
     pass('a release target that IS the tag commit is accepted');
@@ -408,7 +408,7 @@ console.log('\n🧪 Testing that apply() verifies its update target (#3052)...')
   // The #3052 shape on this channel: FETCH_HEAD holds an older release than the
   // one requested. Refused, and the reason names the release that was asked for.
   const olderRefusal = targetIdentityRefusal(older, tagged, tagRefspec, quietCtx) || '';
-  if (olderRefusal.includes(older.slice(0, 12)) && olderRefusal.includes('career-ops-v1.34.0')) {
+  if (olderRefusal.includes(older.slice(0, 12)) && olderRefusal.includes('landing-gear-v1.34.0')) {
     pass('an older release standing in for the requested one is refused, naming the requested tag');
   } else {
     fail(`an older release passed as the requested tag (got: ${JSON.stringify(olderRefusal)})`);
@@ -583,18 +583,18 @@ console.log('\n🧪 Testing that apply() verifies its update target (#3052)...')
 
     // The inherited SHA skips the identity check, so it must be trusted exactly
     // as far as the inherited ref is (#3845's trustsEnvTargetRef gate), and no
-    // further: isReexec also admits a bare CAREER_OPS_UPDATE_REEXEC=1 plus
+    // further: isReexec also admits a bare LANDING_GEAR_UPDATE_REEXEC=1 plus
     // --confirm, which proves nothing about a parent.
-    if (/const inheritedTarget = trustsEnvTargetRef\(authenticatedReexec,\s*legacyReexec\)\s*\n?\s*\? \(process\.env\.CAREER_OPS_UPDATE_TARGET_SHA \|\| ''\)/.test(body)) {
+    if (/const inheritedTarget = trustsEnvTargetRef\(authenticatedReexec,\s*legacyReexec\)\s*\n?\s*\? \(process\.env\.LANDING_GEAR_UPDATE_TARGET_SHA \|\| ''\)/.test(body)) {
       pass('the inherited target SHA is read only under the same trust gate as the inherited ref');
     } else {
-      fail('CAREER_OPS_UPDATE_TARGET_SHA is read under a weaker gate than CAREER_OPS_UPDATE_TARGET_REF');
+      fail('LANDING_GEAR_UPDATE_TARGET_SHA is read under a weaker gate than LANDING_GEAR_UPDATE_TARGET_REF');
     }
 
     if (/inheritedTarget\s*\n?\s*\? pinInheritedTarget\(inheritedTarget\)/.test(body)) {
       pass('apply() pins an inherited target through the SHA-only pin');
     } else {
-      fail('apply() resolves CAREER_OPS_UPDATE_TARGET_SHA with a pin that accepts any commit-ish');
+      fail('apply() resolves LANDING_GEAR_UPDATE_TARGET_SHA with a pin that accepts any commit-ish');
     }
 
     // The pin must have no fallback. A child that cannot resolve the SHA its

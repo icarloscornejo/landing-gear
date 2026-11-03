@@ -1,6 +1,6 @@
 // User Layer paths in batch-tailor.mjs, cv-templates.mjs and openrouter-runner.mjs
-// must follow the data root (getCareerOpsRoot(): CAREER_OPS_ROOT /
-// CAREER_OPS_DATA_DIR > .career-ops-data marker > repo root), while System
+// must follow the data root (getLandingGearRoot(): LANDING_GEAR_ROOT /
+// LANDING_GEAR_DATA_DIR > .landing-gear-data marker > repo root), while System
 // Layer paths (batch/, templates/) stay on the code checkout.
 //
 // Each script used to resolve reports/, config/profile.yml or
@@ -33,12 +33,12 @@ const NODE_MODULES = (() => {
   const pkg = createRequire(join(ROOT, 'package.json')).resolve('js-yaml/package.json');
   return pkg.slice(0, pkg.lastIndexOf(`${sep}node_modules${sep}`) + `${sep}node_modules`.length);
 })();
-const MODES = ['CAREER_OPS_ROOT', 'CAREER_OPS_DATA_DIR', 'marker'];
+const MODES = ['LANDING_GEAR_ROOT', 'LANDING_GEAR_DATA_DIR', 'marker'];
 // Anything that could point a child at the developer's real files, or change
 // the code path under test, is cleared before the per-case env is applied.
 const CLEARED_ENV = [
-  'CAREER_OPS_ROOT', 'CAREER_OPS_DATA_DIR', 'CAREER_OPS_TRACKER', 'CAREER_OPS_PROFILE',
-  'CAREER_OPS_BATCH_STATE', 'CAREER_OPS_MODEL', 'OPENROUTER_API_KEY',
+  'LANDING_GEAR_ROOT', 'LANDING_GEAR_DATA_DIR', 'LANDING_GEAR_TRACKER', 'LANDING_GEAR_PROFILE',
+  'LANDING_GEAR_BATCH_STATE', 'LANDING_GEAR_MODEL', 'OPENROUTER_API_KEY',
 ];
 
 /** Relative-import closure of `entry` (static and literal dynamic imports). */
@@ -64,7 +64,7 @@ function importClosure(entry) {
  * packages); the data root starts empty.
  */
 function fixture(t, entry, { nodeModules = false, assets = [] } = {}) {
-  const dir = realpathSync(mkdtempSync(join(tmpdir(), 'career-ops-ul-root-')));
+  const dir = realpathSync(mkdtempSync(join(tmpdir(), 'landing-gear-ul-root-')));
   const code = join(dir, 'code');
   const data = join(dir, 'data-root');
   mkdirSync(code);
@@ -94,7 +94,7 @@ function write(path, content) {
 function envFor(mode, { code, data }, extra = {}) {
   const env = { ...process.env };
   for (const key of CLEARED_ENV) delete env[key];
-  if (mode === 'marker') writeFileSync(join(code, '.career-ops-data'), data);
+  if (mode === 'marker') writeFileSync(join(code, '.landing-gear-data'), data);
   else env[mode] = data;
   return { ...env, ...extra };
 }
@@ -165,12 +165,12 @@ for (const mode of MODES) {
   });
 }
 
-test('cv-templates.mjs: CAREER_OPS_PROFILE still overrides the data-root profile', (t) => {
+test('cv-templates.mjs: LANDING_GEAR_PROFILE still overrides the data-root profile', (t) => {
   const f = cvTemplatesFixture(t);
   const override = join(f.dir, 'override-profile.yml');
   write(override, 'cv:\n  template: bold\n');
   const result = run(f, 'cv-templates.mjs', ['resolve', 'cv'],
-    envFor('CAREER_OPS_ROOT', f, { CAREER_OPS_PROFILE: override }));
+    envFor('LANDING_GEAR_ROOT', f, { LANDING_GEAR_PROFILE: override }));
   assert.equal(result.status, 0, result.output);
   assert.equal(result.stdout.trim(), join(f.code, 'templates', 'cv-template.bold.html'));
 });
@@ -190,7 +190,7 @@ for (const mode of MODES) {
     write(join(f.data, 'reports', '009-fabrikam-2026-01-01.md'), '# Fabrikam\n\n**Score:** 2.0/5\n');
 
     const result = run(f, 'openrouter-runner.mjs', ['apply', '9'],
-      envFor(mode, f, { CAREER_OPS_MODEL: 'test/pinned:free' }), 'no\n');
+      envFor(mode, f, { LANDING_GEAR_MODEL: 'test/pinned:free' }), 'no\n');
     assert.equal(result.status, 0, result.output);
     assert.doesNotMatch(result.output, /Report not found/, `apply looked for reports/ off the code root:\n${result.output}`);
     assert.match(result.output, /scored 2\.0\/5/, result.output);

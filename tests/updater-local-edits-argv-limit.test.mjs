@@ -205,7 +205,7 @@ if (NAMES.join(' ').length > WINDOWS_ARGV_LIMIT) {
     fail('#5 the unrelated staged file did not stay staged on its own');
   }
   const gitDir = resolve(repo.dir, repo.g('rev-parse', '--git-dir'));
-  if (!readdirSync(gitDir).some((f) => f.startsWith('career-ops-update-pathspecs'))) {
+  if (!readdirSync(gitDir).some((f) => f.startsWith('landing-gear-update-pathspecs'))) {
     pass('the pathspec file is removed once the commit lands');
   } else {
     fail('#5 the pathspec file was left behind after a successful commit');

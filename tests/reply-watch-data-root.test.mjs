@@ -3,8 +3,8 @@
 //
 // reply-watch.mjs resolved three user-layer paths against __dirname: the tracker,
 // data/follow-ups.md, and data/reply-candidates.json. DATA_CONTRACT.md resolves
-// the user layer through CAREER_OPS_ROOT / CAREER_OPS_DATA_DIR / a
-// .career-ops-data marker, and none of those reached this script.
+// the user layer through LANDING_GEAR_ROOT / LANDING_GEAR_DATA_DIR / a
+// .landing-gear-data marker, and none of those reached this script.
 //
 // It failed SILENTLY, which is why it needs tests rather than a bug report: an
 // empty tracker is a legal state, and the classifier runs off the email alone, so
@@ -63,7 +63,7 @@ const FOLLOWUPS = [
 
 const cleanup = [];
 
-/** A data root laid out the way a user with CAREER_OPS_ROOT set has one. */
+/** A data root laid out the way a user with LANDING_GEAR_ROOT set has one. */
 function makeDataRoot({ withCandidates = true, withFollowups = true } = {}) {
   const dir = mkdtempSync(join(tmpdir(), 'reply-watch-root-'));
   cleanup.push(dir);
@@ -76,7 +76,7 @@ function makeDataRoot({ withCandidates = true, withFollowups = true } = {}) {
   return dir;
 }
 
-// CAREER_OPS_TRACKER is cleared deliberately: it outranks the resolved root
+// LANDING_GEAR_TRACKER is cleared deliberately: it outranks the resolved root
 // (DATA_CONTRACT.md), so leaving a developer's own export in place would both
 // mask the bug and point these scripts at their real tracker (#3988). Clearing it
 // is also what makes the assertion meaningful -- the point is that the ROOT
@@ -84,10 +84,10 @@ function makeDataRoot({ withCandidates = true, withFollowups = true } = {}) {
 function env(root, extra = {}) {
   return {
     ...process.env,
-    CAREER_OPS_ROOT: root,
-    CAREER_OPS_DATA_DIR: '',
-    CAREER_OPS_TRACKER: '',
-    CAREER_OPS_REPLY_CANDIDATES: '',
+    LANDING_GEAR_ROOT: root,
+    LANDING_GEAR_DATA_DIR: '',
+    LANDING_GEAR_TRACKER: '',
+    LANDING_GEAR_REPLY_CANDIDATES: '',
     ...extra,
   };
 }
@@ -139,7 +139,7 @@ function runScript(script, args, environment) {
   // for the header; matched, it prints "{company} — {role}" from the tracker row.
   // Both render a digest, which is why the old behaviour looked like success.
   if (r.stdout.includes('Acme Corp — Senior Backend Engineer')) {
-    pass('a reply is matched to its tracker row with CAREER_OPS_ROOT alone');
+    pass('a reply is matched to its tracker row with LANDING_GEAR_ROOT alone');
   } else {
     fail('reply not matched to the tracker row — reply-watch read a tracker that '
       + `is not the user's. Digest said: ${JSON.stringify(r.stdout.slice(0, 220))}`);
@@ -152,28 +152,28 @@ function runScript(script, args, environment) {
   else fail(`classification changed: ${r.stdout.slice(0, 220)}`);
 }
 
-// ── CAREER_OPS_DATA_DIR, the sibling variable ──────────────────────────────
+// ── LANDING_GEAR_DATA_DIR, the sibling variable ──────────────────────────────
 //
-// Its own leg: resolveTrackerPath consults CAREER_OPS_TRACKER before the root it
+// Its own leg: resolveTrackerPath consults LANDING_GEAR_TRACKER before the root it
 // is handed, so a suite that set only that variable would pass with the bug
 // intact. Each root mechanism is exercised on its own.
 {
   const dir = makeDataRoot();
   const r = runScript('reply-watch.mjs', [], {
     ...process.env,
-    CAREER_OPS_ROOT: '',
-    CAREER_OPS_DATA_DIR: dir,
-    CAREER_OPS_TRACKER: '',
-    CAREER_OPS_REPLY_CANDIDATES: '',
+    LANDING_GEAR_ROOT: '',
+    LANDING_GEAR_DATA_DIR: dir,
+    LANDING_GEAR_TRACKER: '',
+    LANDING_GEAR_REPLY_CANDIDATES: '',
   });
   if (r.stdout.includes('Acme Corp — Senior Backend Engineer')) {
-    pass('CAREER_OPS_DATA_DIR resolves the tracker too');
+    pass('LANDING_GEAR_DATA_DIR resolves the tracker too');
   } else {
-    fail(`CAREER_OPS_DATA_DIR did not reach reply-watch: ${JSON.stringify(r.stdout.slice(0, 220))}`);
+    fail(`LANDING_GEAR_DATA_DIR did not reach reply-watch: ${JSON.stringify(r.stdout.slice(0, 220))}`);
   }
 }
 
-// ── the .career-ops-data marker, the third mechanism ───────────────────────
+// ── the .landing-gear-data marker, the third mechanism ───────────────────────
 //
 // Deliberately NOT exercised here. The marker is read from the repository root,
 // so testing it means writing a file into the checkout the suite is running from
@@ -234,9 +234,9 @@ function runScript(script, args, environment) {
   // Guard: the explicit override still wins over the data root.
   const custom = join(dir, 'elsewhere.json');
   const overridden = runScript('paste-reply.mjs', ['--file', join(dir, 'mail.txt')],
-    env(dir, { CAREER_OPS_REPLY_CANDIDATES: custom }));
+    env(dir, { LANDING_GEAR_REPLY_CANDIDATES: custom }));
   if (overridden.code === 0 && existsSync(custom)) {
-    pass('CAREER_OPS_REPLY_CANDIDATES still outranks the data root');
+    pass('LANDING_GEAR_REPLY_CANDIDATES still outranks the data root');
   } else {
     fail('the explicit candidates override stopped working');
   }
@@ -244,12 +244,12 @@ function runScript(script, args, environment) {
 
 // ── follow-ups.md: the file followup-seed writes ───────────────────────────
 //
-// followup-seed.mjs writes join(getCareerOpsRoot(), 'data/follow-ups.md'), so
+// followup-seed.mjs writes join(getLandingGearRoot(), 'data/follow-ups.md'), so
 // before the fix one script wrote a file the other could not see.
 //
 // The writer half is MEASURED: followup-seed is spawned against a root with no
 // follow-ups.md and the file it creates is located on disk. An earlier version
-// of this leg only grepped both files for `getCareerOpsRoot()`, which is
+// of this leg only grepped both files for `getLandingGearRoot()`, which is
 // lint-grade — it proves both mention a function, not that they agree on a
 // path, and a rename keeps it green (@Scott-Emberson and CodeRabbit both
 // flagged it). Seeding is also the case that matters: it is the one path that
@@ -263,7 +263,7 @@ function runScript(script, args, environment) {
 // path and one precise one.
 {
   const dir = makeDataRoot({ withFollowups: false });
-  const seeded = runScript('followup-seed.mjs', ['1', '--json'], env(dir, { CAREER_OPS_FOLLOWUPS: '' }));
+  const seeded = runScript('followup-seed.mjs', ['1', '--json'], env(dir, { LANDING_GEAR_FOLLOWUPS: '' }));
 
   // Positive control first: an assertion that the file is absent from the wrong
   // place is worthless if the script never ran. `seeded:true` is the script's
@@ -271,7 +271,7 @@ function runScript(script, args, environment) {
   let report = null;
   try { report = JSON.parse(seeded.stdout); } catch { /* reported below */ }
   if (seeded.code === 0 && report?.seeded === true) {
-    pass('followup-seed seeds a pin with CAREER_OPS_ROOT alone');
+    pass('followup-seed seeds a pin with LANDING_GEAR_ROOT alone');
   } else {
     fail(`followup-seed did not seed: exit ${seeded.code}, `
       + `stdout ${JSON.stringify(seeded.stdout.slice(0, 200))}, `
@@ -357,7 +357,7 @@ for (const dir of cleanup) rmSync(dir, { recursive: true, force: true, maxRetrie
 
     // The positive form, so the check above cannot be satisfied by deleting
     // __dirname and hardcoding a path some other way.
-    if (/getCareerOpsRoot\(\)/.test(src)) pass(`${file} resolves its user-layer paths through getCareerOpsRoot()`);
-    else fail(`${file} no longer calls getCareerOpsRoot()`);
+    if (/getLandingGearRoot\(\)/.test(src)) pass(`${file} resolves its user-layer paths through getLandingGearRoot()`);
+    else fail(`${file} no longer calls getLandingGearRoot()`);
   }
 }

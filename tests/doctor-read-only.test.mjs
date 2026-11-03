@@ -20,7 +20,7 @@ function fixture(t) {
 function doctor(dir, args = ['--json']) {
   const result = spawnSync(process.execPath, [join(ROOT, 'doctor.mjs'), '--target', dir, ...args], {
     cwd: dir, encoding: 'utf8', timeout: 30_000,
-    env: { ...process.env, CAREER_OPS_ROOT: dir, CAREER_OPS_DATA_DIR: '', CAREER_OPS_CLI: 'claude' },
+    env: { ...process.env, LANDING_GEAR_ROOT: dir, LANDING_GEAR_DATA_DIR: '', LANDING_GEAR_CLI: 'claude' },
   });
   assert.ifError(result.error);
   return result;

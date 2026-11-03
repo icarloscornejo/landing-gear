@@ -1,5 +1,5 @@
 // Optional browser regression: use the disposable fixture created by
-// node tests/fixtures/pipeline-status.mjs as CAREER_OPS_ROOT for a local server.
+// node tests/fixtures/pipeline-status.mjs as LANDING_GEAR_ROOT for a local server.
 // Set PIPELINE_RETURN_TEST_URL and PIPELINE_RETURN_TEST_ROOT to run this suite.
 import assert from "node:assert/strict";
 import fs from "node:fs";

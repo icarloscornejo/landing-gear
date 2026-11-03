@@ -60,7 +60,7 @@ function runDoctor(dir) {
     cwd: dir,
     encoding: 'utf-8',
     timeout: 60000,
-    env: { ...process.env, CAREER_OPS_ROOT: dir, CAREER_OPS_DATA_DIR: '' },
+    env: { ...process.env, LANDING_GEAR_ROOT: dir, LANDING_GEAR_DATA_DIR: '' },
   });
 }
 

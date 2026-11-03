@@ -17,7 +17,7 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { appendFileSync, copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, renameSync, writeFileSync } from 'node:fs';
 import { join, relative, resolve, sep } from 'node:path';
-import { getCareerOpsRoot } from './path-resolver.mjs';
+import { getLandingGearRoot } from './path-resolver.mjs';
 import { acquireDirLock, releaseOrWarn } from './lib/dir-lock.mjs';
 import { flagValue, hasFlag } from './lib/cli-flags.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
@@ -69,8 +69,8 @@ const FACTUAL = [
 class InputError extends Error {}
 
 function headlessReason(env) {
-  if (env.CAREER_OPS_HEADLESS && env.CAREER_OPS_HEADLESS !== '0') return 'CAREER_OPS_HEADLESS is set';
-  if (env.CAREER_OPS_BATCH_STATE) return 'this is a batch worker (CAREER_OPS_BATCH_STATE is set)';
+  if (env.LANDING_GEAR_HEADLESS && env.LANDING_GEAR_HEADLESS !== '0') return 'LANDING_GEAR_HEADLESS is set';
+  if (env.LANDING_GEAR_BATCH_STATE) return 'this is a batch worker (LANDING_GEAR_BATCH_STATE is set)';
   return null;
 }
 
@@ -425,7 +425,7 @@ function selfTest() {
     try { parseIds(raw, '--accept'); } catch { threw = true; }
     expect(threw, `parseIds refuses ${JSON.stringify(raw)}`);
   }
-  expect(headlessReason({ CAREER_OPS_HEADLESS: '1' }) && headlessReason({ CAREER_OPS_BATCH_STATE: 'x' }) && !headlessReason({}), 'headless detection');
+  expect(headlessReason({ LANDING_GEAR_HEADLESS: '1' }) && headlessReason({ LANDING_GEAR_BATCH_STATE: 'x' }) && !headlessReason({}), 'headless detection');
   console.log(`self-test: ${passed} passed, ${failed} failed`);
   return failed === 0;
 }
@@ -451,7 +451,7 @@ async function main(argv) {
   }
   if (argv.includes('--self-test')) return selfTest() ? 0 : 1;
   const [command, path, ...rest] = argv;
-  const root = getCareerOpsRoot();
+  const root = getLandingGearRoot();
   if (command === 'check' && path) {
     const result = check(root, path);
     console.log(rest.includes('--summary') ? summary(result) : JSON.stringify(result, null, 2));

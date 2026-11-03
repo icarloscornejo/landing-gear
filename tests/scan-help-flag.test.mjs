@@ -10,7 +10,7 @@
 // (#2743/#2745) and dedup-tracker.mjs (#2744/#2746), now shared via
 // lib/cli-flags.mjs's validateFlags() (#2775).
 //
-// HERMETIC: every run pins CAREER_OPS_PORTALS at a path that does not exist.
+// HERMETIC: every run pins LANDING_GEAR_PORTALS at a path that does not exist.
 // If --help or an unrecognized flag were NOT handled before the portals
 // check, the run would reach "portals.yml not found" instead of exiting on
 // the flag itself — so that message doubles as proof a live scan was
@@ -25,7 +25,7 @@ import { fileURLToPath } from 'node:url';
 import { describeSpawn, exitedNonZero } from './helpers/describe-spawn.mjs';
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
-const NO_PORTALS = join(tmpdir(), 'career-ops-no-such-portals.yml');
+const NO_PORTALS = join(tmpdir(), 'landing-gear-no-such-portals.yml');
 const PORTALS_NOT_FOUND = /portals\.yml not found/i;
 
 function runScan(...args) {
@@ -33,7 +33,7 @@ function runScan(...args) {
     cwd: ROOT,
     encoding: 'utf-8',
     timeout: 30_000,
-    env: { ...process.env, CAREER_OPS_PORTALS: NO_PORTALS },
+    env: { ...process.env, LANDING_GEAR_PORTALS: NO_PORTALS },
   });
   assert.equal(r.error, undefined, `scan.mjs failed to spawn: ${r.error?.message}`);
   assert.equal(r.signal, null, `scan.mjs was killed by ${r.signal} (timeout?)`);

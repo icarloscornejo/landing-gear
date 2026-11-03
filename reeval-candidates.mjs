@@ -13,7 +13,7 @@
  *
  * PRIMARY SOURCES (the AGENTS.md "Primary / user-authored" tier that carries
  * facts): `cv.md`, `article-digest.md`, `config/profile.yml` (through
- * getProfilePath(), so CAREER_OPS_PROFILE is honored) and `modes/_profile.md`,
+ * getProfilePath(), so LANDING_GEAR_PROFILE is honored) and `modes/_profile.md`,
  * all under the data root. A missing file is reported and ignored.
  *
  * WHEN A SOURCE LAST CHANGED
@@ -65,7 +65,7 @@ import { flagValue, hasFlag, validateFlags } from './lib/cli-flags.mjs';
 import { localToday } from './lib/local-today.mjs';
 import { parseDate } from './lib/parse-date.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
-import { canonicalizeTrackerPath, getCareerOpsRoot, getProfilePath, resolveTrackerPath } from './path-resolver.mjs';
+import { canonicalizeTrackerPath, getLandingGearRoot, getProfilePath, resolveTrackerPath } from './path-resolver.mjs';
 
 const CODE_ROOT = dirname(fileURLToPath(import.meta.url));
 const STATES_FILE = join(CODE_ROOT, 'templates/states.yml');
@@ -409,7 +409,7 @@ function printSummary(report) {
   const clip = (s, n) => (String(s).length > n ? `${String(s).slice(0, n - 1)}\u2026` : String(s));
 
   console.log(`\n${'='.repeat(86)}`);
-  console.log('  Re-evaluation candidates \u2014 career-ops');
+  console.log('  Re-evaluation candidates \u2014 landing-gear');
   const latest = metadata.latestSourceChange;
   console.log(`  Status: ${metadata.statuses.join(', ')} \u00b7 latest source change: ${latest ? `${latest.changed} (${latest.source})` : 'none found'}`);
   console.log(`${'='.repeat(86)}\n`);
@@ -457,7 +457,7 @@ if (isMainModule(import.meta.url)) {
     fail(err.message);
   }
 
-  const dataRoot = getCareerOpsRoot();
+  const dataRoot = getLandingGearRoot();
   const trackerArg = valueOf('--tracker');
   const trackerPath = trackerArg ? canonicalizeTrackerPath(trackerArg) : resolveTrackerPath(dataRoot);
   const linkDirs = trackerArg

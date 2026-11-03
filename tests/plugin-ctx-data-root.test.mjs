@@ -18,7 +18,7 @@ import { tmpdir } from 'node:os';
 import { isAbsolute, join, resolve } from 'node:path';
 import { ROOT, rmSync } from './helpers.mjs';
 import { buildCtx, runHook, mergeProviderPlugins } from '../plugins/_engine.mjs';
-import { getCareerOpsRoot } from '../path-resolver.mjs';
+import { getLandingGearRoot } from '../path-resolver.mjs';
 
 const manifest = { id: 'ctx-demo', allowedHosts: [], requiredEnv: [], optionalEnv: [], allowsLocalhost: false };
 
@@ -48,8 +48,8 @@ test('buildCtx carries the data root it is given, as an absolute path', () => {
 });
 
 test('a ctx built without a data root gets the one the resolver reports', () => {
-  assert.equal(buildCtx(manifest, {}).dataRoot, resolve(getCareerOpsRoot()));
-  assert.equal(buildCtx(manifest).dataRoot, resolve(getCareerOpsRoot()));
+  assert.equal(buildCtx(manifest, {}).dataRoot, resolve(getLandingGearRoot()));
+  assert.equal(buildCtx(manifest).dataRoot, resolve(getLandingGearRoot()));
 });
 
 test('runHook hands a hook the data root, not the code root or the working directory', async () => {

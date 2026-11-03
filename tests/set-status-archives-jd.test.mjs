@@ -28,7 +28,7 @@ const HEADER = '| # | Date | Company | Role | Score | Status | PDF | Report | No
 const SEP = '|---|---|---|---|---|---|---|---|---|---|';
 
 function sandbox({ status = 'Evaluated', url = 'https://boards.greenhouse.io/acme/jobs/1', reportCell = '[7](../reports/007-acme-2026-02-01.md)' } = {}) {
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-jd-archive-'));
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-jd-archive-'));
   mkdirSync(join(dir, 'data'), { recursive: true });
   mkdirSync(join(dir, 'reports'), { recursive: true });
   writeFileSync(join(dir, 'data', 'applications.md'), [
@@ -44,7 +44,7 @@ function setStatus(dir, args, { codeRoot = ROOT, env = {} } = {}) {
     cwd: ROOT,
     encoding: 'utf-8',
     timeout: 30_000,
-    env: { ...process.env, CAREER_OPS_TRACKER: join(dir, 'data', 'applications.md'), ...env },
+    env: { ...process.env, LANDING_GEAR_TRACKER: join(dir, 'data', 'applications.md'), ...env },
   });
   assert.equal(r.error, undefined, `spawn failed: ${r.error?.message}`);
   return { ...r, all: `${r.stdout ?? ''}${r.stderr ?? ''}` };
@@ -72,7 +72,7 @@ function fakeArchiveCodeRoot() {
     "if (process.env.FAKE_ARCHIVE_PID_FILE) writeFileSync(process.env.FAKE_ARCHIVE_PID_FILE, String(process.pid));",
     "if (process.env.FAKE_ARCHIVE_HANG === '1') Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 60_000);",
     "console.log('child stdout must not contaminate JSON');",
-    "writeFileSync(join(process.env.CAREER_OPS_ROOT, 'archive-invocation.json'), JSON.stringify({ args: process.argv.slice(2), root: process.env.CAREER_OPS_ROOT }));",
+    "writeFileSync(join(process.env.LANDING_GEAR_ROOT, 'archive-invocation.json'), JSON.stringify({ args: process.argv.slice(2), root: process.env.LANDING_GEAR_ROOT }));",
   ].join('\n'));
   return codeRoot;
 }
@@ -160,7 +160,7 @@ test('a hung archive child times out and remains warn-only', () => {
       codeRoot,
       env: {
         FAKE_ARCHIVE_HANG: '1',
-        CAREER_OPS_JD_ARCHIVE_TIMEOUT_MS: '100',
+        LANDING_GEAR_JD_ARCHIVE_TIMEOUT_MS: '100',
       },
     });
     assert.equal(raw.status, 0, describeSpawn(raw));
@@ -205,7 +205,7 @@ test('--detach-jd-archive returns before a hung archive finishes', async () => {
     const raw = setStatus(dir, ['--row', '7', 'Interview', '--detach-jd-archive', '--json'], {
       codeRoot,
       // The fake hangs 60s; the default 120s bound would outlast the test.
-      env: { FAKE_ARCHIVE_HANG: '1', FAKE_ARCHIVE_PID_FILE: pidFile, CAREER_OPS_JD_ARCHIVE_TIMEOUT_MS: '3000' },
+      env: { FAKE_ARCHIVE_HANG: '1', FAKE_ARCHIVE_PID_FILE: pidFile, LANDING_GEAR_JD_ARCHIVE_TIMEOUT_MS: '3000' },
     });
     const elapsed = Date.now() - t0;
     assert.equal(raw.status, 0, describeSpawn(raw));
@@ -218,7 +218,7 @@ test('--detach-jd-archive returns before a hung archive finishes', async () => {
     // The archive did start, and the timeout still applies without a parent.
     const pid = Number(await waitFor(() => readIfExists(pidFile)));
     assert.ok(pid > 0, 'the detached archive never started');
-    assert.equal(await waitFor(() => !isAlive(pid)), true, 'the detached archive outlived CAREER_OPS_JD_ARCHIVE_TIMEOUT_MS');
+    assert.equal(await waitFor(() => !isAlive(pid)), true, 'the detached archive outlived LANDING_GEAR_JD_ARCHIVE_TIMEOUT_MS');
   } finally {
     cleanup(dir);
     rmSync(codeRoot, { recursive: true, force: true, maxRetries: 10 });

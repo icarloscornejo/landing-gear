@@ -81,7 +81,7 @@ test('the headless SKIP row merges into the tracker with the rule and the JD lin
     .replace('{url}', 'https://example.test/jobs/7')
     .replaceAll('\\t', '\t');
   writeFileSync(join(dir, 'batch', 'tracker-additions', '7-adatum.tsv'), row);
-  const result = spawnSync(process.execPath, [join(ROOT, 'merge-tracker.mjs')], { cwd: dir, encoding: 'utf8', env: ownRootEnv({ CAREER_OPS_ROOT: dir }) });
+  const result = spawnSync(process.execPath, [join(ROOT, 'merge-tracker.mjs')], { cwd: dir, encoding: 'utf8', env: ownRootEnv({ LANDING_GEAR_ROOT: dir }) });
   assert.equal(result.status, 0, result.stderr);
   const merged = readFileSync(join(dir, 'data', 'applications.md'), 'utf8').trim().split('\n').at(-1);
   assert.match(merged, /\| Adatum \| Staff Designer \| N\/A \| SKIP \|/);

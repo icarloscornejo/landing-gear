@@ -8,7 +8,7 @@
 // builders — the DOM it was written to avoid — and a typo in a partial it did
 // ship degraded the same way, with nothing in the output saying so.
 //
-// `sections: all` (or a list) in the <!-- career-ops-template --> block turns
+// `sections: all` (or a list) in the <!-- landing-gear-template --> block turns
 // ownership into a checkable claim. A declared section must exist at resolve
 // (cv-templates.mjs) and parse at render (build-cv-html.mjs); a pack that
 // declares nothing keeps the old behaviour, which is what keeps every pack
@@ -46,7 +46,7 @@ const EMPTY_ENTRY = '<!--ENTRY-->   <!--/ENTRY-->';
 function fixture({ manifest = '', sections = {} } = {}) {
   const dir = mkdtempSync(join(tmpdir(), 'pack-sections-'));
   fixtures.push(dir);
-  const body = `<!DOCTYPE html>\n<!-- career-ops-template\nname: Mine\n${manifest}\n-->\n`
+  const body = `<!DOCTYPE html>\n<!-- landing-gear-template\nname: Mine\n${manifest}\n-->\n`
     + '<html><body>{{NAME}}{{EXPERIENCE}}{{EDUCATION}}</body></html>\n';
   writeFileSync(join(dir, 'cv-template.html'), '{{NAME}}{{EXPERIENCE}}{{EDUCATION}}');
   const packDir = join(dir, 'mine');

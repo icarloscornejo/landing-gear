@@ -1,5 +1,5 @@
 // tests/scan-ats-full-workday-junk-tenant.test.mjs — the public
-// workday_companies.json dataset has a data-quality defect (career-ops-hq/career-ops#4454,
+// workday_companies.json dataset has a data-quality defect (upstream #4454,
 // Feashliaa/job-board-aggregator#42): ~47% of its entries carry an
 // instance-name lookalike (wd1, wd5, wd12, ...) in the tenant slot instead of
 // a real company. toEntry() drops those before a request is ever made.

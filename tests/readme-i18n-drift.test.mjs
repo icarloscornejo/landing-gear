@@ -10,7 +10,7 @@ const ROOT = join(__dirname, '..');
 // REQUIRED_TOKENS should be updated deliberately whenever a fact legitimately changes.
 // The point is that a future fact change forces the PR to either update all 16 files
 // or explicitly touch this token list, so drift is caught in CI.
-// Note: The global install command token ("npm i -g @santifer/career-ops") was deliberately
+// Note: The global install command token (the global npm install) was deliberately
 // left out pending a separate translation rollout across the 14 remaining files.
 const REQUIRED_TOKENS = [
   'A-H'

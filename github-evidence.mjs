@@ -57,7 +57,7 @@ import { spawnSync } from 'child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { join, relative } from 'path';
 import { loadYaml } from './lib/yaml-document.mjs';
-import { getCareerOpsRoot, getProfilePath, hasProfileOverride } from './path-resolver.mjs';
+import { getLandingGearRoot, getProfilePath, hasProfileOverride } from './path-resolver.mjs';
 import { localToday } from './lib/local-today.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
 import { validateFlags } from './lib/cli-flags.mjs';
@@ -697,7 +697,7 @@ function loadProfile(path) {
  * @returns {number} Exit code.
  */
 export function runCli({
-  args = [], dataRoot = getCareerOpsRoot(), runGh = defaultGhRunner,
+  args = [], dataRoot = getLandingGearRoot(), runGh = defaultGhRunner,
   profilePath = hasProfileOverride() ? getProfilePath() : getProfilePath(dataRoot),
   today = localToday(), stdout = (s) => process.stdout.write(s), stderr = (s) => process.stderr.write(s),
   pause = sleepSync,

@@ -72,7 +72,7 @@ if (!bash) {
     writeFileSync(join(stubBin, 'claude'), '#!/bin/sh\nexit 0\n');
     chmodSync(join(stubBin, 'claude'), 0o755);
     const run = (...args) => {
-      const r = spawnSync(bash, [join(batch, 'batch-runner.sh'), '--dry-run', ...args], { cwd: work, encoding: 'utf-8', timeout: 60000, env: { ...process.env, CAREER_OPS_ROOT: work, PATH: `${stubBin}${delimiter}${process.env.PATH}` } });
+      const r = spawnSync(bash, [join(batch, 'batch-runner.sh'), '--dry-run', ...args], { cwd: work, encoding: 'utf-8', timeout: 60000, env: { ...process.env, LANDING_GEAR_ROOT: work, PATH: `${stubBin}${delimiter}${process.env.PATH}` } });
       return { code: r.status, out: `${r.stdout || ''}${r.stderr || ''}` };
     };
     const all = run();

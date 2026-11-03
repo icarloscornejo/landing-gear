@@ -10,7 +10,7 @@ const header = '| # | Date | Company | Role | Score | Status | PDF | Report | No
 const original = '| 1 | 2026-06-01 | Acme | Backend Engineer | 4/5 | Applied | - | - | |\n';
 
 async function review(change, expectsConflict = true) {
-  const root = mkdtempSync(join(tmpdir(), 'career-ops-reply-identity-'));
+  const root = mkdtempSync(join(tmpdir(), 'landing-gear-reply-identity-'));
   let child, timer;
   try {
     mkdirSync(join(root, 'data'));
@@ -22,7 +22,7 @@ async function review(change, expectsConflict = true) {
       subject: 'Acme Backend Engineer', body_snippet: 'We invite you to interview.',
     }]));
     child = spawn(NODE, [join(ROOT, 'reply-watch.mjs'), candidates], {
-      cwd: root, env: { ...process.env, CAREER_OPS_ROOT: root, CAREER_OPS_TRACKER: tracker },
+      cwd: root, env: { ...process.env, LANDING_GEAR_ROOT: root, LANDING_GEAR_TRACKER: tracker },
       stdio: ['pipe', 'pipe', 'pipe'],
     });
     let stdout = '', stderr = '', changed = false;

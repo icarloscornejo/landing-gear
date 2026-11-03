@@ -22,16 +22,16 @@ import { assertFacts, printFactWarnings } from "./verify-cv-facts.mjs";
 import { resolveTemplate } from "./cv-templates.mjs";
 import { isMainModule } from "./lib/is-main-module.mjs";
 import { PAGE_FORMATS, normalizePageFormat, pageFormatForCountry } from "./lib/page-format.mjs";
-import { getCareerOpsRoot } from "./path-resolver.mjs";
+import { getLandingGearRoot } from "./path-resolver.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // output/ is a USER-layer directory. Anchoring it to the script directory made
 // the cover letter unwritable under an external data directory: this module
 // insisted on <checkout>/output while the shared PDF guard in generate-pdf.mjs
 // required the tracker workspace, and the two could not both be satisfied.
-// getCareerOpsRoot() returns the checkout when no external root is configured,
+// getLandingGearRoot() returns the checkout when no external root is configured,
 // so the default install is unchanged.
-const OUTPUT_ROOT = resolve(getCareerOpsRoot(), "output");
+const OUTPUT_ROOT = resolve(getLandingGearRoot(), "output");
 
 /**
  * Resolve a requested cover-letter output path.

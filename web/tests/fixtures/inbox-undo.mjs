@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const root = fs.mkdtempSync(path.join(os.tmpdir(), "career-ops-inbox-undo-"));
+const root = fs.mkdtempSync(path.join(os.tmpdir(), "landing-gear-inbox-undo-"));
 fs.mkdirSync(path.join(root, "data"));
 fs.writeFileSync(path.join(root, ".inbox-undo-fixture"), "fictional-only\n");
 fs.writeFileSync(path.join(root, "data/pipeline.md"), `# Fictional inbox

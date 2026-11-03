@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import fs from "node:fs";
 import path from "node:path";
-import { careerOpsRoot, readApplications, readInbox, readProfileAuthorizedIn } from "@/lib/career-ops";
+import { landingGearRoot, readApplications, readInbox, readProfileAuthorizedIn, readProfilePreTriage } from "@/lib/landing-gear";
 import { usAuthorizedFrom } from "@/lib/location-reach.mjs";
 import { lookalikeAts } from "@/lib/core/ats-lookalike.mjs";
 import { setInboxLabel, setInboxSkip } from "@/lib/inbox-skip.mjs";
@@ -23,7 +23,7 @@ const READ_AT_ONCE = 4;
 export async function POST(req: Request) {
   const body = (await readJsonObject<{ recheck?: unknown }>(req)) ?? {};
   const recheck = body.recheck === true;
-  const root = careerOpsRoot();
+  const root = landingGearRoot();
   const file = path.join(root, "data", "pipeline.md");
   const lockModule = path.join(root, "pipeline-lock.mjs");
   if (!fs.existsSync(lockModule)) {
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
   }
 
   const tracker = trackerKeys(readApplications());
-  const options = { usAuthorized: usAuthorizedFrom(readProfileAuthorizedIn()) };
+  const options = { usAuthorized: usAuthorizedFrom(readProfileAuthorizedIn()), ...readProfilePreTriage() };
   const targets = readInbox().filter((job) => !job.done && !job.triage && (recheck || !job.pretriaged));
   const readJd = createJdReader();
   const jds = new Array(targets.length);

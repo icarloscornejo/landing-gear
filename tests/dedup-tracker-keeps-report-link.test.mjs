@@ -19,7 +19,7 @@ function dedup(rows) {
     writeFileSync(tracker, ['# Applications Tracker', '',
       '| # | Date | Company | Role | Score | Status | PDF | Report | Notes |',
       '|---|---|---|---|---|---|---|---|---|', ...rows, ''].join('\n'));
-    execFileSync(process.execPath, [DEDUP], { encoding: 'utf-8', env: { ...process.env, CAREER_OPS_TRACKER: tracker } });
+    execFileSync(process.execPath, [DEDUP], { encoding: 'utf-8', env: { ...process.env, LANDING_GEAR_TRACKER: tracker } });
     return readFileSync(tracker, 'utf-8').split('\n').filter(l => /^\|\s*\d+\s*\|/.test(l));
   } finally {
     rmSync(dir, { recursive: true, force: true });

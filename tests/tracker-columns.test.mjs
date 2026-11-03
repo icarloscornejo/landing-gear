@@ -84,17 +84,17 @@ for (const signal of ['SIGTERM', 'SIGINT']) {
 function runScript(script, args, sandbox) {
   const env = {
     ...process.env,
-    CAREER_OPS_TRACKER: sandbox.tracker,
-    CAREER_OPS_ADDITIONS: sandbox.additions,
-    CAREER_OPS_BATCH_STATE: sandbox.batchState,
-    CAREER_OPS_TRACKER_LOCK: sandbox.lock,
+    LANDING_GEAR_TRACKER: sandbox.tracker,
+    LANDING_GEAR_ADDITIONS: sandbox.additions,
+    LANDING_GEAR_BATCH_STATE: sandbox.batchState,
+    LANDING_GEAR_TRACKER_LOCK: sandbox.lock,
     // The derived SQLite index defaults to sitting beside the tracker it was
     // built from — pin it into the sandbox so a test run can never create one
     // next to the developer's real data (#3506).
-    CAREER_OPS_TRACKER_DB: sandbox.db,
+    LANDING_GEAR_TRACKER_DB: sandbox.db,
     // Pinned for the same reason as the tracker: keep the fixture isolated from
     // the real reports/ dir. See makeSandbox.
-    CAREER_OPS_REPORTS: sandbox.reports,
+    LANDING_GEAR_REPORTS: sandbox.reports,
   };
   return new Promise((resolvePromise) => {
     const child = spawn(NODE, [join(ROOT, script), ...args], { cwd: ROOT, env, stdio: ['ignore', 'pipe', 'pipe'] });
@@ -194,8 +194,8 @@ function makeSandbox(trackerContent, additions = {}) {
     dir,
     tracker,
     additions: additionsDir,
-    // Not a valid CAREER_OPS_TRACKER_LOCK (those must carry the
-    // career-ops-merge-tracker- prefix), so a spawned script falls back to the
+    // Not a valid LANDING_GEAR_TRACKER_LOCK (those must carry the
+    // landing-gear-merge-tracker- prefix), so a spawned script falls back to the
     // lock derived from the sandbox tracker's own path. In-process callers take
     // it as given. Either way it is unique to this sandbox.
     lock: join(dir, 'lock'),
@@ -454,7 +454,7 @@ describe('contract: an unknown extra column', () => {
 });
 
 // ── Test 8: web read path resolves headers via the SHARED alias table ───────
-// web/src/lib/tracker-table.mjs (behind readApplications() in career-ops.ts)
+// web/src/lib/tracker-table.mjs (behind readApplications() in landing-gear.ts)
 // loads tracker-aliases.json — the same file tracker-parse.mjs exports as
 // HEADER_ALIASES — instead of mirroring it. Passing ROOT here exercises the
 // REAL alias file, so an alias added/renamed there is either honored by the
@@ -1565,7 +1565,7 @@ test('tracker.mjs export: an indented table keeps every cell in its own column',
   assert.deepEqual([cells[4], cells[5], cells[7], cells[10]], ['Berlin', 'Engineer', 'Applied', 'note'], exported.stdout);
 });
 
-// ── Test 25: a header career-ops cannot name is still preserved ─────────────
+// ── Test 25: a header landing-gear cannot name is still preserved ─────────────
 // isHeaderRow only fires when the alias table resolves the FULL schema, so a
 // Spanish header (puntuación/estado are unmapped) recorded no layout at all and
 // exported as the English default, exit 0 (PR #3794 review).

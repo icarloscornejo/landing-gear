@@ -14,7 +14,7 @@ import assert from "node:assert/strict";
 
 const { resolveCliId } = await import("../../src/lib/saved-cli.ts");
 
-const CONFIG_KEY = "career-ops:config";
+const CONFIG_KEY = "landing-gear:config";
 
 // Install fake localStorage + fetch and return the backing store so a test can
 // assert what got persisted.

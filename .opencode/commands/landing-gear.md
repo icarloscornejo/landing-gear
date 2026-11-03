@@ -1,8 +1,8 @@
 ---
-description: career-ops AI job search agent: evaluate offers, scan portals, track applications
+description: landing-gear AI job search agent: evaluate offers, scan portals, track applications
 ---
 
-# career-ops
+# landing-gear
 
 $ARGUMENTS
 

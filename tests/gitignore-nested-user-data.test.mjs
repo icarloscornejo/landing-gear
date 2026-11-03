@@ -23,7 +23,7 @@ function checkIgnored(root, file) {
 }
 
 function verifyIgnoreRules(label, contents) {
-  const root = mkdtempSync(join(tmpdir(), 'career-ops-gitignore-'));
+  const root = mkdtempSync(join(tmpdir(), 'landing-gear-gitignore-'));
   try {
     writeFileSync(join(root, '.gitignore'), contents);
     execFileSync('git', ['init', '--quiet', root]);

@@ -5,14 +5,14 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { ROOT, pass, fail } from './helpers.mjs';
-const root = mkdtempSync(join(tmpdir(), 'career-ops-artifact-root-'));
+const root = mkdtempSync(join(tmpdir(), 'landing-gear-artifact-root-'));
 const data = join(root, 'data-root'), cwd = join(root, 'caller'), explicit = join(root, 'explicit'), code = join(root, 'code');
 for (const dir of [data, cwd, code]) mkdirSync(dir);
 const args = ['--report', '42', '--company', 'Fictional', '--role', 'Engineer', '--init'];
 function check(label, fn) { try { fn(); pass(label); } catch (e) { fail(`${label}: ${e.message}`); process.exitCode = 1; } }
-const run = (script, env, extra = []) => spawnSync(process.execPath, [script, ...args, ...extra], { cwd, env: { ...process.env, CAREER_OPS_ROOT: '', CAREER_OPS_DATA_DIR: '', ...env }, encoding: 'utf8' });
+const run = (script, env, extra = []) => spawnSync(process.execPath, [script, ...args, ...extra], { cwd, env: { ...process.env, LANDING_GEAR_ROOT: '', LANDING_GEAR_DATA_DIR: '', ...env }, encoding: 'utf8' });
 try {
-  for (const variable of ['CAREER_OPS_ROOT', 'CAREER_OPS_DATA_DIR']) {
+  for (const variable of ['LANDING_GEAR_ROOT', 'LANDING_GEAR_DATA_DIR']) {
     const r = run(join(ROOT, 'application-artifacts.mjs'), { [variable]: data });
     check(variable + ' selects the default output directory', () => {
       assert.equal(r.status, 0, r.stderr);
@@ -20,7 +20,7 @@ try {
       assert.equal(existsSync(join(cwd, 'output')), false);
     });
   }
-  const override = run(join(ROOT, 'application-artifacts.mjs'), { CAREER_OPS_ROOT: data }, ['--root', explicit]);
+  const override = run(join(ROOT, 'application-artifacts.mjs'), { LANDING_GEAR_ROOT: data }, ['--root', explicit]);
   check('explicit CLI output root remains authoritative', () => {
     assert.equal(override.status, 0, override.stderr);
     assert.equal(JSON.parse(override.stdout).root, join(explicit, '042-fictional-engineer'));
@@ -29,7 +29,7 @@ try {
   cpSync(join(ROOT, 'application-artifacts.mjs'), join(code, 'application-artifacts.mjs'));
   cpSync(join(ROOT, 'path-resolver.mjs'), join(code, 'path-resolver.mjs'));
   cpSync(join(ROOT, 'lib'), join(code, 'lib'), { recursive: true });
-  writeFileSync(join(code, '.career-ops-data'), data);
+  writeFileSync(join(code, '.landing-gear-data'), data);
   const marker = run(join(code, 'application-artifacts.mjs'), {});
   check('the data marker controls defaults independently of cwd', () => {
     assert.equal(marker.status, 0, marker.stderr);

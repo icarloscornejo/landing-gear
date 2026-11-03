@@ -1,6 +1,6 @@
 /**
  * updater-check-release-channel.test.mjs — check() offers an update only when
- * a newer career-ops release is published, and a "no" covers one release.
+ * a newer landing-gear release is published, and a "no" covers one release.
  *
  * The regression: check() compared the install against main's tip as well as
  * VERSION (#2630), so every merge to a system file between releases prompted
@@ -48,7 +48,7 @@ const run = (argv, { release, local = '1.33.0', marker = null }) => {
 
 // ── 1. Same release as installed → up-to-date, and only the releases API is asked ──
 {
-  const { res, urls } = await run(['check'], { release: RELEASE('career-ops-v1.33.0') });
+  const { res, urls } = await run(['check'], { release: RELEASE('landing-gear-v1.33.0') });
   if (res.status === 'up-to-date' && res.remote === '1.33.0') pass('same release installed → up-to-date');
   else fail(`same release installed → ${JSON.stringify(res)}`);
   if (urls.length === 1 && urls[0].includes('/releases/latest')) pass("the default channel never reads main's VERSION or main's tip");
@@ -57,7 +57,7 @@ const run = (argv, { release, local = '1.33.0', marker = null }) => {
 
 // ── 2. Newer release → update-available, version-changed, with its notes ──
 {
-  const { res } = await run(['check'], { release: RELEASE('career-ops-v1.34.0', undefined, 'x'.repeat(900)) });
+  const { res } = await run(['check'], { release: RELEASE('landing-gear-v1.34.0', undefined, 'x'.repeat(900)) });
   if (res.status === 'update-available' && res.remote === '1.34.0' && res.local === '1.33.0' && res.reason === 'version-changed') {
     pass('a newer release → update-available (version-changed)');
   } else {
@@ -69,7 +69,7 @@ const run = (argv, { release, local = '1.33.0', marker = null }) => {
 
 // ── 3. An install ahead of the latest release (tracked main before) is not offered a downgrade ──
 {
-  const { res } = await run(['check'], { release: RELEASE('career-ops-v1.33.0'), local: '1.34.0' });
+  const { res } = await run(['check'], { release: RELEASE('landing-gear-v1.33.0'), local: '1.34.0' });
   if (res.status === 'up-to-date') pass('VERSION ahead of the latest release → up-to-date, no downgrade offered');
   else fail(`VERSION ahead → ${JSON.stringify(res)}`);
 }
@@ -77,10 +77,10 @@ const run = (argv, { release, local = '1.33.0', marker = null }) => {
 // ── 4. A "no" covers that release, not the next one ──
 {
   const marker = JSON.stringify({ version: '1.34.0', at: '2026-09-30T13:00:00Z' });
-  const same = (await run(['check'], { release: RELEASE('career-ops-v1.34.0'), marker })).res;
+  const same = (await run(['check'], { release: RELEASE('landing-gear-v1.34.0'), marker })).res;
   if (same.status === 'dismissed') pass('dismissed v1.34.0 → v1.34.0 stays quiet');
   else fail(`dismissed v1.34.0, offered v1.34.0 → ${JSON.stringify(same)}`);
-  const newer = (await run(['check'], { release: RELEASE('career-ops-v1.35.0'), marker })).res;
+  const newer = (await run(['check'], { release: RELEASE('landing-gear-v1.35.0'), marker })).res;
   if (newer.status === 'update-available' && newer.remote === '1.35.0') pass('dismissed v1.34.0 → v1.35.0 asks again');
   else fail(`dismissed v1.34.0, offered v1.35.0 → ${JSON.stringify(newer)}`);
 }
@@ -88,13 +88,13 @@ const run = (argv, { release, local = '1.33.0', marker = null }) => {
 // ── 5. A legacy marker (bare timestamp) covers what was published before it ──
 {
   const marker = '2026-09-20T10:00:00.000Z';
-  const before = (await run(['check'], { release: RELEASE('career-ops-v1.34.0', '2026-09-16T13:58:00Z'), marker })).res;
+  const before = (await run(['check'], { release: RELEASE('landing-gear-v1.34.0', '2026-09-16T13:58:00Z'), marker })).res;
   if (before.status === 'dismissed') pass('legacy marker → a release published before it stays quiet');
   else fail(`legacy marker, release published before → ${JSON.stringify(before)}`);
-  const after = (await run(['check'], { release: RELEASE('career-ops-v1.34.0', '2026-09-30T12:00:00Z'), marker })).res;
+  const after = (await run(['check'], { release: RELEASE('landing-gear-v1.34.0', '2026-09-30T12:00:00Z'), marker })).res;
   if (after.status === 'update-available') pass('legacy marker → a release published after it asks again (no longer silent forever)');
   else fail(`legacy marker, release published after → ${JSON.stringify(after)}`);
-  const unplaceable = (await run(['check'], { release: RELEASE('career-ops-v1.34.0'), marker: 'ts' })).res;
+  const unplaceable = (await run(['check'], { release: RELEASE('landing-gear-v1.34.0'), marker: 'ts' })).res;
   if (unplaceable.status === 'dismissed') pass('a "no" we cannot date keeps covering');
   else fail(`unparseable marker → ${JSON.stringify(unplaceable)}`);
 }
@@ -102,7 +102,7 @@ const run = (argv, { release, local = '1.33.0', marker = null }) => {
 // ── 6. --force ignores the marker ──
 {
   const marker = JSON.stringify({ version: '1.34.0', at: '2026-09-30T13:00:00Z' });
-  const { res } = await run(['check', '--force'], { release: RELEASE('career-ops-v1.34.0'), marker });
+  const { res } = await run(['check', '--force'], { release: RELEASE('landing-gear-v1.34.0'), marker });
   if (res.status === 'update-available') pass('check --force shows a dismissed release');
   else fail(`check --force → ${JSON.stringify(res)}`);
 }
@@ -113,7 +113,7 @@ const run = (argv, { release, local = '1.33.0', marker = null }) => {
     [null, 'offline'],
     ['not json', 'no-remote-version'],
     [RELEASE('web-v0.12.0'), 'no-remote-version'],
-    [RELEASE('career-ops-vpreview-v1.34.0'), 'no-remote-version'],
+    [RELEASE('landing-gear-vpreview-v1.34.0'), 'no-remote-version'],
     [JSON.stringify({}), 'no-remote-version'],
   ];
   for (const [answer, expected] of cases) {
@@ -169,7 +169,7 @@ const run = (argv, { release, local = '1.33.0', marker = null }) => {
     if (written.version === '1.34.0' && written.at === '2026-09-30T13:00:00.000Z' && asked === 0) pass('dismiss --version writes that release, without asking the network');
     else fail(`dismiss --version wrote ${JSON.stringify(written)} (network asked ${asked}×)`);
 
-    await quietly(() => dismiss(['dismiss'], { root, curlGet: async (url) => url.includes('/releases/latest') ? RELEASE('career-ops-v1.35.0') : null }));
+    await quietly(() => dismiss(['dismiss'], { root, curlGet: async (url) => url.includes('/releases/latest') ? RELEASE('landing-gear-v1.35.0') : null }));
     const latest = JSON.parse(readFileSync(join(root, '.update-dismissed'), 'utf-8'));
     if (latest.version === '1.35.0') pass('dismiss without --version records the latest release');
     else fail(`dismiss without --version wrote ${JSON.stringify(latest)}`);

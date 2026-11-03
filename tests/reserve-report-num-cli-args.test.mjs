@@ -22,9 +22,9 @@ function runIn(dir, args) {
     timeout: 15000,
     env: {
       ...process.env,
-      CAREER_OPS_REPORTS_DIR: join(dir, 'reports'),
-      CAREER_OPS_TRACKER: join(dir, 'applications.md'),
-      CAREER_OPS_BATCH_STATE: join(dir, 'batch-state.tsv'),
+      LANDING_GEAR_REPORTS_DIR: join(dir, 'reports'),
+      LANDING_GEAR_TRACKER: join(dir, 'applications.md'),
+      LANDING_GEAR_BATCH_STATE: join(dir, 'batch-state.tsv'),
     },
   });
 }

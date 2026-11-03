@@ -19,13 +19,13 @@ import { existsSync, readFileSync } from 'fs';
 import { loadYaml } from '../lib/yaml-document.mjs';
 import { getProfilePath } from '../path-resolver.mjs';
 
-// Matches the CAREER_OPS_PROFILE override already honored by scan.mjs,
+// Matches the LANDING_GEAR_PROFILE override already honored by scan.mjs,
 // cv-templates.mjs, followup-cadence.mjs, plugins/_engine.mjs, and
 // test-all.mjs — without this, a user with that env var set would get
 // silently different fallback behavior here than everywhere else.
 // Read at call time, not at import: a module-level constant froze whatever
 // the variable held when the first provider loaded, so a test could not
-// isolate the fallback from a developer's own CAREER_OPS_PROFILE.
+// isolate the fallback from a developer's own LANDING_GEAR_PROFILE.
 function defaultProfilePath() {
   return getProfilePath();
 }

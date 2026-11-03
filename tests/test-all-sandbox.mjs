@@ -80,13 +80,13 @@ export function createRunnerSandbox(prefix) {
       writeFileSync(at, body.join('\n') + '\n', 'utf-8');
     },
 
-    /** Run the sandboxed runner. CAREER_OPS_TEST_JOBS is blank unless a case sets it. */
+    /** Run the sandboxed runner. LANDING_GEAR_TEST_JOBS is blank unless a case sets it. */
     runner(args, env = {}) {
       const r = spawnSync(NODE, [join(sandbox, 'test-all.mjs'), ...args], {
         cwd: sandbox,
         encoding: 'utf-8',
         timeout: 120_000,
-        env: { ...process.env, CAREER_OPS_TEST_JOBS: '', ...env },
+        env: { ...process.env, LANDING_GEAR_TEST_JOBS: '', ...env },
       });
       // The runner names a suite by its path relative to the repo, in the
       // platform's own spelling: `tests\order\a.test.mjs` on Windows. The

@@ -26,7 +26,7 @@ const EXIT_CALL = 'process.' + 'exit(1)';
 const SUMMARY_CALL = 'fin' + 'ish()';
 const RUNNER_IMPORT = "import { test } from 'node:" + "test';";
 
-const { sandbox, copied, suite, runner, remove } = createRunnerSandbox('career-ops-jobs-test-');
+const { sandbox, copied, suite, runner, remove } = createRunnerSandbox('landing-gear-jobs-test-');
 
 const check = (name, ok, detail) => (ok ? pass(name) : fail(`${name}${detail ? ` — ${detail}` : ''}`));
 
@@ -60,8 +60,8 @@ try {
 
   // ── how N is chosen ───────────────────────────────────────────────────────
   const atATime = (r) => (r.timing.match(/(\d+) at a time/) ?? [])[1] ?? null;
-  check('CAREER_OPS_TEST_JOBS sets N', atATime(runner(['--only', 'order/'], { CAREER_OPS_TEST_JOBS: '3' })) === '3');
-  check('--jobs beats CAREER_OPS_TEST_JOBS', atATime(runner(['--only', 'order/', '--jobs', '2'], { CAREER_OPS_TEST_JOBS: '3' })) === '2');
+  check('LANDING_GEAR_TEST_JOBS sets N', atATime(runner(['--only', 'order/'], { LANDING_GEAR_TEST_JOBS: '3' })) === '3');
+  check('--jobs beats LANDING_GEAR_TEST_JOBS', atATime(runner(['--only', 'order/', '--jobs', '2'], { LANDING_GEAR_TEST_JOBS: '3' })) === '2');
   check('--jobs=N is read like --jobs N', atATime(runner(['--only', 'order/', '--jobs=2'])) === '2');
   check('N is never more than the number of suites', atATime(runner(['--only', 'order/', '--jobs', '64'])) === '5');
   {
@@ -75,8 +75,8 @@ try {
     ['--jobs abc', ['--jobs', 'abc'], {}],
     ['--jobs 0', ['--jobs', '0'], {}],
     ['--jobs with no value', ['--jobs'], {}],
-    ['CAREER_OPS_TEST_JOBS=0', [], { CAREER_OPS_TEST_JOBS: '0' }],
-    ['CAREER_OPS_TEST_JOBS=many', [], { CAREER_OPS_TEST_JOBS: 'many' }],
+    ['LANDING_GEAR_TEST_JOBS=0', [], { LANDING_GEAR_TEST_JOBS: '0' }],
+    ['LANDING_GEAR_TEST_JOBS=many', [], { LANDING_GEAR_TEST_JOBS: 'many' }],
   ]) {
     const r = runner(['--only', 'order/', ...args], env);
     check(`${what} is a usage error, not a silent default`,
@@ -89,10 +89,10 @@ try {
   }
 
   // ── what a suite sees from inside a child ─────────────────────────────────
-  suite('env/a-env.test.mjs', [helpers(1), "pass(`a: jobs env is [${process.env.CAREER_OPS_TEST_JOBS}], quick is ${QUICK}`);"]);
+  suite('env/a-env.test.mjs', [helpers(1), "pass(`a: jobs env is [${process.env.LANDING_GEAR_TEST_JOBS}], quick is ${QUICK}`);"]);
   suite('env/b-other.test.mjs', [helpers(1), "pass('b: only');"]);
   for (const jobs of ['1', '2']) {
-    const r = runner(['--quick', '--only', 'env/', '--jobs', jobs], { CAREER_OPS_TEST_JOBS: '7' });
+    const r = runner(['--quick', '--only', 'env/', '--jobs', jobs], { LANDING_GEAR_TEST_JOBS: '7' });
     // A suite that starts a test-all of its own must get a serial one, or N
     // workers each fan out N more; and --quick has to reach the suite, since
     // helpers reads it from the command line.

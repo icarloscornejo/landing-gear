@@ -481,7 +481,7 @@ const ATS_PROVIDERS = [
     // fresh UUID per run: any matching cookie and header are accepted (this
     // constant measured 2026-10-18), so it needs no pre-request. Without the
     // pair the endpoint answers 403, and a GET 405.
-    headers: { 'content-type': 'application/json', cookie: 'XSRF-TOKEN=career-ops', 'x-xsrf-token': 'career-ops' },
+    headers: { 'content-type': 'application/json', cookie: 'XSRF-TOKEN=landing-gear', 'x-xsrf-token': 'landing-gear' },
     body: ({ id }) => JSON.stringify({ id: Number(id), channel: 'group_official_site' }),
     api404Authoritative: false, // a closed posting has its own answer, a 200
     throttleMs: 1_000,

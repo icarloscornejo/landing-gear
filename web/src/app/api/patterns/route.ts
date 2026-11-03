@@ -1,6 +1,6 @@
 import { execFile } from "node:child_process";
 import fs from "node:fs";
-import { careerOpsRoot, rootScript } from "@/lib/career-ops";
+import { landingGearRoot, rootScript } from "@/lib/landing-gear";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,7 +27,7 @@ export async function GET() {
   // unavailable — the user would see an empty box instead of "4/5 applications
   // sent". A crash still yields no parseable JSON and falls through below.
   const stdout = await new Promise<string>((resolve) => {
-    execFile("node", [script], { cwd: careerOpsRoot(), timeout: 30_000, maxBuffer: 8 << 20 }, (_err, out) =>
+    execFile("node", [script], { cwd: landingGearRoot(), timeout: 30_000, maxBuffer: 8 << 20 }, (_err, out) =>
       resolve(out || ""),
     );
   });

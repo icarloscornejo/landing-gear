@@ -28,7 +28,7 @@ import { join, basename, dirname, resolve, sep } from 'path';
 import { fileURLToPath } from 'url';
 import { execFileSync } from 'child_process';
 import { normalizeReportLink as normalizeLink } from './tracker-links.mjs';
-import { getCareerOpsRoot } from './path-resolver.mjs';
+import { getLandingGearRoot } from './path-resolver.mjs';
 import { roleFuzzyMatch } from './role-matcher.mjs';
 import { parsePdfIndex, livePdfIndex, normNum } from './find.mjs';
 import { LEGACY_COLMAP, TSV_REQUIRED_FIELDS, detectColumns, isHeaderRow, resolveScoreStatus, looksLikeTsvHeaderRow, resolveTsvColumns, looksLikeScoreCell, parseScore, normalizeVia, normalizeTextKey, SEPARATOR_ROW_RE, extractReqNumber, extractCellUrl, parseMarkdownLinks, firstLinkTarget, unwrapReportUrlToken } from './tracker-parse.mjs';
@@ -57,8 +57,8 @@ Options:
 const MERGE_TRACKER_KNOWN_FLAGS = ['--dry-run', '--verify', '--migrate', '--migrate-via', '--migrate-urls', '--backfill-urls', '--help', '-h'];
 
 // Executable hooks live beside this script even when user data is redirected
-// through CAREER_OPS_ROOT / CAREER_OPS_DATA_DIR / .career-ops-data.
-const CAREER_OPS_CODE_ROOT = dirname(fileURLToPath(import.meta.url));
+// through LANDING_GEAR_ROOT / LANDING_GEAR_DATA_DIR / .landing-gear-data.
+const LANDING_GEAR_CODE_ROOT = dirname(fileURLToPath(import.meta.url));
 
 // Cross-check against batch-state.tsv (found 2026-07-30): a worker can write
 // a well-formed tracker TSV even when its own JSON result said "failed" --
@@ -95,7 +95,7 @@ function loadFailedReportNumbers(path) {
 /**
  * Pause the async merge flow for a fixed number of milliseconds.
  *
- * Used by the regression test hook (`CAREER_OPS_MERGE_HOLD_MS`), which
+ * Used by the regression test hook (`LANDING_GEAR_MERGE_HOLD_MS`), which
  * deliberately holds the first merge after it reads `applications.md` so a
  * second merge can try to enter the same critical section. (The lock retry
  * loop's own sleep lives in tracker-utils.mjs with the lock.)
@@ -364,7 +364,7 @@ export async function mergeTracker(options = {}) {
   const REPORTS_ROOT = resolveWorkspaceRoot(APPS_FILE);
   const PDF_INDEX_FILE = options.pdfIndexFile ?? join(REPORTS_ROOT, 'data', 'pdf-index.tsv');
   const CHILD_ENV = options.childEnv
-    ?? { ...process.env, CAREER_OPS_TRACKER: APPS_FILE, CAREER_OPS_PDF_INDEX: PDF_INDEX_FILE };
+    ?? { ...process.env, LANDING_GEAR_TRACKER: APPS_FILE, LANDING_GEAR_PDF_INDEX: PDF_INDEX_FILE };
 
   /**
    * Normalize report links before writing them into the tracker file.
@@ -759,7 +759,7 @@ export async function mergeTracker(options = {}) {
 
   // Total cell count of the tracker's ACTUAL header row, set once the table is
   // read. Writes are driven by this width rather than by a hardcoded column list
-  // so a tracker carrying columns career-ops has no field for (Apply Link,
+  // so a tracker carrying columns landing-gear has no field for (Apply Link,
   // Follow-up, or anything else a user adds) still round-trips: the row keeps the
   // header's shape and the unknown cells are filled with the tracker's own "no
   // data" marker instead of being dropped. Null until detected; falls back to the
@@ -837,8 +837,8 @@ export async function mergeTracker(options = {}) {
   }
 
   // Build a tracker row string matching the detected layout. Every field
-  // career-ops knows about is placed at ITS OWN detected index, and any column
-  // the header declares but career-ops has no value for becomes '—'.
+  // landing-gear knows about is placed at ITS OWN detected index, and any column
+  // the header declares but landing-gear has no value for becomes '—'.
   //
   // The previous implementation appended a fixed tail (score, status, pdf,
   // report, notes, [url]) after the optional Via/Location columns. That silently
@@ -853,12 +853,12 @@ export async function mergeTracker(options = {}) {
     // the one right of the trailing pipe. Data cells live in between.
     const cells = new Array(Math.max(0, width - 2)).fill('—');
     // Rebuilding an EXISTING row (PDF sync, re-evaluation update, URL backfill):
-    // start from the row's current cells so values in columns career-ops has no
+    // start from the row's current cells so values in columns landing-gear has no
     // field for — a hand-entered Apply Link, a Follow-up date — survive the
     // rebuild. parseAppLine only carries the mapped fields, so without this the
     // '—' fill above would overwrite those user-owned cells on every update.
     // Copied verbatim (empty cells included); the put() calls below then
-    // overwrite only the fields career-ops owns. New rows pass no `raw` and keep
+    // overwrite only the fields landing-gear owns. New rows pass no `raw` and keep
     // the plain '—' fill.
     if (o.raw) {
       const prev = String(o.raw).split('|').map(s => s.trim());
@@ -1445,7 +1445,7 @@ export async function mergeTracker(options = {}) {
         }
         const parts = line.split('|').map(s => s.trim());
         // Only the URL cell's VALUE changes; every other cell is carried across
-        // verbatim, including columns career-ops has no field for. A row whose URL
+        // verbatim, including columns landing-gear has no field for. A row whose URL
         // cell needs no change is returned byte for byte, so this migration cannot
         // reflow a tracker it had nothing to do.
         if (parts.length <= colmap.url) return line;
@@ -1560,7 +1560,7 @@ export async function mergeTracker(options = {}) {
     if (HEADER_WIDTH != null && HEADER_WIDTH - 2 > Object.keys(COLMAP).length) {
       console.log(
         `🧭 Header has ${HEADER_WIDTH - 2} columns; ${HEADER_WIDTH - 2 - Object.keys(COLMAP).length} ` +
-        'not mapped to a career-ops field — those cells are written as "—".',
+        'not mapped to a landing-gear field — those cells are written as "—".',
       );
     }
     const existingApps = [];
@@ -2346,7 +2346,7 @@ export async function mergeTracker(options = {}) {
     if (VERIFY && !DRY_RUN) {
       console.log('\n--- Running verification ---');
       try {
-        execFileSync(process.execPath, [join(CAREER_OPS_CODE_ROOT, 'verify-pipeline.mjs')], { stdio: 'inherit', env: CHILD_ENV });
+        execFileSync(process.execPath, [join(LANDING_GEAR_CODE_ROOT, 'verify-pipeline.mjs')], { stdio: 'inherit', env: CHILD_ENV });
       } catch (e) {
         return 1;
       }
@@ -2380,9 +2380,9 @@ if (isMainModule(import.meta.url)) {
   const argv = process.argv.slice(2);
   validateFlags(argv, MERGE_TRACKER_KNOWN_FLAGS, MERGE_TRACKER_USAGE);
 
-  const DATA_ROOT = getCareerOpsRoot();
+  const DATA_ROOT = getLandingGearRoot();
   // Support both layouts: data/applications.md (boilerplate) and applications.md
-  // (original). CAREER_OPS_TRACKER overrides the path (used by tests and
+  // (original). LANDING_GEAR_TRACKER overrides the path (used by tests and
   // non-standard layouts). Resolution lives in tracker-utils.mjs so every tracker
   // writer agrees on the same canonical path (and therefore the same lock).
   const appsFile = resolveTrackerPath(DATA_ROOT);
@@ -2390,16 +2390,16 @@ if (isMainModule(import.meta.url)) {
     appsFile,
     dataRoot: DATA_ROOT,
     trackerLinkDirs: trackerLinkDirsFor(DATA_ROOT),
-    // CAREER_OPS_ADDITIONS overrides the additions dir (used by tests, mirrors CAREER_OPS_TRACKER).
-    additionsDir: process.env.CAREER_OPS_ADDITIONS || join(DATA_ROOT, 'batch/tracker-additions'),
-    // CAREER_OPS_BATCH_STATE overrides the batch-state.tsv path (used by tests).
-    batchStateFile: process.env.CAREER_OPS_BATCH_STATE || join(DATA_ROOT, 'batch/batch-state.tsv'),
+    // LANDING_GEAR_ADDITIONS overrides the additions dir (used by tests, mirrors LANDING_GEAR_TRACKER).
+    additionsDir: process.env.LANDING_GEAR_ADDITIONS || join(DATA_ROOT, 'batch/tracker-additions'),
+    // LANDING_GEAR_BATCH_STATE overrides the batch-state.tsv path (used by tests).
+    batchStateFile: process.env.LANDING_GEAR_BATCH_STATE || join(DATA_ROOT, 'batch/batch-state.tsv'),
     pdfIndexFile: resolvePdfIndexPath(appsFile),
     lockDir: trackerLockDirFor(appsFile),
     lock: {
-      timeoutMs: Number(process.env.CAREER_OPS_TRACKER_LOCK_TIMEOUT_MS) || 60_000,
-      retryMs: Number(process.env.CAREER_OPS_TRACKER_LOCK_RETRY_MS) || 75,
-      staleMs: Number(process.env.CAREER_OPS_TRACKER_LOCK_STALE_MS) || 10 * 60_000,
+      timeoutMs: Number(process.env.LANDING_GEAR_TRACKER_LOCK_TIMEOUT_MS) || 60_000,
+      retryMs: Number(process.env.LANDING_GEAR_TRACKER_LOCK_RETRY_MS) || 75,
+      staleMs: Number(process.env.LANDING_GEAR_TRACKER_LOCK_STALE_MS) || 10 * 60_000,
     },
     flags: {
       dryRun: argv.includes('--dry-run'),
@@ -2409,8 +2409,8 @@ if (isMainModule(import.meta.url)) {
       migrateUrls: argv.includes('--migrate-urls'),
       backfillUrls: argv.includes('--backfill-urls'),
     },
-    holdMs: Number(process.env.CAREER_OPS_MERGE_HOLD_MS) || 0,
-    readyIpc: process.env.CAREER_OPS_MERGE_READY_IPC === '1',
+    holdMs: Number(process.env.LANDING_GEAR_MERGE_HOLD_MS) || 0,
+    readyIpc: process.env.LANDING_GEAR_MERGE_READY_IPC === '1',
     // The --verify child inherits this process's env untouched, as it always
     // has: it resolves the same tracker from it, and a symlinked data/ keeps its
     // lexical workspace (#3169) instead of the canonical path an override would pin.

@@ -122,7 +122,7 @@ test('an ENOENT owner write is a lost race: the newer lock at the path is left a
 test('an EPERM owner write fails at once and leaves no ownerless lock behind', async (t) => {
   const dir = scratch(t, 'dir-lock-eperm-');
   const followups = join(dir, 'follow-ups.md');
-  const lockDir = join(dir, 'career-ops-followups-test.lock');
+  const lockDir = join(dir, 'landing-gear-followups-test.lock');
   const fault = interceptOwnerWrite(lockDir, (_realWrite, path) => { throw errno('EPERM', path); });
   t.after(() => fault.restore());
 
@@ -144,7 +144,7 @@ test('an EPERM owner write fails at once and leaves no ownerless lock behind', a
 // believe they hold the lock. Reading the stamp back is what notices.
 test('a stamp replaced right after it is written is not taken as ours', async (t) => {
   const dir = scratch(t, 'dir-lock-readback-');
-  const lockDir = join(dir, 'career-ops-merge-tracker-test.lock');
+  const lockDir = join(dir, 'landing-gear-merge-tracker-test.lock');
   const fault = interceptOwnerWrite(lockDir, (realWrite, path, data, options) => {
     realWrite(path, data, options); // our stamp lands...
     rmSync(lockDir, { recursive: true, force: true });
@@ -185,7 +185,7 @@ test('every wrapper stamps pid, token and started_at plus its own diagnostic fie
     assert.equal(existsSync(lockDir), false, `${label}: release removes the lock`);
   }
 
-  const followupsLock = join(dir, 'career-ops-followups-stamp.lock');
+  const followupsLock = join(dir, 'landing-gear-followups-stamp.lock');
   let stamp;
   await withFollowupsLock(join(dir, 'follow-ups.md'), () => {
     stamp = JSON.parse(readFileSync(join(followupsLock, 'owner.json'), 'utf-8'));
@@ -240,7 +240,7 @@ function failOwnerReads(lockDir, times) {
 // an orphan carrying its live pid that blocked every other writer.
 test('a stamp that is unreadable for a moment is re-read, not taken as lost', async (t) => {
   const dir = scratch(t, 'dir-lock-readback-eperm-');
-  const lockDir = join(dir, 'career-ops-merge-tracker-eperm.lock');
+  const lockDir = join(dir, 'landing-gear-merge-tracker-eperm.lock');
   const reads = failOwnerReads(lockDir, 2);
   t.after(() => reads.restore());
 
@@ -254,7 +254,7 @@ test('a stamp that is unreadable for a moment is re-read, not taken as lost', as
 
 test('a stamp that stays unreadable falls back to the directory we created', async (t) => {
   const dir = scratch(t, 'dir-lock-readback-stuck-');
-  const lockDir = join(dir, 'career-ops-merge-tracker-stuck.lock');
+  const lockDir = join(dir, 'landing-gear-merge-tracker-stuck.lock');
   const reads = failOwnerReads(lockDir, Infinity);
   t.after(() => reads.restore());
 
@@ -273,7 +273,7 @@ test('a stamp that stays unreadable falls back to the directory we created', asy
 // a stamp already in the directory means it is not ours.
 test('a directory replaced before our stamp write keeps its holder\'s stamp', async (t) => {
   const dir = scratch(t, 'dir-lock-replaced-');
-  const lockDir = join(dir, 'career-ops-merge-tracker-replaced.lock');
+  const lockDir = join(dir, 'landing-gear-merge-tracker-replaced.lock');
   const fault = interceptOwnerWrite(lockDir, (realWrite, path, data, options) => {
     rmSync(lockDir, { recursive: true, force: true });
     plantPeerLock(realWrite, lockDir); // the new holder has stamped already

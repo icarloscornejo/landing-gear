@@ -1,7 +1,7 @@
 /**
  * run-prompts.mjs — the prompts /api/run sends each worker kind (#2185).
  *
- * The web ORCHESTRATES the real career-ops engine — it does NOT reimplement it.
+ * The web ORCHESTRATES the real landing-gear engine — it does NOT reimplement it.
  * kind "evaluate" runs the REAL modes/oferta.md scoring and emits the report in
  * a <<report-md>> envelope; the backend persists it via the SAME scripts the
  * CLI uses (reserve-report-num.mjs → reports/ → batch/tracker-additions/ →
@@ -54,7 +54,7 @@ const SAFE_COMPANY_NAME = /^[\p{L}\p{N} .,&'()+/-]+$/u;
 /** ISO calendar date, the only form the dashboard's POSTED column parses. */
 const ISO_DATE_RE = /^20\d{2}-\d{2}-\d{2}$/;
 
-/** The CV template every run falls back to, relative to the career-ops root. */
+/** The CV template every run falls back to, relative to the landing-gear root. */
 export const BASE_CV_TEMPLATE = "templates/cv-template.html";
 
 /**
@@ -178,7 +178,7 @@ Target: ${input}`;
     // cv.md or data/applications.md. The agent now emits the CV inline and the
     // backend (a plain Node process, no CLI sandbox) writes and renders it, so
     // pdf mode runs with no write tool at all.
-    return `You are tailoring the user's ATS-optimized CV for application #${input}, headless, on their machine. Run the REAL career-ops "pdf" mode's CONTENT step: follow modes/pdf.md's TAILORING rules exactly (do not improvise your own scoring or format). Apply its CONTENT rules — keyword injection, ordering, the competency grid, project selection, and its never-invent-a-skill rule. Its steps that shell out (the jd-skill-gap.mjs check) and its build/save/render steps are NOT performed on web runs; the platform handles output itself.
+    return `You are tailoring the user's ATS-optimized CV for application #${input}, headless, on their machine. Run the REAL landing-gear "pdf" mode's CONTENT step: follow modes/pdf.md's TAILORING rules exactly (do not improvise your own scoring or format). Apply its CONTENT rules — keyword injection, ordering, the competency grid, project selection, and its never-invent-a-skill rule. Its steps that shell out (the jd-skill-gap.mjs check) and its build/save/render steps are NOT performed on web runs; the platform handles output itself.
 1. Read modes/pdf.md, cv.md, config/profile.yml, and the evaluation report at ${JSON.stringify(reportFile ?? `reports/${input}-*.md`)} (for the JD keywords + analysis).
 2. Tailor the CV per modes/pdf.md: inject the JD's keywords into the summary + first bullets, reorder experience by relevance, build the competency grid, pick the top 3–4 projects. NEVER invent skills — only reword REAL experience using the JD's vocabulary.
 3. Fill ${safeCvTemplate(cvTemplate)}'s {{...}} placeholders with the tailored content. Use that exact file: the platform already resolved it from cv.template through cv-templates.mjs, so do NOT run modes/pdf.md's own template-resolution step. ${CV_ENVELOPE_INSTRUCTION}
@@ -210,7 +210,7 @@ End with EXACTLY one final line: VERDICT: {5 if a complete draft was written, el
     const source = jdPath
       ? jdFileSource(jdPath)
       : "Use WebFetch to read the posting. If it does not return the posting itself (login wall, empty shell, expired ad, bot challenge), the verdict is SKIP.";
-    return `You are running the career-ops TRIAGE first pass, HEADLESS, on the user's own machine. Today is ${today}.
+    return `You are running the landing-gear TRIAGE first pass, HEADLESS, on the user's own machine. Today is ${today}.
 
 1. Read modes/triage.md and follow it exactly. triage_threshold is ${threshold}. ${HOUSE_RULES_SCOPE}
 2. ${source}
@@ -223,7 +223,7 @@ TRIAGE: {PASS|MARGINAL|FAIL|SKIP} | {Company} | {Role} | {score}/5 | {reason}
 Posting: ${input}`;
   }
   if (kind === "fix-portal") {
-    return `A company's job-portal ATS slug is BROKEN — career-ops can no longer scan it, so it silently disappears from every future scan. Repair it (headless, on the user's machine):
+    return `A company's job-portal ATS slug is BROKEN — landing-gear can no longer scan it, so it silently disappears from every future scan. Repair it (headless, on the user's machine):
 1. Run \`node verify-portals.mjs --add "${input}"\` — it probes Greenhouse/Ashby/Lever for the company's correct ATS slug and prints the suggested ats + slug.
 2. Open portals.yml, find the "${input}" entry under tracked_companies, and update its careers_url (and any api/slug field) to the suggested WORKING ATS URL. Change ONLY this one company; preserve all other YAML structure, comments and formatting exactly.
 3. Re-run \`node verify-portals.mjs\` and confirm "${input}" now shows ✅ live (not ❌).
@@ -257,7 +257,7 @@ End with EXACTLY one final line: VERDICT: {5 if now live, else 1}/5 — {what yo
   const postingSource = jdPath
     ? `${jdFileSource(jdPath)} Mark the report header "Verification: unconfirmed (LinkedIn post)" when the capture is a LinkedIn post, otherwise "Verification: unconfirmed (batch mode)". House rule 18: never mark it DEAD or Discarded because an employer page is missing.`
     : `Use WebFetch to read the posting (you are headless, Playwright is unavailable), and mark the report header "Verification: unconfirmed (batch mode)".`;
-  return `You are running the OFFICIAL career-ops job evaluation, HEADLESS, on the user's own machine. Today is ${today}. Run the REAL career-ops evaluation, do NOT improvise your own scoring. ${NARRATE_PROGRESS}
+  return `You are running the OFFICIAL landing-gear job evaluation, HEADLESS, on the user's own machine. Today is ${today}. Run the REAL landing-gear evaluation, do NOT improvise your own scoring. ${NARRATE_PROGRESS}
 
 1. Read ${resolvedLang.evalModeFile} and follow it EXACTLY: EVERY section its report template specifies, in its order, including the Machine Summary. Do not treat any list of sections in THIS prompt as the set to produce; that file is the only source of truth for which sections exist. Ground the fit in THIS person: read cv.md, config/profile.yml and modes/_profile.md. ${HOUSE_RULES_SCOPE} When the posting shows its own job/requisition id, add a header line "**Job ID:** {id}".
 

@@ -6,7 +6,7 @@
  *
  * Human-in-the-loop is the contract: this script never posts anything. The
  * only thing that leaves the machine is what the user submits from their own
- * GitHub account, after seeing every field. career-ops has no backend and no
+ * GitHub account, after seeing every field. landing-gear has no backend and no
  * telemetry; the public ledger is the repo itself (HIRED.md + the issues).
  *
  *   node hired-share.mjs --report 12                      # draft from tracker row 12
@@ -33,9 +33,9 @@ import { flagValue, hasFlag, validateFlags } from './lib/cli-flags.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
 import { parseTrackerRow, resolveColumns, isSeparatorRow, isHeaderRow } from './tracker-parse.mjs';
 import { resolveTrackerPath, resolveWorkspaceRoot, writeFileAtomic, acquireTrackerLock } from './tracker-utils.mjs';
-import { getCareerOpsRoot } from './path-resolver.mjs';
+import { getLandingGearRoot } from './path-resolver.mjs';
 
-const REPO_URL = 'https://github.com/career-ops-hq/career-ops';
+const REPO_URL = 'https://github.com/icarloscornejo/landing-gear';
 const TEMPLATE = 'i-got-hired.yml';
 const LEVELS = ['handle', 'role', 'count'];
 
@@ -207,10 +207,10 @@ async function main() {
   const bad = validateFlags(args, KNOWN_FLAGS, USAGE, { valueFlags: VALUE_FLAGS, requireOperand: true });
   if (bad) { process.exitCode = 1; return; }
 
-  // Default to the configured data root (CAREER_OPS_ROOT / CAREER_OPS_DATA_DIR /
-  // .career-ops-data marker), not process.cwd(): with the user layer outside the
+  // Default to the configured data root (LANDING_GEAR_ROOT / LANDING_GEAR_DATA_DIR /
+  // .landing-gear-data marker), not process.cwd(): with the user layer outside the
   // checkout, the cwd-derived root found no tracker and reported no hires.
-  const root = flagValue(args, '--root') || resolveWorkspaceRoot(resolveTrackerPath(getCareerOpsRoot()));
+  const root = flagValue(args, '--root') || resolveWorkspaceRoot(resolveTrackerPath(getLandingGearRoot()));
   const trackerPath = resolveTrackerPath(root);
   const tracker = existsSync(trackerPath) ? readFileSync(trackerPath, 'utf8') : '';
   const hires = hiredRows(tracker);

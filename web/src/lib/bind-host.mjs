@@ -8,7 +8,7 @@
 // bind half of it, and the bind is not the whole of it.
 //
 // Kept out of origin-guard.mjs, which is per-request decision logic pinned to
-// the edge runtime. Both read CAREER_OPS_WEB_ALLOWED_HOSTS through the same
+// the edge runtime. Both read LANDING_GEAR_WEB_ALLOWED_HOSTS through the same
 // parseAllowedHosts, so neither can widen on that variable without the other.
 //
 // That is the limit of the guarantee, and the two layers do diverge elsewhere:
@@ -153,7 +153,7 @@ function isPlausibleHost(host) {
  * otherwise have counted as a non-loopback host and opened the socket to the
  * whole network, which is the opposite of what someone typing `off` intends.
  *
- * @param {string|undefined} envValue  CAREER_OPS_WEB_ALLOWED_HOSTS
+ * @param {string|undefined} envValue  LANDING_GEAR_WEB_ALLOWED_HOSTS
  * @returns {{ok: true, hosts: string[]} | {ok: false, error: string}}
  */
 export function validateAllowedHosts(envValue) {
@@ -163,7 +163,7 @@ export function validateAllowedHosts(envValue) {
       return {
         ok: false,
         error:
-          `CAREER_OPS_WEB_ALLOWED_HOSTS="${host}" is not a switch — it is the list of hosts allowed to\n` +
+          `LANDING_GEAR_WEB_ALLOWED_HOSTS="${host}" is not a switch — it is the list of hosts allowed to\n` +
           "reach the dashboard, and any name in it opens the socket beyond this machine.\n" +
           "Unset the variable to stay on loopback, or name the hosts that should reach it.",
       };
@@ -172,18 +172,18 @@ export function validateAllowedHosts(envValue) {
       return {
         ok: false,
         error:
-          `CAREER_OPS_WEB_ALLOWED_HOSTS="${host}" names every interface, which is a bind target and\n` +
+          `LANDING_GEAR_WEB_ALLOWED_HOSTS="${host}" names every interface, which is a bind target and\n` +
           "not a host any client is addressed by. Accepting it opens the socket while the request\n" +
           "guard still matches Host literally, so honest clients on your network get 403 and only a\n" +
           `client that spells "Host: ${host}" is let in.\n` +
-          'Name the hosts that should reach it, e.g. CAREER_OPS_WEB_ALLOWED_HOSTS="192.168.1.50".',
+          'Name the hosts that should reach it, e.g. LANDING_GEAR_WEB_ALLOWED_HOSTS="192.168.1.50".',
       };
     }
     if (isUnscopedLinkLocalV6(host)) {
       return {
         ok: false,
         error:
-          `CAREER_OPS_WEB_ALLOWED_HOSTS contains the link-local address "${host}", which is ambiguous\n` +
+          `LANDING_GEAR_WEB_ALLOWED_HOSTS contains the link-local address "${host}", which is ambiguous\n` +
           "across interfaces and cannot be bound without a zone index. Use a routable address or a\n" +
           "hostname instead.",
       };
@@ -192,7 +192,7 @@ export function validateAllowedHosts(envValue) {
       return {
         ok: false,
         error:
-          `CAREER_OPS_WEB_ALLOWED_HOSTS contains "${host}", which is not a unicast address and\n` +
+          `LANDING_GEAR_WEB_ALLOWED_HOSTS contains "${host}", which is not a unicast address and\n` +
           "cannot identify one interface for a TCP listener. Use a unicast address or a hostname\n" +
           "instead.",
       };
@@ -201,17 +201,17 @@ export function validateAllowedHosts(envValue) {
       return {
         ok: false,
         error:
-          "CAREER_OPS_WEB_ALLOWED_HOSTS takes hosts, not URLs — a scheme is cut off at the colon,\n" +
+          "LANDING_GEAR_WEB_ALLOWED_HOSTS takes hosts, not URLs — a scheme is cut off at the colon,\n" +
           "leaving the name of the scheme itself as the allowed host.\n" +
-          'Write the host alone, e.g. CAREER_OPS_WEB_ALLOWED_HOSTS="192.168.1.50".',
+          'Write the host alone, e.g. LANDING_GEAR_WEB_ALLOWED_HOSTS="192.168.1.50".',
       };
     }
     if (!isPlausibleHost(host)) {
       return {
         ok: false,
         error:
-          `CAREER_OPS_WEB_ALLOWED_HOSTS contains "${host}", which is not a hostname or IP address.\n` +
-          "Separate entries with commas or spaces, e.g. CAREER_OPS_WEB_ALLOWED_HOSTS=\"192.168.1.50, nas.local\".",
+          `LANDING_GEAR_WEB_ALLOWED_HOSTS contains "${host}", which is not a hostname or IP address.\n` +
+          "Separate entries with commas or spaces, e.g. LANDING_GEAR_WEB_ALLOWED_HOSTS=\"192.168.1.50, nas.local\".",
       };
     }
   }
@@ -240,7 +240,7 @@ export function validateAllowedHosts(envValue) {
  *
  * Assumes validateAllowedHosts has already accepted the value.
  *
- * @param {string|undefined} envValue  CAREER_OPS_WEB_ALLOWED_HOSTS
+ * @param {string|undefined} envValue  LANDING_GEAR_WEB_ALLOWED_HOSTS
  * @returns {string}
  */
 export function resolveBindHost(envValue) {
@@ -303,7 +303,7 @@ export function hasHostFlag(extra) {
  * @param {object} input
  * @param {string|undefined} input.command   argv[2] — a NEXT_COMMANDS entry
  * @param {string[]} [input.extra]           remaining argv, forwarded verbatim
- * @param {string|undefined} input.envValue  CAREER_OPS_WEB_ALLOWED_HOSTS
+ * @param {string|undefined} input.envValue  LANDING_GEAR_WEB_ALLOWED_HOSTS
  * @returns {{ok: true, argv: string[], bindHost: string, hostFlagSupplied: boolean,
  *            widened: boolean, allowedHosts: string[], grantsNoNewHost: boolean,
  *            loopbackUnreachable: boolean}
@@ -342,7 +342,7 @@ export function planNextRun({ command, extra = [], envValue }) {
     // identify themselves truthfully and admits any that spell `Host: localhost`.
     // Only reachable via a caller's own -H — the env var cannot widen the bind
     // without naming such a host — and asked of the hosts rather than of the
-    // list's length, because CAREER_OPS_WEB_ALLOWED_HOSTS=localhost is a
+    // list's length, because LANDING_GEAR_WEB_ALLOWED_HOSTS=localhost is a
     // non-empty list that grants exactly nothing.
     grantsNoNewHost: !allowedHosts.some((host) => !isLoopbackHost(host)),
     // A single named address carries the whole socket, so http://localhost:PORT

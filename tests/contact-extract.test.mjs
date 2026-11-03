@@ -19,7 +19,7 @@
  *      exit 0), --type validation, interactive y/n confirm vs --yes,
  *      missing-file / unknown-flag / --help exits.
  *
- * Provisions a throwaway data root via CAREER_OPS_ROOT and a temp dir; never
+ * Provisions a throwaway data root via LANDING_GEAR_ROOT and a temp dir; never
  * touches the repo's real
  * data/applications.md or data/contacts.tsv.
  */
@@ -46,7 +46,7 @@ function tmp(prefix) {
 }
 
 // process.env with path overrides stripped out for isolated data-root tests.
-const { CAREER_OPS_TRACKER: _t, CAREER_OPS_ROOT: _r, ...cleanEnv } = process.env;
+const { LANDING_GEAR_TRACKER: _t, LANDING_GEAR_ROOT: _r, ...cleanEnv } = process.env;
 
 function setupWorkspace() {
   const dir = tmp('contact-extract-');
@@ -87,7 +87,7 @@ function run(trackerFile, contactsFile, args, input) {
   try {
     const stdout = execFileSync(NODE, [CLI, ...args], {
       cwd: ROOT,
-      env: { ...cleanEnv, CAREER_OPS_ROOT: dataRoot, CAREER_OPS_TRACKER: trackerFile },
+      env: { ...cleanEnv, LANDING_GEAR_ROOT: dataRoot, LANDING_GEAR_TRACKER: trackerFile },
       input,
       encoding: 'utf8',
       stdio: ['pipe', 'pipe', 'pipe'],
@@ -103,7 +103,7 @@ function runAsync(trackerFile, contactsFile, args) {
   return new Promise((resolve) => {
     const child = execFile(NODE, [CLI, ...args], {
       cwd: ROOT,
-      env: { ...cleanEnv, CAREER_OPS_ROOT: dataRoot, CAREER_OPS_TRACKER: trackerFile },
+      env: { ...cleanEnv, LANDING_GEAR_ROOT: dataRoot, LANDING_GEAR_TRACKER: trackerFile },
       encoding: 'utf8',
       timeout: 30_000,
     }, (error, stdout, stderr) => resolve({
@@ -429,7 +429,7 @@ console.log('12. CLI: interactive confirm — EOF on stdin declines rather than 
 }
 
 // ---------------------------------------------------------------------------
-console.log('13. CLI: tracker/follow-ups resolve through CAREER_OPS_ROOT, not the code root (#4363 review)');
+console.log('13. CLI: tracker/follow-ups resolve through LANDING_GEAR_ROOT, not the code root (#4363 review)');
 {
   const dataRoot = tmp('contact-extract-dataroot-');
   const dataDir = join(dataRoot, 'data');
@@ -441,14 +441,14 @@ console.log('13. CLI: tracker/follow-ups resolve through CAREER_OPS_ROOT, not th
   const emailFile = join(dataRoot, 'email.txt');
   writeFileSync(emailFile, 'Subject: Globex — Data Analyst: interview invitation\nFrom: Pat Smith <pat@globex.com>\n\nWe would like to invite you to interview for the Data Analyst role.\n');
 
-  // Deliberately CAREER_OPS_ROOT only — no CAREER_OPS_TRACKER — so the only
+  // Deliberately LANDING_GEAR_ROOT only — no LANDING_GEAR_TRACKER — so the only
   // way this can find applications.md and write contacts.tsv is by resolving
   // both through the data root rather than the script's own directory.
   let res;
   try {
     const stdout = execFileSync(NODE, [CLI, '--file', emailFile, '--yes'], {
       cwd: ROOT,
-      env: { ...cleanEnv, CAREER_OPS_ROOT: dataRoot },
+      env: { ...cleanEnv, LANDING_GEAR_ROOT: dataRoot },
       encoding: 'utf8',
       stdio: ['pipe', 'pipe', 'pipe'],
     });
@@ -457,8 +457,8 @@ console.log('13. CLI: tracker/follow-ups resolve through CAREER_OPS_ROOT, not th
     res = { status: e.status, stdout: e.stdout || '', stderr: e.stderr || '' };
   }
 
-  check('CAREER_OPS_ROOT-only run exits 0', res.status === 0, res.stderr);
-  check('CAREER_OPS_ROOT-only run auto-matches and writes contacts.tsv under the data root', existsSync(contactsFile), `expected ${contactsFile} to exist`);
+  check('LANDING_GEAR_ROOT-only run exits 0', res.status === 0, res.stderr);
+  check('LANDING_GEAR_ROOT-only run auto-matches and writes contacts.tsv under the data root', existsSync(contactsFile), `expected ${contactsFile} to exist`);
   if (existsSync(contactsFile)) {
     const content = readFileSync(contactsFile, 'utf8');
     check('row attached to the data-root tracker row (#7, Globex)', content.includes('Globex\trecruiter\t\t\tpat@globex.com\t\t7\t'), content);

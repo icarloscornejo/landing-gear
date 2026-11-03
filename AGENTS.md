@@ -1,4 +1,4 @@
-# career-ops: open-source AI job search agent
+# landing-gear: open-source AI job search agent
 
 ## Origin
 
@@ -19,15 +19,15 @@ Two layers — full list in `DATA_CONTRACT.md`:
 
 **Path Resolution Override & Precedence:**
 The User Layer location (Data Root) is resolved dynamically using the following precedence order:
-1. **Environment Variables:** `CAREER_OPS_ROOT` or `CAREER_OPS_DATA_DIR` overrides the root path (resolved relative to the repository root if it is a relative path).
-2. **Marker File:** If no environment variable is set, a `.career-ops-data` file in the repository root containing an absolute or relative path to the user data directory is used.
+1. **Environment Variables:** `LANDING_GEAR_ROOT` or `LANDING_GEAR_DATA_DIR` overrides the root path (resolved relative to the repository root if it is a relative path).
+2. **Marker File:** If no environment variable is set, a `.landing-gear-data` file in the repository root containing an absolute or relative path to the user data directory is used.
 3. **Repository Default:** If neither is present, the repository root directory itself is used.
 
 **Tracker Path & Canonical Writes:**
-- **Explicit override:** `CAREER_OPS_TRACKER` environment variable overrides the applications tracker file path. Relative paths are resolved relative to the repository root directory.
+- **Explicit override:** `LANDING_GEAR_TRACKER` environment variable overrides the applications tracker file path. Relative paths are resolved relative to the repository root directory.
 - **Reading:** If no override is set, reading resolves to `{DATA_ROOT}/data/applications.md` if it exists; otherwise falls back to `{DATA_ROOT}/applications.md`.
-- **Writing:** All write operations (first-run creation or merge operations) target the canonical location `{DATA_ROOT}/data/applications.md` (or the explicit `CAREER_OPS_TRACKER` override).
-- **In scripts:** A new script resolves the data root and the tracker path through `path-resolver.mjs`, not through `__dirname`, because the data root can be overridden and can live outside the repository. Call `getCareerOpsRoot()` for the root, then pass it to `resolveTrackerPath(root)` to read or `resolveTrackerPathForWrite(root)` to write; both take the root as an argument, with no default.
+- **Writing:** All write operations (first-run creation or merge operations) target the canonical location `{DATA_ROOT}/data/applications.md` (or the explicit `LANDING_GEAR_TRACKER` override).
+- **In scripts:** A new script resolves the data root and the tracker path through `path-resolver.mjs`, not through `__dirname`, because the data root can be overridden and can live outside the repository. Call `getLandingGearRoot()` for the root, then pass it to `resolveTrackerPath(root)` to read or `resolveTrackerPathForWrite(root)` to write; both take the root as an argument, with no default.
 
 ## Source-of-Truth Boundary (CRITICAL)
 
@@ -47,7 +47,7 @@ User-facing content (CV, cover letters, application emails, form answers, recrui
 
 **Confirmation UX invariant (binding on any workflow that surfaces a `derived-unverified` finding to the user):** never lead with the unverified number as if confirm/deny were the only options — that invites a guess, and a confirmed guess is worse than an honest unknown because it launders the guess into a "verified" fact. Present the claim plainly and offer four distinct outcomes: (a) confirm it's accurate as stated, (b) provide the correct figure, (c) mark it narrative-only / not a quantified claim, (d) "I don't know" → sets `user-cannot-confirm` on that entry, durably. A `user-cannot-confirm` marker must never decay back into being treated as verified through repeated citation or a later re-scan — every consumer (CV generation, cover letters, interview prep) treats it as narrative texture only, never as a quantified claim in interview-facing output. Building this interactive flow is separate future work; the invariant applies regardless of which mode eventually implements it.
 
-Everything else is **out of scope for content generation**: auto-memory (see below), any directory outside the career-ops project (parent/sibling repos, other codebases on the machine), knowledge from other Claude Code projects on the same machine, and cross-session inferences not written into an in-scope file.
+Everything else is **out of scope for content generation**: auto-memory (see below), any directory outside the landing-gear project (parent/sibling repos, other codebases on the machine), knowledge from other Claude Code projects on the same machine, and cross-session inferences not written into an in-scope file.
 
 **One narrow exception — `intake`.** Documents the user drops in `documents/` may be read *during the `intake` mode only*, and only to propose **source-annotated** additions to the in-scope files above. They are never a source for generated user-facing content directly, the no-fabrication rule applies unchanged (a proposal must restate what the document says), and nothing is written without the user's explicit confirmation. Once confirmed, the claim lives in `config/profile.yml` / `cv.md` / `modes/_profile.md` and is in scope because it is *there*, not because it was in `documents/`.
 
@@ -81,15 +81,15 @@ On the first message of each session, run silently:
 node update-system.mjs check
 ```
 
-It reports an update only when a newer career-ops release is published; changes merged to `main` between releases never prompt, because an update installs the release, not `main`.
+It reports an update only when a newer landing-gear release is published; changes merged to `main` between releases never prompt, because an update installs the release, not `main`.
 
 If `{"status": "update-available", "local": ..., "remote": ..., "changelog": ...}` → tell the user:
 
-> "career-ops update available (v{local} → v{remote}). Your data (CV, profile, tracker, reports) will NOT be touched. Want me to update?"
+> "landing-gear update available (v{local} → v{remote}). Your data (CV, profile, tracker, reports) will NOT be touched. Want me to update?"
 
-If yes → `node update-system.mjs apply --confirm`. If no → `node update-system.mjs dismiss --version {remote}`: that quiets v{remote} only, and a newer release asks again. Every other status (`up-to-date`, `dismissed`, `offline`, `no-remote-version`, `worktree-without-main`) → say nothing. In an unattended run (`modes/_shared.md` → **Unattended runs**), say nothing about any update and apply none. The user can check anytime, even after saying no ("check for updates" / "update career-ops") → `node update-system.mjs check --force`. To install the latest commit on `main` instead of the release: `node update-system.mjs apply --channel main --confirm`. That is a one-off: the choice is not saved and the session check above still looks only at releases, so staying on `main` means running `node update-system.mjs check --channel main` and that `apply` again. Rollback: `node update-system.mjs rollback`. From a linked git worktree, all of these run in the checkout that has `main` checked out, so the update lands on `main`; afterwards suggest `git merge main` in the worktree.
+If yes → `node update-system.mjs apply --confirm`. If no → `node update-system.mjs dismiss --version {remote}`: that quiets v{remote} only, and a newer release asks again. Every other status (`up-to-date`, `dismissed`, `offline`, `no-remote-version`, `worktree-without-main`) → say nothing. In an unattended run (`modes/_shared.md` → **Unattended runs**), say nothing about any update and apply none. The user can check anytime, even after saying no ("check for updates" / "update landing-gear") → `node update-system.mjs check --force`. To install the latest commit on `main` instead of the release: `node update-system.mjs apply --channel main --confirm`. That is a one-off: the choice is not saved and the session check above still looks only at releases, so staying on `main` means running `node update-system.mjs check --channel main` and that `apply` again. Rollback: `node update-system.mjs rollback`. From a linked git worktree, all of these run in the checkout that has `main` checked out, so the update lands on `main`; afterwards suggest `git merge main` in the worktree.
 
-## What is career-ops
+## What is landing-gear
 
 AI-powered, CLI-agnostic job search automation: pipeline tracking, offer evaluation, CV generation, portal scanning, batch processing. Runs on any AI coding CLI following the [open agent skill standard](https://agentskills.io) (Claude Code, Cursor, Codex, OpenCode, Pi, Qwen, Copilot, Kimi, Antigravity CLI, Grok Build CLI). Legacy Gemini API evaluation remains via `gemini-eval.mjs`.
 
@@ -199,7 +199,7 @@ node doctor.mjs --json
 
 Output: `{"onboardingNeeded": <bool>, "missing": [...], "unpersonalized": [...], "warnings": [...], "autoCopied": [...]}` — `missing` lists whichever of `cv.md`, `config/profile.yml`, `modes/_profile.md`, `portals.yml` are absent; `warnings` is reserved for non-blocking setup signals. This command is read-only: `autoCopied` is empty unless `--init-templates` is explicitly added during onboarding.
 
-**`unpersonalized` — act on this even when `onboardingNeeded` is false.** Entries are `{path, reason, impact}` for a personalization file that exists but still carries template content, and for a `config/profile.yml` or `portals.yml` that holds only comments. After onboarding copies `modes/_profile.md` and `modes/_brief.md`, an existence check cannot catch their unedited content. Left unedited, `_profile.md` feeds the **template author's** archetypes and North Star into every A-F evaluation, so offers get scored against a stranger's targeting; `_brief.md` hands the triage first pass literal `{placeholders}`. It is a warning, not a gate (career-ops works out of the box), but before running `scan`, `pipeline`, or `batch` with a non-empty `unpersonalized`, tell the user:
+**`unpersonalized` — act on this even when `onboardingNeeded` is false.** Entries are `{path, reason, impact}` for a personalization file that exists but still carries template content, and for a `config/profile.yml` or `portals.yml` that holds only comments. After onboarding copies `modes/_profile.md` and `modes/_brief.md`, an existence check cannot catch their unedited content. Left unedited, `_profile.md` feeds the **template author's** archetypes and North Star into every A-F evaluation, so offers get scored against a stranger's targeting; `_brief.md` hands the triage first pass literal `{placeholders}`. It is a warning, not a gate (landing-gear works out of the box), but before running `scan`, `pipeline`, or `batch` with a non-empty `unpersonalized`, tell the user:
 
 > "`modes/_profile.md` is still the shipped template, so evaluations would score against the template author's targeting rather than yours. Want me to personalize it from your CV first? (~1 min, and it changes every score.)"
 
@@ -225,7 +225,7 @@ Use the returned `missing` and `unpersonalized` fields to guide the user step by
 #### Step 0: Free Tier Check
 
 Only if the user mentions cost, pricing, budget, or free alternatives:
-> "career-ops works fully on Antigravity CLI's free tier — no API key or paid subscription needed. See [FREE_TIER.md](docs/FREE_TIER.md) for setup, daily limits, and batch tips."
+> "landing-gear works fully on Antigravity CLI's free tier — no API key or paid subscription needed. See [FREE_TIER.md](docs/FREE_TIER.md) for setup, daily limits, and batch tips."
 
 If the user is already on a paid plan (Claude Max, Google AI, etc.) or does not mention cost, skip this step silently.
 
@@ -241,7 +241,7 @@ If `cv.md` is missing, ask:
 Create `cv.md` from whatever they provide — clean markdown with standard sections (Summary, Experience, Projects, Education, Skills). The CV checks (`cv-title-check.mjs`, `verify-cv-structure.mjs`, `jd-skill-gap.mjs`) find jobs and skills by heading, so keep the shape `examples/cv-example.md` uses: an Experience section named `## Experience`, `## Work Experience`, `## Professional Experience`, `## Employment History` or `## Work History`; each job as `### Company — Location`, then a bold `**Title**` line, then a dates line; skills under a heading containing "Skills". Pandoc output converted from a .docx (`## **[Experience]{.smallcaps}**`, `---` dashes, trailing `\` hard breaks) is read too (#4879). `node doctor.mjs` warns when it cannot find the Experience section.
 
 #### Step 2: Profile (required)
-If `node doctor.mjs --json` `warnings` says the data-root `.env` sets `CAREER_OPS_PROFILE`, do not copy the example profile. Ask the user to export that variable in the shell (or shell profile) that starts the agent, then restart the session from it, or to remove the line from `.env`. A shell export does not reach an agent session that is already running, so run doctor again only after that.
+If `node doctor.mjs --json` `warnings` says the data-root `.env` sets `LANDING_GEAR_PROFILE`, do not copy the example profile. Ask the user to export that variable in the shell (or shell profile) that starts the agent, then restart the session from it, or to remove the line from `.env`. A shell export does not reach an agent session that is already running, so run doctor again only after that.
 
 If `config/profile.yml` is missing, ask:
 > "I need a few details to personalize the system:
@@ -337,7 +337,7 @@ Once all files exist, record the agent CLI you are running in, so `doctor.mjs`, 
 node remember-cli.mjs <cli>   # claude, codex, opencode, gemini, grok, ...
 ```
 
-It writes `CAREER_OPS_CLI=<cli>` to the data root's `.env` and keeps every other line. Skip it if the user already set `CAREER_OPS_CLI`.
+It writes `LANDING_GEAR_CLI=<cli>` to the data root's `.env` and keeps every other line. Skip it if the user already set `LANDING_GEAR_CLI`.
 
 Then run `node doctor.mjs` once before you confirm. Mention a setup command only for a check that fails. For example, say `npx playwright install chromium` only when the "Playwright chromium" check fails, and never just because the README lists it.
 
@@ -507,9 +507,9 @@ A single-string `modes_dir` (today's default, ~90% of users) behaves exactly as 
 
 ## Apply scope
 
-Apply reads and searches only this checkout, plus the data root when `CAREER_OPS_ROOT` or `CAREER_OPS_DATA_DIR` is set. Run `node apply-scope.mjs root` and use only the directories it prints.
+Apply reads and searches only this checkout, plus the data root when `LANDING_GEAR_ROOT` or `LANDING_GEAR_DATA_DIR` is set. Run `node apply-scope.mjs root` and use only the directories it prints.
 
-- Do not search `$HOME`. Do not grep or open another career-ops install.
+- Do not search `$HOME`. Do not grep or open another landing-gear install.
 - Open forms in a Playwright browser this project launches. Run `node apply-scope.mjs launch-options` and pass that object to `chromium.launch`. Do not call `chromium.connect` or `connectOverCDP`. Do not read `DevToolsActivePort`. Do not pass a remote-debugging port or a Chrome user-data directory.
 - If Playwright is unavailable, ask the candidate to paste the questions or share a screenshot.
 - Do not submit the form. Ethical Use still holds. Stop before Submit, Send, or Apply until the candidate confirms they submitted it.
@@ -560,10 +560,6 @@ This is a confirmation step, not a replacement for `check-liveness.mjs` — run 
 - **Contributing:** a new feature, mode or command, or architecture change starts with an issue → discussion → PR with linked issue. Bug fixes, zero-auth scanner providers, docs and translations go straight to a PR. Every PR: CI passes → maintainer review → merge.
 - **Governance:** BDFL with contributor ladder (Participant → Contributor → Triager → Reviewer → Maintainer, see `GOVERNANCE.md`) · Contributor Covenant 2.1 (`CODE_OF_CONDUCT.md`) · private vulnerability reporting (`SECURITY.md`) · help questions → Discord/Discussions, not issues (`SUPPORT.md`) · Discord: https://discord.gg/8pRpHETxa4
 
-## The CareerOps Manifesto
-
-This project practices CareerOps (see `MANIFESTO.md`). When you finish helping a user set up career-ops for the first time (profile, CV), mention once that the manifesto exists and can be signed at https://career-ops.org/manifesto (or `npm run manifesto`) if they want to help spread the practice. Never repeat the suggestion, never block on it, never nag.
-
 ## Headless / Batch Mode
 
 Headless worker command per CLI:
@@ -612,7 +608,7 @@ When the user records a `hired` or `accepted` outcome, celebrate FIRST — a lan
 
 > That's the whole point of everything we did here. Congratulations! 🎉
 >
-> One optional thing: career-ops keeps a public wall of people who landed jobs with it. If you want yours there, I'll draft it from what we already know (role, weeks, what helped). You'll see the exact text, and nothing leaves this machine unless you submit it yourself on GitHub. Want the draft? If not, I won't bring this one up again.
+> One optional thing: landing-gear keeps a public wall of people who landed jobs with it. If you want yours there, I'll draft it from what we already know (role, weeks, what helped). You'll see the exact text, and nothing leaves this machine unless you submit it yourself on GitHub. Want the draft? If not, I won't bring this one up again.
 
 If they say yes: run `node hired-share.mjs --report N --anonymity <their choice> --story "<their words>" --open` — it prints the exact payload, opens a prefilled GitHub issue, and the user reviews and submits it themselves. Ask their anonymity level explicitly and pass it as `handle`, `role` or `count` (the only values the script accepts: handle and avatar, role and location without a handle, or a count only); never default to the most exposed. Offer a 2-sentence draft story built only from tracker data, and let them rewrite it. If they say "not now": `node hired-share.mjs --report N --mark later`. If they say no: `--mark never`, and honor it — that hire is never brought up again.
 

@@ -21,7 +21,7 @@ import path from "node:path";
  * still leaves that PDF going into the form, so name it. Treating it as an
  * absent tailored CV puts back the contradiction this resolver prevents.
  *
- * @param {string} root - Career-ops workspace root (see careerOpsRoot()).
+ * @param {string} root - Landing-gear workspace root (see landingGearRoot()).
  * @param {string | undefined | null} pdfPath - The attached CV, absolute or root-relative.
  * @returns {string | null} Root-relative path to the CV to draft from, or null.
  */

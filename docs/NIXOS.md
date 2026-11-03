@@ -1,6 +1,6 @@
-# Running career-ops on NixOS
+# Running landing-gear on NixOS
 
-career-ops runs on NixOS through the repository's flake dev shell. Most of it is plain Node and works anywhere. The exception is Playwright, which renders PDFs and verifies postings: the browsers it downloads link against library paths that don't exist on NixOS, so they fail to start with errors such as `libglib-2.0.so.0: cannot open shared object file`.
+landing-gear runs on NixOS through the repository's flake dev shell. Most of it is plain Node and works anywhere. The exception is Playwright, which renders PDFs and verifies postings: the browsers it downloads link against library paths that don't exist on NixOS, so they fail to start with errors such as `libglib-2.0.so.0: cannot open shared object file`.
 
 The dev shell replaces those downloads with browsers that nixpkgs builds for NixOS.
 
@@ -49,7 +49,7 @@ direnv reload      # with direnv
 exit; nix develop  # without direnv
 ```
 
-The same applies after a career-ops update, because the updater runs `npm install`. The updater's own `playwright install chromium` step can't write to the Nix store either, so it pauses for up to two minutes and then reports `playwright install skipped`. Inside the dev shell, that message is expected.
+The same applies after a landing-gear update, because the updater runs `npm install`. The updater's own `playwright install chromium` step can't write to the Nix store either, so it pauses for up to two minutes and then reports `playwright install skipped`. Inside the dev shell, that message is expected.
 
 ## 3. Configure Playwright MCP
 

@@ -37,7 +37,7 @@ function run(answers, ...flags) {
   const file = join(dir, 'answers.json');
   writeFileSync(file, JSON.stringify(answers));
   const env = { ...process.env };
-  for (const k of ['CAREER_OPS_ROOT', 'CAREER_OPS_DATA_DIR', 'CAREER_OPS_PROFILE', 'CAREER_OPS_PORTALS']) delete env[k];
+  for (const k of ['LANDING_GEAR_ROOT', 'LANDING_GEAR_DATA_DIR', 'LANDING_GEAR_PROFILE', 'LANDING_GEAR_PORTALS']) delete env[k];
   const res = spawnSync(process.execPath, [SCRIPT, '--answers', file, '--target', dir, ...flags], { encoding: 'utf8', env });
   return { dir, res, read: (p) => readFileSync(join(dir, p), 'utf8') };
 }
@@ -60,7 +60,7 @@ test('writes the profile from answers and keeps the template comments', () => {
     assert.equal(p.location.city, 'Denver');
     assert.equal(p.location.timezone, 'America/Denver');
     assert.equal(p.spend_tier, 'economy');
-    assert.match(text, /^# Career-Ops Profile Configuration/);
+    assert.match(text, /^# Landing-Gear Profile Configuration/);
     assert.ok(p.narrative, 'sections the answers do not cover stay in place');
   } finally { cleanup(dir); }
 });
@@ -229,7 +229,7 @@ test('existing files are kept unless --force, and the summary says which', () =>
     assert.equal(res.status, 0, res.stderr);
     writeFileSync(join(dir, 'portals.yml'), 'title_filter:\n  positive: ["Mine"]\n');
     const env = { ...process.env };
-    delete env.CAREER_OPS_ROOT;
+    delete env.LANDING_GEAR_ROOT;
     const again = spawnSync(process.execPath, [SCRIPT, '--answers', join(dir, 'answers.json'), '--target', dir], { encoding: 'utf8', env });
     assert.equal(again.status, 0, again.stderr);
     const out = JSON.parse(again.stdout);
@@ -248,7 +248,7 @@ test('--force --only rewrites one file and leaves the other as the user edited i
     assert.equal(res.status, 0, res.stderr);
     writeFileSync(join(dir, 'config', 'profile.yml'), 'candidate:\n  full_name: "Edited By Hand"\n');
     const env = { ...process.env };
-    delete env.CAREER_OPS_ROOT;
+    delete env.LANDING_GEAR_ROOT;
     const again = spawnSync(process.execPath, [SCRIPT, '--answers', join(dir, 'answers.json'), '--target', dir, '--force', '--only', 'portals'], { encoding: 'utf8', env });
     assert.equal(again.status, 0, again.stderr);
     assert.deepEqual(JSON.parse(again.stdout), { written: ['portals.yml'], kept: ['config/profile.yml'] });
@@ -265,7 +265,7 @@ test('a flag with no value, or with another flag as its value, exits 1 and write
     const file = join(dir, 'answers.json');
     writeFileSync(file, JSON.stringify(ANSWERS));
     const env = { ...process.env };
-    delete env.CAREER_OPS_ROOT;
+    delete env.LANDING_GEAR_ROOT;
     for (const args of [['--answers', file, '--target', dir, '--only'], ['--answers', file, '--target', dir, '--only', '--force'], ['--answers', file, '--target'], ['--answers', '--force']]) {
       const res = spawnSync(process.execPath, [SCRIPT, ...args], { encoding: 'utf8', env });
       assert.equal(res.status, 1, args.join(' '));
@@ -280,7 +280,7 @@ test('a forced rewrite replaces the file whole and leaves no temp files behind',
   try {
     assert.equal(res.status, 0, res.stderr);
     const env = { ...process.env };
-    delete env.CAREER_OPS_ROOT;
+    delete env.LANDING_GEAR_ROOT;
     const again = spawnSync(process.execPath, [SCRIPT, '--answers', join(dir, 'answers.json'), '--target', dir, '--force'], { encoding: 'utf8', env });
     assert.equal(again.status, 0, again.stderr);
     assert.deepEqual(readdirSync(dir).filter((f) => f.endsWith('.tmp')), []);

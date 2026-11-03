@@ -21,7 +21,7 @@ import {
 } from '../session-activity.mjs';
 
 // Every test gets its own scratch dir passed as `activityDir`, so nothing here
-// ever touches the real repo's .career-ops-locks/.
+// ever touches the real repo's .landing-gear-locks/.
 function sandbox() {
   return mkdtempSync(join(tmpdir(), 'session-activity-'));
 }

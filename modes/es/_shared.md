@@ -1,10 +1,10 @@
-# Contexto compartido -- career-ops (Español)
+# Contexto compartido -- landing-gear (Español)
 
 <!-- ============================================================
      PERSONALIZACIÓN DE ESTE ARCHIVO
      ============================================================
      Este archivo contiene el contexto compartido para todos los modos
-     career-ops en versión española. Antes de usar career-ops, DEBES:
+     landing-gear en versión española. Antes de usar landing-gear, DEBES:
      1. Rellenar config/profile.yml con tus datos personales
      2. Crear cv.md en la raíz del proyecto (CV en Markdown)
      3. (Opcional) Crear article-digest.md con tus proof points

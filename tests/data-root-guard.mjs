@@ -81,7 +81,7 @@ export const CHECKOUT_KEY_PREFIX = '<checkout>/';
  * in one of them, with a reason if it is this one.
  */
 export const UNGUARDED_USER_PATHS = {
-  '.career-ops-web': "the dashboard's run logs and memory under the data root, written whenever it is in use: a suite run beside an open dashboard would report it every time",
+  '.landing-gear-web': "the dashboard's run logs and memory under the data root, written whenever it is in use: a suite run beside an open dashboard would report it every time",
 };
 
 /**
@@ -89,7 +89,7 @@ export const UNGUARDED_USER_PATHS = {
  * the data root, and a marker left pointing at a deleted temp directory sends
  * every script to an empty root.
  */
-export const MARKER_FILE = '.career-ops-data';
+export const MARKER_FILE = '.landing-gear-data';
 
 // Content, through any link: a file linked into the data root is still the
 // user's file, and what must not change is what it says.

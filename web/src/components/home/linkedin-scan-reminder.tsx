@@ -4,11 +4,11 @@ import { useState } from "react";
 import { CheckIcon, CopyIcon, Megaphone } from "lucide-react";
 import type { LinkedinScanState } from "@/lib/linkedin-scan";
 
-// Daily nudge for the LinkedIn hiring-posts scan (rule 18): the engineer pastes the
-// script into the DevTools console on linkedin.com. Once today's result file is in
+// Daily nudge for a console posts scan (LinkedIn, rule 18, or X): the engineer pastes the
+// script into the DevTools console on the site. Once today's result file is in
 // ~/Downloads it shrinks to a quiet bar, but the copy button always stays (the engineer,
 // 2026-10-29: re-runs and tests happen the same day).
-export function LinkedinScanReminder({ state }: { state: LinkedinScanState }) {
+export function LinkedinScanReminder({ state, name = "LinkedIn", site = "linkedin.com" }: { state: LinkedinScanState; name?: string; site?: string }) {
   const [copied, setCopied] = useState<"ok" | "failed" | null>(null);
 
   async function copyScript() {
@@ -40,7 +40,7 @@ export function LinkedinScanReminder({ state }: { state: LinkedinScanState }) {
     return (
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border px-5 py-2.5">
         <p className="flex items-center gap-2 text-xs text-muted">
-          <Megaphone className="size-3.5" /> LinkedIn posts scan ran today. Copy the script again to re-run it.
+          <Megaphone className="size-3.5" /> {name} posts scan ran today. Copy the script again to re-run it.
         </p>
         {copyButton}
       </div>
@@ -51,10 +51,10 @@ export function LinkedinScanReminder({ state }: { state: LinkedinScanState }) {
     <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-brand/40 bg-brand-soft/40 px-5 py-4">
       <div className="min-w-0">
         <p className="flex items-center gap-2 text-sm font-medium text-foreground">
-          <Megaphone className="size-4 text-brand" /> LinkedIn posts scan not run today
+          <Megaphone className="size-4 text-brand" /> {name} posts scan not run today
         </p>
         <p className="mt-0.5 text-xs text-muted">
-          Copy the script, open linkedin.com, paste it in the console (Cmd+Opt+J). When it downloads its file, tell Claude in chat to process it: the good posts land in Discovered.
+          Copy the script, open {site}, paste it in the console (Cmd+Opt+J). When it downloads its file, tell Claude in chat to process it: the good posts land in Discovered.
           {state.lastRun ? ` Last run: ${state.lastRun}.` : ""}
         </p>
       </div>

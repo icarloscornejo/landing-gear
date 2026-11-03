@@ -112,7 +112,7 @@ console.log('\n🧪 Testing the updater dependency install (apply + rollback)...
   check(
     timeoutResult.ok === false
       && timeoutResult.reason.includes(`timed out after ${Math.round(NPM_INSTALL_TIMEOUT_MS / 1000)}s`)
-      && timeoutResult.reason.includes('CAREER_OPS_NPM_INSTALL_TIMEOUT_MS'),
+      && timeoutResult.reason.includes('LANDING_GEAR_NPM_INSTALL_TIMEOUT_MS'),
     'a timed-out npm install says so and names the variable that raises the budget',
     `timed-out install returned ${JSON.stringify(timeoutResult)}`,
   );
@@ -226,7 +226,7 @@ function writeStubs(stubDir, { npmFails }) {
 }
 
 function runRollback(dir, stubDir) {
-  const env = { ...process.env, CAREER_OPS_GIT_TIMEOUT_MS: '10000' };
+  const env = { ...process.env, LANDING_GEAR_GIT_TIMEOUT_MS: '10000' };
   for (const key of Object.keys(env)) {
     if (key.startsWith('GIT_')) delete env[key];
   }

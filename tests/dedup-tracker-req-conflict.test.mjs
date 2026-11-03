@@ -9,7 +9,7 @@
 // rows apart on purpose, and dedup-tracker then deleted the lower-scored one.
 //
 // Drives the REAL dedup-tracker.mjs CLI against a temp tracker via the
-// CAREER_OPS_TRACKER hook, because the deletion is what loses data — asserting
+// LANDING_GEAR_TRACKER hook, because the deletion is what loses data — asserting
 // on the rows left in the tracker is what proves the guard.
 import { pass, fail, rmSync } from './helpers.mjs';
 import assert from 'node:assert';
@@ -35,7 +35,7 @@ function withTracker(header, sep, rows, fn) {
     writeFileSync(tracker, ['# Applications Tracker', '', header, sep, ...rows, ''].join('\n'));
     execFileSync(process.execPath, [DEDUP], {
       encoding: 'utf-8',
-      env: { ...process.env, CAREER_OPS_TRACKER: tracker },
+      env: { ...process.env, LANDING_GEAR_TRACKER: tracker },
     });
     fn(dataRows(readFileSync(tracker, 'utf-8')));
   } finally {

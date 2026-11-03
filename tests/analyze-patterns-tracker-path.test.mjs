@@ -3,7 +3,7 @@
 // canonicalized.
 //
 // analyze-patterns used to pick data/applications.md or applications.md under
-// the data root itself, ignoring CAREER_OPS_TRACKER, so `patterns` and
+// the data root itself, ignoring LANDING_GEAR_TRACKER, so `patterns` and
 // `calibrate` analysed a different file than set-status.mjs writes whenever
 // that override was set. It now goes through resolveTrackerPath(), which
 // realpaths the result; report links must still resolve when the data root is
@@ -47,7 +47,7 @@ function analyze(env) {
   const out = execFileSync(NODE, [join(ROOT, 'analyze-patterns.mjs'), '--min-threshold', '1'], {
     encoding: 'utf-8',
     timeout: 60000,
-    env: { ...process.env, CAREER_OPS_TRACKER: '', ...env },
+    env: { ...process.env, LANDING_GEAR_TRACKER: '', ...env },
   });
   return JSON.parse(out);
 }
@@ -75,15 +75,15 @@ try {
     [...HEADER, trackerRow(2, `reports/${a}`), trackerRow(3, `reports/${b}`)].join('\n') + '\n');
 
   try {
-    const result = analyze({ CAREER_OPS_ROOT: root, CAREER_OPS_TRACKER: overrideTracker });
+    const result = analyze({ LANDING_GEAR_ROOT: root, LANDING_GEAR_TRACKER: overrideTracker });
     const got = archetypesOf(result);
     if (result.metadata?.total === 2 && got.join('|') === 'Override Archetype A|Override Archetype B') {
-      pass('CAREER_OPS_TRACKER outside the data root: its rows are read and their reports resolve');
+      pass('LANDING_GEAR_TRACKER outside the data root: its rows are read and their reports resolve');
     } else {
-      fail(`CAREER_OPS_TRACKER ignored or reports unresolved: total=${result.metadata?.total}, archetypes=${JSON.stringify(got)}`);
+      fail(`LANDING_GEAR_TRACKER ignored or reports unresolved: total=${result.metadata?.total}, archetypes=${JSON.stringify(got)}`);
     }
   } catch (e) {
-    fail(`analyze-patterns.mjs failed with CAREER_OPS_TRACKER set: ${(e.stderr || e.message || '').toString().slice(0, 300)}`);
+    fail(`analyze-patterns.mjs failed with LANDING_GEAR_TRACKER set: ${(e.stderr || e.message || '').toString().slice(0, 300)}`);
   }
 
   // A tracker in another workspace (its own data/ and reports/): the reports
@@ -96,10 +96,10 @@ try {
   writeFileSync(workspaceTracker, [...HEADER, trackerRow(5, `../reports/${w}`)].join('\n') + '\n');
 
   try {
-    const result = analyze({ CAREER_OPS_ROOT: root, CAREER_OPS_TRACKER: workspaceTracker });
+    const result = analyze({ LANDING_GEAR_ROOT: root, LANDING_GEAR_TRACKER: workspaceTracker });
     const got = archetypesOf(result);
     if (result.metadata?.total === 1 && got.join('|') === 'Workspace Archetype') {
-      pass("CAREER_OPS_TRACKER in another workspace: that workspace's reports are read");
+      pass("LANDING_GEAR_TRACKER in another workspace: that workspace's reports are read");
     } else {
       fail(`workspace tracker: total=${result.metadata?.total}, archetypes=${JSON.stringify(got)}`);
     }
@@ -108,7 +108,7 @@ try {
   }
 
   try {
-    const result = analyze({ CAREER_OPS_ROOT: root });
+    const result = analyze({ LANDING_GEAR_ROOT: root });
     const got = archetypesOf(result);
     if (result.metadata?.total === 1 && got.join('|') === 'In-Root Archetype') {
       pass('no override: the data root tracker is read and its tracker-relative link resolves');
@@ -132,7 +132,7 @@ try {
   }
   if (linked) {
     try {
-      const result = analyze({ CAREER_OPS_ROOT: link });
+      const result = analyze({ LANDING_GEAR_ROOT: link });
       const got = archetypesOf(result);
       if (got.join('|') === 'In-Root Archetype') {
         pass('symlinked data root: tracker-relative report links still resolve after the tracker is realpathed');
@@ -164,7 +164,7 @@ try {
   }
   if (trackerLinked) {
     try {
-      const result = analyze({ CAREER_OPS_ROOT: canonical, CAREER_OPS_TRACKER: deepTracker });
+      const result = analyze({ LANDING_GEAR_ROOT: canonical, LANDING_GEAR_TRACKER: deepTracker });
       const got = archetypesOf(result);
       if (got.join('|') === 'Linked Tracker Archetype') {
         pass('symlinked tracker file: links relative to its target still resolve');
@@ -176,7 +176,7 @@ try {
     }
   }
 
-  // A CAREER_OPS_TRACKER that is a symlink into another workspace: the link's
+  // A LANDING_GEAR_TRACKER that is a symlink into another workspace: the link's
   // own workspace has no reports/, the target's does, and links are written
   // relative to the target.
   const linkSide = join(realpathSync(work), 'link-side');
@@ -197,7 +197,7 @@ try {
   }
   if (crossLinked) {
     try {
-      const result = analyze({ CAREER_OPS_ROOT: root, CAREER_OPS_TRACKER: linkedTracker });
+      const result = analyze({ LANDING_GEAR_ROOT: root, LANDING_GEAR_TRACKER: linkedTracker });
       const got = archetypesOf(result);
       if (got.join('|') === 'Target Workspace Archetype') {
         pass("tracker symlinked into another workspace: the target workspace's reports are read");

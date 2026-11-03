@@ -1,5 +1,5 @@
 // Optional browser regression. Generate a disposable root with
-// node tests/fixtures/inbox-undo.mjs and use it as CAREER_OPS_ROOT for the server.
+// node tests/fixtures/inbox-undo.mjs and use it as LANDING_GEAR_ROOT for the server.
 // Set INBOX_UNDO_TEST_URL and INBOX_UNDO_TEST_ROOT when running this suite.
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -89,7 +89,7 @@ test("Inbox Undo remains retryable after failure", { skip: !url || !root, timeou
       const response = await page.request.post(`${origin.origin}/api/inbox/skip`, { data: { url: `https://example.com/fixture-${company}`, done: false } });
       assert.equal(response.ok(), true);
     }
-    await page.evaluate(() => localStorage.removeItem("career-ops:hidden"));
+    await page.evaluate(() => localStorage.removeItem("landing-gear:hidden"));
     await page.reload();
     await row("Fixture Alpha").getByTitle("Skip — hide from the inbox").waitFor();
   }
@@ -133,7 +133,7 @@ test("Inbox Undo remains retryable after failure", { skip: !url || !root, timeou
   await t.test("Restore ignores repeated clicks and allows retry after a partial failure", async () => {
     await resetInbox();
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.evaluate(() => localStorage.setItem("career-ops:hidden", JSON.stringify([
+    await page.evaluate(() => localStorage.setItem("landing-gear:hidden", JSON.stringify([
       "https://example.com/fixture-alpha", "https://example.com/fixture-beta",
     ])));
     await page.reload();

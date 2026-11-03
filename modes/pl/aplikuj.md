@@ -73,7 +73,7 @@ Dla każdego pytania zbuduj odpowiedź według tego schematu:
 2. **Poprzedni Blok G**: Jeśli szkic istnieje, weź go jako bazę i dopracuj
 3. **Ton "To ja wybieram Was"**: ten sam framework co w auto-pipeline -- pewny siebie, nie błagalny
 4. **Konkretność**: zacytuj coś konkretnego z oferty widocznej na ekranie
-5. **career-ops proof point**: dołącz w "Informacje dodatkowe", jeśli takie pole istnieje
+5. **landing-gear proof point**: dołącz w "Informacje dodatkowe", jeśli takie pole istnieje
 
 **Pola specyficzne dla typowych polskich formularzy:**
 - **Oczekiwania płacowe** -> Widełki z `profile.yml`, w PLN, z zaznaczeniem, czy netto czy brutto (oraz UoP/B2B) i dopiskiem "do negocjacji w zależności od całego pakietu"

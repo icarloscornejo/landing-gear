@@ -1,5 +1,5 @@
 // tests/web-prompt-profile-path.test.mjs — the prompts the web sends to an agent
-// name the profile it must read (#5144). With CAREER_OPS_PROFILE set they carry
+// name the profile it must read (#5144). With LANDING_GEAR_PROFILE set they carry
 // the resolved path, never `config/profile.yml`; with it unset they are unchanged.
 //
 // Sites: run-prompts.mjs (pdf, evaluate, cover), apply/answer-prompt.mjs and
@@ -10,7 +10,7 @@ import { existsSync } from 'fs';
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
 
-console.log('\nweb prompts — profile path under CAREER_OPS_PROFILE');
+console.log('\nweb prompts — profile path under LANDING_GEAR_PROFILE');
 
 const lib = join(ROOT, 'web', 'src', 'lib');
 if (!existsSync(join(ROOT, 'web'))) {
@@ -31,9 +31,9 @@ if (!existsSync(join(ROOT, 'web'))) {
   const check = (label, cond, detail = '') => (cond ? pass(label) : fail(`${label}${detail ? `: ${detail}` : ''}`));
 
   eq('profileRef without an override is config/profile.yml', profileRef(root, { env: {} }), DEFAULT);
-  eq('profileRef treats a blank override as unset', profileRef(root, { env: { CAREER_OPS_PROFILE: ' \t' } }), DEFAULT);
-  eq('profileRef with an override is the resolved path', profileRef(root, { env: { CAREER_OPS_PROFILE: override } }), override);
-  eq('profileRef anchors a relative override to the root', profileRef(root, { env: { CAREER_OPS_PROFILE: 'p/me.yml' } }), join(root, 'p', 'me.yml'));
+  eq('profileRef treats a blank override as unset', profileRef(root, { env: { LANDING_GEAR_PROFILE: ' \t' } }), DEFAULT);
+  eq('profileRef with an override is the resolved path', profileRef(root, { env: { LANDING_GEAR_PROFILE: override } }), override);
+  eq('profileRef anchors a relative override to the root', profileRef(root, { env: { LANDING_GEAR_PROFILE: 'p/me.yml' } }), join(root, 'p', 'me.yml'));
   eq('profileNote is empty for the default', profileNote(DEFAULT_PROFILE_REF), '');
   check('profileNote names the resolved path', note.includes(override));
 

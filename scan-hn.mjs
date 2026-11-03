@@ -42,7 +42,7 @@ Flags:
   --help, -h                        # show this help and exit`;
 
 // ── Configuration ────────────────────────────────────────────────────
-// Imported from scan.mjs so it honors CAREER_OPS_PORTALS and the data root (#3510).
+// Imported from scan.mjs so it honors LANDING_GEAR_PORTALS and the data root (#3510).
 
 function loadPortals() {
   if (!existsSync(PORTALS_PATH)) return {};

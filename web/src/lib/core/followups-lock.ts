@@ -1,7 +1,7 @@
 import path from "node:path";
 import fs from "node:fs";
 import { pathToFileURL } from "node:url";
-import { careerOpsRoot } from "@/lib/career-ops";
+import { landingGearRoot } from "@/lib/landing-gear";
 
 /**
  * ACL for the core's follow-ups file lock (`followup-seed.mjs`).
@@ -52,7 +52,7 @@ const modCache = new Map<string, CoreWithFollowupsLock>();
  *  exclude cross-process and the in-process queue alone is correct — see
  *  `withFollowupsLock` below. */
 async function loadCoreLock(): Promise<CoreWithFollowupsLock | null> {
-  const file = path.join(careerOpsRoot(), "followup-seed.mjs");
+  const file = path.join(landingGearRoot(), "followup-seed.mjs");
   const cached = modCache.get(file);
   if (cached) return cached;
   if (!fs.existsSync(file)) return null;
@@ -90,7 +90,7 @@ export async function withFollowupsLock<T>(followupsPath: string, fn: () => T | 
   if (!core) return await fn();
   try {
     return (await core(followupsPath, fn as () => unknown, {
-      timeoutMs: Number(process.env.CAREER_OPS_WEB_FOLLOWUPS_LOCK_TIMEOUT_MS) || 5_000,
+      timeoutMs: Number(process.env.LANDING_GEAR_WEB_FOLLOWUPS_LOCK_TIMEOUT_MS) || 5_000,
     })) as T;
   } catch (e) {
     // The core throws SeedError('LOCK_TIMEOUT') only from the lock acquire,

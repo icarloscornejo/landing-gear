@@ -40,7 +40,7 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { execFileSync } from 'child_process';
 import { createHash } from 'crypto';
-import { getCareerOpsRoot, resolveTrackerPath } from './path-resolver.mjs';
+import { getLandingGearRoot, resolveTrackerPath } from './path-resolver.mjs';
 
 const USAGE = `Usage:
   node check-liveness.mjs [--no-fallback] [--throttle[=ms]] [--no-record] <url1> [url2] ...
@@ -116,7 +116,7 @@ function runSetStatus(args, trackerPath) {
   try {
     return JSON.parse(execFileSync(process.execPath, [join(CODE_ROOT, 'set-status.mjs'), ...args], {
       encoding: 'utf-8',
-      env: { ...process.env, CAREER_OPS_TRACKER: trackerPath },
+      env: { ...process.env, LANDING_GEAR_TRACKER: trackerPath },
       stdio: ['ignore', 'pipe', 'pipe'],
     }));
   } catch (err) {
@@ -200,7 +200,7 @@ async function main() {
   let trackerText = null;
   let reportsRoot = null;
   if (fromTracker) {
-    const root = getCareerOpsRoot();
+    const root = getLandingGearRoot();
     trackerPath = resolveTrackerPath(root);
     reportsRoot = join(root, 'reports');
     if (!existsSync(trackerPath)) {

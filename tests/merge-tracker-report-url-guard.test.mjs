@@ -36,13 +36,13 @@ function addTsv(env, id, num, role, score, report, url) {
 function runMerge(env) {
   const childEnv = {
     ...process.env,
-    CAREER_OPS_ROOT: env.base,
-    CAREER_OPS_TRACKER: env.tracker,
-    CAREER_OPS_ADDITIONS: env.addDir,
-    CAREER_OPS_BATCH_STATE: isolatedBatchStatePath(env.addDir),
+    LANDING_GEAR_ROOT: env.base,
+    LANDING_GEAR_TRACKER: env.tracker,
+    LANDING_GEAR_ADDITIONS: env.addDir,
+    LANDING_GEAR_BATCH_STATE: isolatedBatchStatePath(env.addDir),
   };
-  delete childEnv.CAREER_OPS_DATA_DIR;
-  delete childEnv.CAREER_OPS_CODE_ROOT;
+  delete childEnv.LANDING_GEAR_DATA_DIR;
+  delete childEnv.LANDING_GEAR_CODE_ROOT;
   return execFileSync('node', [MERGE], { encoding: 'utf-8', env: childEnv });
 }
 function rows(env) {

@@ -58,7 +58,7 @@ test('--tracker without a tracker file says so and exits 1', (t) => {
   const root = mkdtempSync(join(tmpdir(), 'liveness-tracker-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   const result = spawnSync(process.execPath, [join(ROOT, 'check-liveness.mjs'), '--tracker', '--no-record'], {
-    env: { ...process.env, CAREER_OPS_ROOT: root, CAREER_OPS_DATA_DIR: root }, encoding: 'utf8', timeout: 20_000,
+    env: { ...process.env, LANDING_GEAR_ROOT: root, LANDING_GEAR_DATA_DIR: root }, encoding: 'utf8', timeout: 20_000,
   });
   assert.equal(result.status, 1, result.stdout + result.stderr);
   assert.match(result.stderr, /No tracker at /);
@@ -122,7 +122,7 @@ function discardSandbox(t, rows, reportUrls) {
   const run = (...flags) => spawnSync(
     process.execPath,
     ['--import', pathToFileURL(stub).href, join(ROOT, 'check-liveness.mjs'), '--tracker', '--discard-expired', '--no-record', '--no-fallback', ...flags],
-    { env: { ...process.env, CAREER_OPS_ROOT: root, CAREER_OPS_DATA_DIR: data }, encoding: 'utf8', timeout: 60_000 },
+    { env: { ...process.env, LANDING_GEAR_ROOT: root, LANDING_GEAR_DATA_DIR: data }, encoding: 'utf8', timeout: 60_000 },
   );
   return { trackerPath, reportsDir, run };
 }

@@ -73,7 +73,7 @@ Para cada pregunta, construir la respuesta según este esquema:
 2. **Bloque H / `## Application Answers` previos**: Si existe un borrador o una respuesta final, tomarlo como base y refinarlo
 3. **Tono "Te elijo a ti"**: mismo framework que en el auto-pipeline — confiado, no suplicante
 4. **Especificidad**: citar algo concreto de la oferta visible en pantalla
-5. **career-ops proof point**: incluir en "Información adicional" si existe ese campo
+5. **landing-gear proof point**: incluir en "Información adicional" si existe ese campo
 
 **Campos específicos en formularios hispanohablantes habituales:**
 - **Pretensiones salariales (bruto anual)** -> Horquilla desde `profile.yml`, en EUR (o divisa local), con la indicación "negociable según el paquete global"

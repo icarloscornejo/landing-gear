@@ -172,7 +172,7 @@ try {
 
   // ── mkdirSync before writeFileSync ──
   // The fixture lives inside the sandbox data root, not beside the checkout:
-  // helpers pin CAREER_OPS_ROOT to SANDBOX_DATA_ROOT, and the CLI refuses
+  // helpers pin LANDING_GEAR_ROOT to SANDBOX_DATA_ROOT, and the CLI refuses
   // paths outside its data root (resolveInsideRepo). Also keeps the
   // repository root walk (scratch-dirs.test.mjs check 13) clean.
   const TMP = realpathSync(mkdtempSync(join(SANDBOX_DATA_ROOT, 'sync-batch-input-')));
@@ -191,10 +191,10 @@ try {
   }
 
   // ── defaults resolve beside the script, even under an external data root ──
-  // When CAREER_OPS_ROOT points outside the checkout, --input and --state
+  // When LANDING_GEAR_ROOT points outside the checkout, --input and --state
   // fall back to CHECKOUT_ROOT (the script's own directory), so the synced
   // batch files stay where batch-runner.sh reads them.  --pipeline still
-  // resolves against CAREER_OPS, which is what scan.mjs writes to.
+  // resolves against LANDING_GEAR, which is what scan.mjs writes to.
   const extDataRootTmp = realpathSync(mkdtempSync(join(SANDBOX_DATA_ROOT, 'ext-data-root-')));
   try {
     const extPipeline = join(extDataRootTmp, 'pipeline.md');
@@ -207,7 +207,7 @@ try {
     const batchDirMarker = `batch${sep}batch-input.tsv`;
     const extResult = runCli(
       `--pipeline "${extPipeline}" --dry-run`,
-      { CAREER_OPS_ROOT: extDataRootTmp },
+      { LANDING_GEAR_ROOT: extDataRootTmp },
     );
     check(
       'defaults resolve beside the script under an external data root',

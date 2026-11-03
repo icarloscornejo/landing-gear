@@ -24,7 +24,7 @@ test('every tracker.mjs query filter the tracker mode tells agents to use works'
   ].join('\n') + '\n');
   for (const args of filters) {
     const result = spawnSync(process.execPath, [join(ROOT, 'tracker.mjs'), 'query', ...args], {
-      env: { ...process.env, CAREER_OPS_ROOT: root, CAREER_OPS_DATA_DIR: root }, encoding: 'utf8', timeout: 20_000,
+      env: { ...process.env, LANDING_GEAR_ROOT: root, LANDING_GEAR_DATA_DIR: root }, encoding: 'utf8', timeout: 20_000,
     });
     assert.equal(result.status, 0, describeSpawn(result, `tracker.mjs query ${args.join(' ')}`));
     if (args[0] !== '--json') assert.match(result.stdout, /\| 42 \| 2026-09-10 \| Acme/, args.join(' '));

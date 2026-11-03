@@ -56,7 +56,7 @@ function runDedup(rows) {
   const tracker = join(dir, 'applications.md');
   writeFileSync(tracker, ['# Applications Tracker', '', HEADER, SEP, ...rows, ''].join('\n'));
   const out = run(NODE, ['dedup-tracker.mjs'], {
-    env: { ...process.env, CAREER_OPS_TRACKER: tracker },
+    env: { ...process.env, LANDING_GEAR_TRACKER: tracker },
   });
   // A crashed child leaves the fixture on disk untouched, so reading the tracker
   // without this guard turns a crash into a vacuous pass: the distinct-company

@@ -23,7 +23,7 @@ console.log('\nfollowup-seed.mjs — pinned first follow-up on Applied');
 const DEFAULT_CADENCE_PROFILE = join(ROOT, 'tests', 'fixtures', 'profile-default-cadence.yml');
 
 // Pin the cadence source BEFORE followup-cadence.mjs is evaluated: it resolves
-// its cadence at module load from CAREER_OPS_PROFILE and otherwise falls back
+// its cadence at module load from LANDING_GEAR_PROFILE and otherwise falls back
 // to the USER's config/profile.yml, so a customized followup_cadence turned
 // these date assertions red on a healthy install (#2268). The spawned
 // followup-seed.mjs inherits the same pin through run()'s env.
@@ -35,24 +35,24 @@ const DEFAULT_CADENCE_PROFILE = join(ROOT, 'tests', 'fixtures', 'profile-default
 // The pin is also RESTORED the moment that import resolves, and this is not
 // tidiness. As a root suite this ran in its own process, so a leaked env var
 // died with it; discovery runs every suite in ONE process, and
-// providers/_profile-keywords.mjs reads CAREER_OPS_PROFILE at module scope to
+// providers/_profile-keywords.mjs reads LANDING_GEAR_PROFILE at module scope to
 // pick its fallback profile. Leaving the pin set poisons every provider suite
 // that sorts after this one — they went red together with "no
 // config/profile.yml target_roles to fall back to" while passing alone, which
 // is the #3411 failure exactly, and the reason it is worth restoring in a
 // `finally`: #3411's own restore turned out to be skippable on a throw.
 // followup-cadence.mjs has captured its value by the time the import resolves,
-// and run()'s child env sets CAREER_OPS_PROFILE explicitly rather than
+// and run()'s child env sets LANDING_GEAR_PROFILE explicitly rather than
 // inheriting it, so nothing below needs the process-wide pin.
-const PRIOR_PROFILE = process.env.CAREER_OPS_PROFILE;
-process.env.CAREER_OPS_PROFILE = DEFAULT_CADENCE_PROFILE;
+const PRIOR_PROFILE = process.env.LANDING_GEAR_PROFILE;
+process.env.LANDING_GEAR_PROFILE = DEFAULT_CADENCE_PROFILE;
 
 let cadence;
 try {
   cadence = await import('../followup-cadence.mjs');
 } finally {
-  if (PRIOR_PROFILE === undefined) delete process.env.CAREER_OPS_PROFILE;
-  else process.env.CAREER_OPS_PROFILE = PRIOR_PROFILE;
+  if (PRIOR_PROFILE === undefined) delete process.env.LANDING_GEAR_PROFILE;
+  else process.env.LANDING_GEAR_PROFILE = PRIOR_PROFILE;
 }
 
 const { parseNextOverrides, resolveNextOverride, normalizeStatus, addDays, parseDate } = cadence;
@@ -77,7 +77,7 @@ function makeSandbox() {
   const dir = mkdtempSync(join(tmpdir(), 'co-seed-'));
   const tracker = join(dir, 'applications.md');
   const followups = join(dir, 'follow-ups.md');
-  const lock = join(dir, `career-ops-followups-test-${Math.random().toString(36).slice(2)}.lock`);
+  const lock = join(dir, `landing-gear-followups-test-${Math.random().toString(36).slice(2)}.lock`);
   return { dir, tracker, followups, lock };
 }
 
@@ -101,12 +101,12 @@ function trackerRow(num, date, company, role, score, status, notes) {
 function run(args, sandbox, extraEnv = {}) {
   const env = {
     ...process.env,
-    CAREER_OPS_TRACKER: sandbox.tracker,
-    CAREER_OPS_FOLLOWUPS: sandbox.followups,
+    LANDING_GEAR_TRACKER: sandbox.tracker,
+    LANDING_GEAR_FOLLOWUPS: sandbox.followups,
     // Explicit, not inherited: the child resolves its cadence from this or
     // falls back to the user's real config/profile.yml (#2268).
-    CAREER_OPS_PROFILE: DEFAULT_CADENCE_PROFILE,
-    CAREER_OPS_FOLLOWUPS_LOCK: sandbox.lock,
+    LANDING_GEAR_PROFILE: DEFAULT_CADENCE_PROFILE,
+    LANDING_GEAR_FOLLOWUPS_LOCK: sandbox.lock,
     ...extraEnv,
   };
   try {
@@ -375,7 +375,7 @@ function cleanup(sandbox) {
   writeTracker(sb, [trackerRow(1, '2026-05-01', 'Acme', 'Engineer', '4.0/5', 'Applied', 'Applied 2026-06-20.')]);
   mkdirSync(sb.lock, { recursive: true });
   writeFileSync(join(sb.lock, 'owner.json'), JSON.stringify({ pid: process.pid, token: 'x', startedAt: new Date().toISOString() }));
-  const res = run(['1'], sb, { CAREER_OPS_FOLLOWUPS_LOCK_TIMEOUT_MS: '200' });
+  const res = run(['1'], sb, { LANDING_GEAR_FOLLOWUPS_LOCK_TIMEOUT_MS: '200' });
   if (res.code === 4) pass('9. lock held by live pid → exit 4');
   else fail(`9. lock held by live pid → exit 4 — got ${res.code}\n${res.stdout}${res.stderr}`);
   cleanup(sb);
@@ -474,8 +474,8 @@ function cleanup(sandbox) {
   utimesSync(sb.lock, anHourAgo, anHourAgo);
   utimesSync(guard, anHourAgo, anHourAgo);
   const res = run(['1'], sb, {
-    CAREER_OPS_FOLLOWUPS_LOCK_STALE_MS: '10',
-    CAREER_OPS_FOLLOWUPS_LOCK_TIMEOUT_MS: '3000',
+    LANDING_GEAR_FOLLOWUPS_LOCK_STALE_MS: '10',
+    LANDING_GEAR_FOLLOWUPS_LOCK_TIMEOUT_MS: '3000',
   });
   if (res.code === 0) pass('14. orphaned recover guard does not block stale-lock recovery');
   else fail(`14. orphaned recover guard does not block stale-lock recovery — got ${res.code}\n${res.stdout}${res.stderr}`);
@@ -503,8 +503,8 @@ function cleanup(sandbox) {
   // reach 60s of age inside this run no matter how the retry loop is scheduled,
   // so "fresh" stays true for the whole window rather than expiring mid-test.
   const res = run(['1'], sb, {
-    CAREER_OPS_FOLLOWUPS_LOCK_STALE_MS: '60000',
-    CAREER_OPS_FOLLOWUPS_LOCK_TIMEOUT_MS: '400',
+    LANDING_GEAR_FOLLOWUPS_LOCK_STALE_MS: '60000',
+    LANDING_GEAR_FOLLOWUPS_LOCK_TIMEOUT_MS: '400',
   });
   if (res.code === 4) pass('15. a guard inside its age window is respected → exit 4');
   else fail(`15. a guard inside its age window is respected → exit 4 — got ${res.code}\n${res.stdout}${res.stderr}`);
@@ -527,7 +527,7 @@ function cleanup(sandbox) {
   // created "just now" this would instead depend on whether a sub-millisecond
   // age drifts past a 1ms threshold before the retry loop looks again.
   //
-  // The floor itself is widened to 30s via CAREER_OPS_OWNERLESS_GRACE_MS
+  // The floor itself is widened to 30s via LANDING_GEAR_OWNERLESS_GRACE_MS
   // (#4537): at the production 1s default, the child's own startup cost —
   // execFileSync, Node boot, the module graph behind followup-seed.mjs, plus
   // up to 300ms of retries — could itself eat past 900ms of the window on a
@@ -540,9 +540,9 @@ function cleanup(sandbox) {
   const heldSince = new Date(Date.now() - 100);
   utimesSync(sb.lock, heldSince, heldSince);
   const res = run(['1'], sb, {
-    CAREER_OPS_FOLLOWUPS_LOCK_STALE_MS: '10',
-    CAREER_OPS_FOLLOWUPS_LOCK_TIMEOUT_MS: '300',
-    CAREER_OPS_OWNERLESS_GRACE_MS: '30000',
+    LANDING_GEAR_FOLLOWUPS_LOCK_STALE_MS: '10',
+    LANDING_GEAR_FOLLOWUPS_LOCK_TIMEOUT_MS: '300',
+    LANDING_GEAR_OWNERLESS_GRACE_MS: '30000',
   });
   if (res.code === 4) pass('16. ownerless lock inside the grace period is not stolen → exit 4');
   else fail(`16. ownerless lock inside the grace period is not stolen → exit 4 — got ${res.code}\n${res.stdout}${res.stderr}`);
@@ -561,8 +561,8 @@ function cleanup(sandbox) {
   const when = new Date(Date.now() - 60_000);
   utimesSync(sb.lock, when, when);                  // a real orphan, not a new lock
   const res = run(['1'], sb, {
-    CAREER_OPS_FOLLOWUPS_LOCK_STALE_MS: '10',
-    CAREER_OPS_FOLLOWUPS_LOCK_TIMEOUT_MS: '2000',
+    LANDING_GEAR_FOLLOWUPS_LOCK_STALE_MS: '10',
+    LANDING_GEAR_FOLLOWUPS_LOCK_TIMEOUT_MS: '2000',
   });
   if (res.code === 0) pass('17. ownerless lock older than the grace period is still recovered');
   else fail(`17. ownerless lock older than the grace period is still recovered — got ${res.code}\n${res.stdout}${res.stderr}`);

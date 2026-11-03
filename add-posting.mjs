@@ -7,7 +7,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { appendToPipeline, normalizeUrlForDedup, PIPELINE_PATH } from './scan.mjs';
 import { withPipelineLock } from './pipeline-lock.mjs';
-import { getCareerOpsRoot } from './path-resolver.mjs';
+import { getLandingGearRoot } from './path-resolver.mjs';
 
 const OPTION_NAMES = ['company', 'title', 'location'];
 // Only names sanitizePipelineUrl leaves alone: with [ ] | or spaces the written line would no longer
@@ -33,7 +33,7 @@ function parseArguments(argv) {
   if (jd !== null) {
     if (url !== null || Object.keys(options).length) throw new Error('--jd takes no URL or other options; they come from the file header');
     if (!JD_PATH.test(jd ?? '')) throw new Error('--jd expects jds/<name>.md with only letters, digits, dot, dash or underscore');
-    const jdFile = join(getCareerOpsRoot(), jd);
+    const jdFile = join(getLandingGearRoot(), jd);
     if (!existsSync(jdFile)) throw new Error(`--jd file not found: ${jdFile}`);
     return { url: `local:${jd}`, options: readJdHeader(readFileSync(jdFile, 'utf-8')), local: true };
   }

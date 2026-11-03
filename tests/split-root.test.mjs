@@ -1,7 +1,7 @@
 // tests/split-root.test.mjs — entry points that read both layers, run with the
 // data root outside the checkout (#5115).
 //
-// CAREER_OPS_ROOT / CAREER_OPS_DATA_DIR / a .career-ops-data marker move the
+// LANDING_GEAR_ROOT / LANDING_GEAR_DATA_DIR / a .landing-gear-data marker move the
 // user layer out of the checkout. An entry point then has two roots to keep
 // apart: system-layer files (modes/_shared.md, modes/oferta.md, the .mjs
 // scripts) ship with the code, user-layer files (cv.md, config/profile.yml,
@@ -75,13 +75,13 @@ function makeDataRoot(base, name = 'data-root') {
 function splitEnv(extra = {}) {
   return {
     ...process.env,
-    CAREER_OPS_ROOT: '',
-    CAREER_OPS_DATA_DIR: '',
-    CAREER_OPS_TRACKER: '',
-    CAREER_OPS_REPORTS_DIR: '',
-    CAREER_OPS_ADDITIONS: '',
-    CAREER_OPS_BATCH_STATE: '',
-    CAREER_OPS_PROFILE: '',
+    LANDING_GEAR_ROOT: '',
+    LANDING_GEAR_DATA_DIR: '',
+    LANDING_GEAR_TRACKER: '',
+    LANDING_GEAR_REPORTS_DIR: '',
+    LANDING_GEAR_ADDITIONS: '',
+    LANDING_GEAR_BATCH_STATE: '',
+    LANDING_GEAR_PROFILE: '',
     ...extra,
   };
 }
@@ -112,9 +112,9 @@ function sentSystemPrompt(base, dataRoot, args) {
     cwd, encoding: 'utf8', timeout: 60_000, stdio: ['ignore', 'pipe', 'pipe'],
     // A pinned model skips the free-model listing, the runner's other request.
     env: splitEnv({
-      CAREER_OPS_ROOT: dataRoot,
+      LANDING_GEAR_ROOT: dataRoot,
       OPENROUTER_API_KEY: 'split-root-fixture-key',
-      CAREER_OPS_MODEL: 'fixture/model',
+      LANDING_GEAR_MODEL: 'fixture/model',
       SPLIT_ROOT_CAPTURE: capture,
     }),
   });
@@ -267,7 +267,7 @@ test('batch-runner: personalization, spend_tier, reports and tracker additions f
     const dataRoot = makeDataRoot(base);
     const checkout = makeCheckout(base, { realTools: true });
 
-    const r = runBatch(checkout, { CAREER_OPS_ROOT: dataRoot });
+    const r = runBatch(checkout, { LANDING_GEAR_ROOT: dataRoot });
     const output = `${r.stdout}\n${r.stderr}`;
     assert.equal(r.error, undefined, `spawn failed: ${r.error?.message}`);
     assert.equal(r.status, 0, describeSpawn(r, `batch-runner exited ${r.status}:\n${output}`));
@@ -312,13 +312,13 @@ test('batch-runner: personalization, spend_tier, reports and tracker additions f
   }
 });
 
-test('batch-runner: a .career-ops-data marker with a relative path is honored like the env override', () => {
+test('batch-runner: a .landing-gear-data marker with a relative path is honored like the env override', () => {
   const base = mkdtempSync(join(tmpdir(), 'split-root-batch-marker-'));
   try {
     makeDataRoot(base, 'marked-root');
     const checkout = makeCheckout(base, { realTools: false });
     // Relative to the checkout, the way path-resolver.mjs resolves it.
-    writeFileSync(join(checkout.dir, '.career-ops-data'), '../marked-root\n');
+    writeFileSync(join(checkout.dir, '.landing-gear-data'), '../marked-root\n');
 
     const r = runBatch(checkout, { WORKER_WRITES: 'no' });
     const promptPath = join(checkout.captureDir, 'system-prompt.md');

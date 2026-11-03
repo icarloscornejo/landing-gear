@@ -28,7 +28,7 @@ import { join, dirname, basename } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { register } from "node:module";
 
-// cv.ts reaches web/src/lib/career-ops through the `@/` path alias, and bare
+// cv.ts reaches web/src/lib/landing-gear through the `@/` path alias, and bare
 // `node --test` has no webpack in the loop to resolve it. Same inline loader
 // apply-cv-resolver.test.mjs registers, for the same reason.
 const WEB_SRC = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "src");
@@ -72,7 +72,7 @@ const COVER_HTML_REL = "output/acme-corp-staff-engineer-cover.html";
 const MANIFEST_HEADER = "# report\tpdf\thtml\tformat\tdate — written by generate-pdf.mjs, do not edit\n";
 
 /** A throwaway workspace holding one tailored CV and the manifest row that
- *  generate-pdf.mjs writes for it, redirected through CAREER_OPS_ROOT. */
+ *  generate-pdf.mjs writes for it, redirected through LANDING_GEAR_ROOT. */
 async function withWorkspace(fn, { html = true, manifest = true, outsideHtml = false, coverRow = false } = {}) {
   const root = mkdtempSync(join(tmpdir(), "prefill-cv-"));
   mkdirSync(join(root, "output"), { recursive: true });
@@ -105,13 +105,13 @@ async function withWorkspace(fn, { html = true, manifest = true, outsideHtml = f
       MANIFEST_HEADER + `12\t${COVER_PDF_REL}\t${COVER_HTML_REL}\tletter\t2026-01-11\n`,
     );
   }
-  const prev = process.env.CAREER_OPS_ROOT;
-  process.env.CAREER_OPS_ROOT = root;
+  const prev = process.env.LANDING_GEAR_ROOT;
+  process.env.LANDING_GEAR_ROOT = root;
   try {
     return await fn(root);
   } finally {
-    if (prev === undefined) delete process.env.CAREER_OPS_ROOT;
-    else process.env.CAREER_OPS_ROOT = prev;
+    if (prev === undefined) delete process.env.LANDING_GEAR_ROOT;
+    else process.env.LANDING_GEAR_ROOT = prev;
   }
 }
 

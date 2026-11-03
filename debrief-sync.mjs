@@ -10,7 +10,7 @@ import { isRealCalendarDate } from './followup-cadence.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
 import { validateFlags } from './lib/cli-flags.mjs';
 import { loadYaml } from './lib/yaml-document.mjs';
-import { getCareerOpsRoot, resolveTrackerPath } from './path-resolver.mjs';
+import { getLandingGearRoot, resolveTrackerPath } from './path-resolver.mjs';
 import { parseMarkdownLinks, parseTrackerRow, resolveColumns } from './tracker-parse.mjs';
 import { acquireTrackerLock, resolveWorkspaceRoot, trackerLockDirFor, writeFileAtomic } from './tracker-utils.mjs';
 
@@ -191,7 +191,7 @@ function appendDealbreakerNote(appNum, status, sentence, root, { dryRun = false 
     ...(dryRun ? ['--dry-run'] : []),
   ], {
     encoding: 'utf8',
-    env: { ...process.env, CAREER_OPS_ROOT: root },
+    env: { ...process.env, LANDING_GEAR_ROOT: root },
     ...(dryRun ? { stdio: ['ignore', 'pipe', 'pipe'] } : {}),
   });
   return JSON.parse(stdout).changed === true;
@@ -208,7 +208,7 @@ function checkDealbreakerNote(appNum, status, sentence, root) {
 
 export async function applyDebriefSync(plan) {
   const normalized = normalizePlan(plan);
-  const root = getCareerOpsRoot();
+  const root = getLandingGearRoot();
   const appsFile = resolveTrackerPath(root);
   const lock = await acquireTrackerLock(trackerLockDirFor(appsFile), { tracker: appsFile });
   let prepared;

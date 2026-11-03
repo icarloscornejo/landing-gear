@@ -44,12 +44,12 @@ function setup(file, { fail }) {
     fixedText: "",
   });
   const load = { ok: true, reportNum: "007", company: "Acme", file, tree, doc, edits: emptyEdits("h1"), stale: false, hasBase: false };
-  const previousRoot = process.env.CAREER_OPS_ROOT;
-  process.env.CAREER_OPS_ROOT = root;
+  const previousRoot = process.env.LANDING_GEAR_ROOT;
+  process.env.LANDING_GEAR_ROOT = root;
   const out = (name) => path.join(root, "output", name);
   const cleanup = () => {
-    if (previousRoot === undefined) delete process.env.CAREER_OPS_ROOT;
-    else process.env.CAREER_OPS_ROOT = previousRoot;
+    if (previousRoot === undefined) delete process.env.LANDING_GEAR_ROOT;
+    else process.env.LANDING_GEAR_ROOT = previousRoot;
     fs.rmSync(root, { recursive: true, force: true });
   };
   return { load, out, cleanup };

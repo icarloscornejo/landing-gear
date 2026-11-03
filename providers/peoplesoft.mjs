@@ -167,7 +167,7 @@ const HEADERS = {
  * blocked independently and unconditionally for every provider request by
  * the shared `providerFetchContext` guard in `_ip-guard.mjs` /
  * `providers/_http.mjs` — see Scott-Emberson's 2026-09-04 review on
- * career-ops-hq/career-ops#3739, which verified this origin-pinning design
+ * upstream #3739, which verified this origin-pinning design
  * sound. (CodeRabbit's automated "Provider Contract" pre-merge check flags
  * the absence of a host allowlist here — that check's heuristic assumes the
  * ADP/UKG-Pro/Taleo shape, a small fixed set of vendor SaaS hosts; it does

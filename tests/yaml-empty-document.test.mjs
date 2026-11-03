@@ -52,7 +52,7 @@ test('scan-ats-full sweeps with a comment-only portals.yml', (t) => {
     cwd: dir,
     encoding: 'utf8',
     timeout: 60_000,
-    env: { ...process.env, CAREER_OPS_ROOT: dir, CAREER_OPS_DATA_DIR: '' },
+    env: { ...process.env, LANDING_GEAR_ROOT: dir, LANDING_GEAR_DATA_DIR: '' },
   });
   assert.ifError(result.error);
   assert.doesNotMatch(result.stderr, /expected a document/);
@@ -69,7 +69,7 @@ test('doctor flags a profile.yml and portals.yml that hold only comments', (t) =
     cwd: dir,
     encoding: 'utf8',
     timeout: 30_000,
-    env: { ...process.env, CAREER_OPS_ROOT: dir, CAREER_OPS_DATA_DIR: '', CAREER_OPS_CLI: 'claude' },
+    env: { ...process.env, LANDING_GEAR_ROOT: dir, LANDING_GEAR_DATA_DIR: '', LANDING_GEAR_CLI: 'claude' },
   });
   assert.ifError(result.error);
   const state = JSON.parse(result.stdout);

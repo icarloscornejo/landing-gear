@@ -26,7 +26,7 @@ const iso = (ms) => new Date(ms).toISOString();
 const summary = (fields) => `# Evaluation\n\n## Machine Summary\n\n\`\`\`yaml\n${yamlDump(fields, { lineWidth: -1 })}\`\`\`\n\n## Private fit\nKeep this report text exactly.\n`;
 
 function fixture(t) {
-  const root = mkdtempSync(join(tmpdir(), 'career-ops-evaluation-cache-'));
+  const root = mkdtempSync(join(tmpdir(), 'landing-gear-evaluation-cache-'));
   const reportsDir = join(root, 'reports');
   mkdirSync(reportsDir);
   t.after(() => rmSync(root, { recursive: true, force: true }));
@@ -370,7 +370,7 @@ test('cache CLI rejects incomplete flags and malformed JSON without leaking inpu
     assert.equal(result.status, 1, JSON.stringify(args));
     assert.doesNotMatch(result.all, /\n\s+at /);
   }
-  const root = mkdtempSync(join(tmpdir(), 'career-ops-cache-cli-'));
+  const root = mkdtempSync(join(tmpdir(), 'landing-gear-cache-cli-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   const path = join(root, 'broken.json');
   writeFileSync(path, `{ ${PRIVATE}`);
@@ -384,7 +384,7 @@ test('missing identity dependency returns an explicit miss without deriving a su
   skip: identity ? 'Identity dependency is installed; integration tests exercise the real module' : false,
 }, async (t) => {
   assert.deepEqual(await lookupJobFacts({ now: NOW }), { status: 'miss', reason: 'listing-identity-unavailable' });
-  const root = mkdtempSync(join(tmpdir(), 'career-ops-cache-cli-'));
+  const root = mkdtempSync(join(tmpdir(), 'landing-gear-cache-cli-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   const path = join(root, 'input.json');
   writeFileSync(path, '{}');

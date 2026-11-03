@@ -1,4 +1,4 @@
-# career-ops Batch Worker — Complete Evaluation + PDF + Tracker Line
+# landing-gear Batch Worker — Complete Evaluation + PDF + Tracker Line
 
 Canonical base language: English.
 
@@ -377,7 +377,7 @@ Batch mode limitation: Playwright is not available, so exact apply-button state 
     3. Decode and write the file in the same step, using Node rather than a platform-specific `base64` binary, so this works identically in every worker. Use a fresh, unique temp path per evaluation (via `mktemp`) rather than a fixed filename — `--parallel > 1` runs multiple workers concurrently, and a shared fixed path lets one worker's location overwrite another's before it's read. Clean the file up when done:
 
     ```bash
-    posting_location_file="$(mktemp /tmp/career-ops-posting-location.XXXXXX)"
+    posting_location_file="$(mktemp /tmp/landing-gear-posting-location.XXXXXX)"
     trap 'rm -f -- "$posting_location_file"' EXIT
     node -e 'process.stdout.write(Buffer.from("<base64-encoded JD location, no line wrapping>", "base64"))' > "$posting_location_file"
     node salary-gap.mjs --relocation --gross <annual gross: annual midpoint; monthly midpoint × 12; or hourly midpoint × JD-stated weekly hours × 52> --posting-location-file "$posting_location_file" --home-location "<profile location>" --currency <advertised_comp's own currency>

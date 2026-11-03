@@ -117,7 +117,7 @@ async function churnLockInWorker(lockDir, everyMs) {
 }
 
 function fixtureRoot() {
-  const root = mkdtempSync(join(tmpdir(), 'career-ops-pipeline-lock-'));
+  const root = mkdtempSync(join(tmpdir(), 'landing-gear-pipeline-lock-'));
   mkdirSync(join(root, 'data'), { recursive: true });
   return root;
 }
@@ -184,7 +184,7 @@ test('acquirePipelineLock: configurable timing — the contention timeout is not
 });
 
 test('acquirePipelineLock: creates a missing parent data/ directory instead of throwing ENOENT (fresh install)', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'career-ops-pipeline-lock-fresh-'));
+  const root = mkdtempSync(join(tmpdir(), 'landing-gear-pipeline-lock-fresh-'));
   try {
     // No data/ directory at all — the plugins.mjs cmdRun path.
     const p = join(root, 'data', 'pipeline.md');
@@ -588,7 +588,7 @@ test('acquirePipelineLock: a lock freed after maxWaitMs is refused, not acquired
 test('acquirePipelineLock: a maxWaitMs of 0 means no waiting, not the default ceiling', async () => {
   const root = fixtureRoot();
   const churn = churnLock(`${root}/data/pipeline.md.lock`, 20);
-  const previous = process.env.CAREER_OPS_PIPELINE_LOCK_MAX_WAIT_MS;
+  const previous = process.env.LANDING_GEAR_PIPELINE_LOCK_MAX_WAIT_MS;
   try {
     const p = join(root, 'data', 'pipeline.md');
     // 0 is a MEANINGFUL setting here — "never wait past now" — so it must not go
@@ -596,15 +596,15 @@ test('acquirePipelineLock: a maxWaitMs of 0 means no waiting, not the default ce
     // caller who asked for no waiting into one who waits 10x timeoutMs, the exact
     // opposite of the request. Asserted through the env var, which is where the
     // idiom lived, and against a churning lock so only the ceiling can end it.
-    process.env.CAREER_OPS_PIPELINE_LOCK_MAX_WAIT_MS = '0';
+    process.env.LANDING_GEAR_PIPELINE_LOCK_MAX_WAIT_MS = '0';
     const startedAt = Date.now();
     const outcome = await settleOrGiveUp(acquirePipelineLock(p, { timeoutMs: 400, retryMs: 20 }), 3000);
     const elapsed = Date.now() - startedAt;
     assert.ok(outcome instanceof LockTimeoutError, `expected an immediate ceiling, got: ${outcome}`);
     assert.ok(elapsed < 300, `waited ${elapsed}ms for a zero ceiling — the 0 was read as "unset"`);
   } finally {
-    if (previous === undefined) delete process.env.CAREER_OPS_PIPELINE_LOCK_MAX_WAIT_MS;
-    else process.env.CAREER_OPS_PIPELINE_LOCK_MAX_WAIT_MS = previous;
+    if (previous === undefined) delete process.env.LANDING_GEAR_PIPELINE_LOCK_MAX_WAIT_MS;
+    else process.env.LANDING_GEAR_PIPELINE_LOCK_MAX_WAIT_MS = previous;
     churn.stop();
     rmSync(root, { recursive: true, force: true });
   }
@@ -1031,10 +1031,10 @@ for (const [label, value] of [
   ['an empty', ''],
   ['an infinite', 'Infinity'],
 ]) {
-  test(`${label} CAREER_OPS_OWNERLESS_GRACE_MS is refused, not used as the floor`, async () => {
+  test(`${label} LANDING_GEAR_OWNERLESS_GRACE_MS is refused, not used as the floor`, async () => {
     const root = mkdtempSync(join(tmpdir(), `grace-bad-${label.replace(/\s/g, '-')}-`));
-    const prior = process.env.CAREER_OPS_OWNERLESS_GRACE_MS;
-    process.env.CAREER_OPS_OWNERLESS_GRACE_MS = value;
+    const prior = process.env.LANDING_GEAR_OWNERLESS_GRACE_MS;
+    process.env.LANDING_GEAR_OWNERLESS_GRACE_MS = value;
     try {
       const lock = await import(`../lib/dir-lock.mjs?grace-bad-${label.replace(/\s/g, '-')}`);
       assert.equal(
@@ -1049,8 +1049,8 @@ for (const [label, value] of [
         `staleMs 0 with a ${label} floor must still refuse to condemn a 10ms-old lock`,
       );
     } finally {
-      if (prior === undefined) delete process.env.CAREER_OPS_OWNERLESS_GRACE_MS;
-      else process.env.CAREER_OPS_OWNERLESS_GRACE_MS = prior;
+      if (prior === undefined) delete process.env.LANDING_GEAR_OWNERLESS_GRACE_MS;
+      else process.env.LANDING_GEAR_OWNERLESS_GRACE_MS = prior;
       rmSync(root, { recursive: true, force: true });
     }
   });
@@ -1058,22 +1058,22 @@ for (const [label, value] of [
 
 // Control. Without it every case above would pass on a build that ignored the
 // environment entirely and hard-coded 1000.
-test('a valid CAREER_OPS_OWNERLESS_GRACE_MS is still honored (control)', async () => {
-  const prior = process.env.CAREER_OPS_OWNERLESS_GRACE_MS;
-  process.env.CAREER_OPS_OWNERLESS_GRACE_MS = '2500';
+test('a valid LANDING_GEAR_OWNERLESS_GRACE_MS is still honored (control)', async () => {
+  const prior = process.env.LANDING_GEAR_OWNERLESS_GRACE_MS;
+  process.env.LANDING_GEAR_OWNERLESS_GRACE_MS = '2500';
   try {
     const lock = await import('../lib/dir-lock.mjs?grace-good');
     assert.equal(lock.OWNERLESS_GRACE_MS, 2_500, 'a finite positive override must reach the floor');
   } finally {
-    if (prior === undefined) delete process.env.CAREER_OPS_OWNERLESS_GRACE_MS;
-    else process.env.CAREER_OPS_OWNERLESS_GRACE_MS = prior;
+    if (prior === undefined) delete process.env.LANDING_GEAR_OWNERLESS_GRACE_MS;
+    else process.env.LANDING_GEAR_OWNERLESS_GRACE_MS = prior;
   }
 });
 
-test('the ownerless grace floor honors CAREER_OPS_OWNERLESS_GRACE_MS', async () => {
+test('the ownerless grace floor honors LANDING_GEAR_OWNERLESS_GRACE_MS', async () => {
   const root = mkdtempSync(join(tmpdir(), 'grace-env-'));
-  const prior = process.env.CAREER_OPS_OWNERLESS_GRACE_MS;
-  process.env.CAREER_OPS_OWNERLESS_GRACE_MS = '30000';
+  const prior = process.env.LANDING_GEAR_OWNERLESS_GRACE_MS;
+  process.env.LANDING_GEAR_OWNERLESS_GRACE_MS = '30000';
   try {
     const lock = await import('../lib/dir-lock.mjs?grace-env');
     const dir = join(root, 'x.lock');
@@ -1091,8 +1091,8 @@ test('the ownerless grace floor honors CAREER_OPS_OWNERLESS_GRACE_MS', async () 
       'a 5s-old ownerless lock is inside a 30s configured floor and must not be reclaimable',
     );
   } finally {
-    if (prior === undefined) delete process.env.CAREER_OPS_OWNERLESS_GRACE_MS;
-    else process.env.CAREER_OPS_OWNERLESS_GRACE_MS = prior;
+    if (prior === undefined) delete process.env.LANDING_GEAR_OWNERLESS_GRACE_MS;
+    else process.env.LANDING_GEAR_OWNERLESS_GRACE_MS = prior;
     rmSync(root, { recursive: true, force: true });
   }
 });

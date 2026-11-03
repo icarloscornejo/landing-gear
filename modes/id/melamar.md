@@ -73,7 +73,7 @@ Untuk tiap pertanyaan, susun jawaban mengikuti skema ini:
 2. **Blok G sebelumnya**: Jika ada draft, jadikan dasar lalu perhalus
 3. **Nada "Saya memilih Anda"**: kerangka yang sama seperti di auto-pipeline -- percaya diri, tidak memohon
 4. **Spesifisitas**: kutip sesuatu yang konkret dari lowongan yang terlihat di layar
-5. **Proof point career-ops**: sertakan di "Informasi tambahan" jika ada kolom semacam itu
+5. **Proof point landing-gear**: sertakan di "Informasi tambahan" jika ada kolom semacam itu
 
 **Kolom khas formulir Indonesia yang umum:**
 - **Ekspektasi gaji (bulanan/tahunan)** -> Rentang dari `profile.yml`, dalam IDR, dengan catatan "dapat dinegosiasikan sesuai paket keseluruhan"; perjelas apakah angkanya gross atau nett

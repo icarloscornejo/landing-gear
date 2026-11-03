@@ -31,7 +31,7 @@ import (
 
 func lockForTest(t *testing.T) *trackerLock {
 	t.Helper()
-	t.Setenv("CAREER_OPS_TRACKER_LOCK", "")
+	t.Setenv("LANDING_GEAR_TRACKER_LOCK", "")
 	_, trackerPath := writeTracker(t, insertedColumnTracker)
 	lock, err := acquireTrackerLock(trackerPath, trackerLockOptions{
 		timeout: 2 * time.Second,

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import fs from "node:fs";
 import path from "node:path";
 import { createHash } from "node:crypto";
-import { careerOpsRoot } from "@/lib/career-ops";
+import { landingGearRoot } from "@/lib/landing-gear";
 import { readJsonObject } from "@/lib/json-body";
 import { jdSourceLine, pastedJdMarkdown, sameUrl } from "@/lib/lifecycle.mjs";
 import { guardText, integritySection } from "@/lib/core/posting-guard.mjs";
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
   if (text.length < MIN_TEXT) return NextResponse.json({ error: `Paste the whole job description (at least ${MIN_TEXT} characters).` }, { status: 400 });
   if (text.length > MAX_TEXT) return NextResponse.json({ error: "That is longer than a job description; paste only the posting text." }, { status: 400 });
 
-  const dir = path.join(careerOpsRoot(), "jds");
+  const dir = path.join(landingGearRoot(), "jds");
   fs.mkdirSync(dir, { recursive: true });
   // Reuse the file of an earlier paste for this URL rather than adding a second source.
   const earlier = fs

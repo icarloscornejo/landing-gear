@@ -113,7 +113,7 @@ function runUpdater(cwd, args, env) {
     // Nobody has main.
     fx.g(fx.wt, 'checkout', '-q', 'feature');
     const orphan = worktreeUpdateTarget(fx.wt);
-    if (orphan?.error && orphan.error.includes('no checkout has \'main\'') && orphan.error.includes('CAREER_OPS_UPDATE_IN_WORKTREE')) {
+    if (orphan?.error && orphan.error.includes('no checkout has \'main\'') && orphan.error.includes('LANDING_GEAR_UPDATE_IN_WORKTREE')) {
       pass('worktreeUpdateTarget refuses with an actionable error when main is checked out nowhere');
     } else {
       fail(`worktreeUpdateTarget with main checked out nowhere returned ${JSON.stringify(orphan)}`);
@@ -135,9 +135,9 @@ function runUpdater(cwd, args, env) {
     }
 
     rmSync(join(fx.main, '.update-dismissed'), { force: true });
-    const here = runUpdater(fx.wt, ['dismiss', '--version', '9.9.9'], { ...fx.env, CAREER_OPS_UPDATE_IN_WORKTREE: '1' });
+    const here = runUpdater(fx.wt, ['dismiss', '--version', '9.9.9'], { ...fx.env, LANDING_GEAR_UPDATE_IN_WORKTREE: '1' });
     if (here.status === 0 && existsSync(join(fx.wt, '.update-dismissed')) && !existsSync(join(fx.main, '.update-dismissed'))) {
-      pass('CAREER_OPS_UPDATE_IN_WORKTREE=1 keeps the command in the worktree');
+      pass('LANDING_GEAR_UPDATE_IN_WORKTREE=1 keeps the command in the worktree');
     } else {
       fail(`opt-out dismiss exited ${here.status}; stderr ${JSON.stringify(here.stderr.slice(0, 300))}`);
     }

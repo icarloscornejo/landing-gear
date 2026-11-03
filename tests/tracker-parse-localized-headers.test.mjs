@@ -76,11 +76,11 @@ for (const [mode, date, company, role] of markets) {
       writeFileSync(tracker, `${lines.slice(0, 2).join('\n')}\n`);
       writeFileSync(join(additions, '041-acme.tsv'), `${fields.map(k => labels[k]).join('\t')}\n${fields.map(k => values[k]).join('\t')}\n`);
       const env = {
-        ...process.env, CAREER_OPS_ROOT: work, CAREER_OPS_DATA_DIR: work,
-        CAREER_OPS_TRACKER: tracker, CAREER_OPS_ADDITIONS: additions, CAREER_OPS_BATCH_STATE: isolatedBatchStatePath(additions),
-        CAREER_OPS_REPORTS: join(work, 'reports'), CAREER_OPS_TRACKER_DB: join(work, 'tracker.db'),
-        CAREER_OPS_PDF_INDEX: join(work, 'data', 'pdf-index.tsv'),
-        CAREER_OPS_TRACKER_LOCK: join(work, 'tracker.lock'),
+        ...process.env, LANDING_GEAR_ROOT: work, LANDING_GEAR_DATA_DIR: work,
+        LANDING_GEAR_TRACKER: tracker, LANDING_GEAR_ADDITIONS: additions, LANDING_GEAR_BATCH_STATE: isolatedBatchStatePath(additions),
+        LANDING_GEAR_REPORTS: join(work, 'reports'), LANDING_GEAR_TRACKER_DB: join(work, 'tracker.db'),
+        LANDING_GEAR_PDF_INDEX: join(work, 'data', 'pdf-index.tsv'),
+        LANDING_GEAR_TRACKER_LOCK: join(work, 'tracker.lock'),
       };
       execFileSync(NODE, [join(ROOT, 'merge-tracker.mjs')], { env, encoding: 'utf8', timeout: 30000, stdio: ['ignore', 'pipe', 'pipe'] });
       const merged = readFileSync(tracker, 'utf8').split('\n');

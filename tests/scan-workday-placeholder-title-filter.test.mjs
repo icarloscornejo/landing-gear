@@ -60,15 +60,15 @@ function runScan(portalsYml) {
     writeFileSync(preload, PRELOAD);
     const log = join(dir, 'requests.log');
     const env = { ...process.env };
-    for (const name of ['CAREER_OPS_PORTALS', 'CAREER_OPS_PROFILE', 'CAREER_OPS_PIPELINE', 'CAREER_OPS_SCAN_HISTORY', 'CAREER_OPS_ROOT', 'CAREER_OPS_DATA_DIR']) delete env[name];
+    for (const name of ['LANDING_GEAR_PORTALS', 'LANDING_GEAR_PROFILE', 'LANDING_GEAR_PIPELINE', 'LANDING_GEAR_SCAN_HISTORY', 'LANDING_GEAR_ROOT', 'LANDING_GEAR_DATA_DIR']) delete env[name];
     const run = spawnSync(process.execPath, ['--import', pathToFileURL(preload).href, join(ROOT, 'scan.mjs'), '--dry-run'], {
       cwd: dir,
       encoding: 'utf-8',
       timeout: 60_000,
       env: {
         ...env,
-        CAREER_OPS_ROOT: dir,
-        CAREER_OPS_PORTALS: portals,
+        LANDING_GEAR_ROOT: dir,
+        LANDING_GEAR_PORTALS: portals,
         FAKE_WD_LOG: log,
         FAKE_WD_CXS: CXS,
         FAKE_WD_PAGE: JSON.stringify(PAGE),

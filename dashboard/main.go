@@ -12,11 +12,11 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/santifer/career-ops/dashboard/internal/data"
-	"github.com/santifer/career-ops/dashboard/internal/i18n"
-	"github.com/santifer/career-ops/dashboard/internal/model"
-	"github.com/santifer/career-ops/dashboard/internal/theme"
-	"github.com/santifer/career-ops/dashboard/internal/ui/screens"
+	"github.com/icarloscornejo/landing-gear/dashboard/internal/data"
+	"github.com/icarloscornejo/landing-gear/dashboard/internal/i18n"
+	"github.com/icarloscornejo/landing-gear/dashboard/internal/model"
+	"github.com/icarloscornejo/landing-gear/dashboard/internal/theme"
+	"github.com/icarloscornejo/landing-gear/dashboard/internal/ui/screens"
 )
 
 type viewState int
@@ -34,7 +34,7 @@ type appModel struct {
 	progress        screens.ProgressModel
 	stats           screens.StatsModel
 	state           viewState
-	careerOpsPath   string
+	landingGearPath   string
 	theme           theme.Theme
 	progressMetrics model.ProgressMetrics
 	statsMetrics    model.StatsMetrics
@@ -42,7 +42,7 @@ type appModel struct {
 }
 
 func (m *appModel) reloadPipelineData() {
-	apps, trackerErr := data.ParseApplications(m.careerOpsPath)
+	apps, trackerErr := data.ParseApplications(m.landingGearPath)
 	if trackerErr != nil {
 		// Retain every derived value and surface the failure, the same way the
 		// status-ledger read below does. Rebuilding from a failed read would
@@ -53,7 +53,7 @@ func (m *appModel) reloadPipelineData() {
 		return
 	}
 	metrics := data.ComputeMetrics(apps)
-	ledger, historyErr := data.ReadStatusLedger(m.careerOpsPath)
+	ledger, historyErr := data.ReadStatusLedger(m.landingGearPath)
 	if historyErr == nil {
 		m.progressMetrics = data.ComputeProgressMetrics(apps, ledger.Reached)
 	}
@@ -61,7 +61,7 @@ func (m *appModel) reloadPipelineData() {
 	// back to each row's tracker date while current statuses still refresh.
 	data.ApplyStatusDates(apps, ledger.LatestDate)
 	m.pipeline = m.pipeline.WithReloadedData(apps, metrics)
-	enrichArchetypes(m.careerOpsPath, apps, &m.pipeline)
+	enrichArchetypes(m.landingGearPath, apps, &m.pipeline)
 	m.statsMetrics = data.ComputeStatsMetrics(apps)
 	// Count only apps with a score so the header reflects evaluated offers.
 	m.evaluatedCount = 0
@@ -81,12 +81,12 @@ func (m *appModel) reloadPipelineData() {
 // the stats screen's breakdown table) and, as a side effect, primes the
 // pipeline model's report preview cache the same way main()'s startup loop
 // does — so a manual refresh doesn't blank out report previews.
-func enrichArchetypes(careerOpsPath string, apps []model.CareerApplication, pm *screens.PipelineModel) {
+func enrichArchetypes(landingGearPath string, apps []model.CareerApplication, pm *screens.PipelineModel) {
 	for i := range apps {
 		if apps[i].ReportPath == "" {
 			continue
 		}
-		archetype, tldr, remote, comp := data.LoadReportSummary(careerOpsPath, apps[i].ReportPath)
+		archetype, tldr, remote, comp := data.LoadReportSummary(landingGearPath, apps[i].ReportPath)
 		// Only overwrite when the report actually supplies a non-empty archetype;
 		// preserve any value already derived from the tracker.
 		if archetype != "" {
@@ -134,12 +134,12 @@ func (m appModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Quit
 
 	case screens.PipelineLoadReportMsg:
-		archetype, tldr, remote, comp := data.LoadReportSummary(msg.CareerOpsPath, msg.ReportPath)
+		archetype, tldr, remote, comp := data.LoadReportSummary(msg.LandingGearPath, msg.ReportPath)
 		m.pipeline.EnrichReport(msg.ReportPath, archetype, tldr, remote, comp)
 		return m, nil
 
 	case screens.PipelineUpdateStatusMsg:
-		err := data.UpdateApplicationStatus(msg.CareerOpsPath, msg.App, msg.NewStatus)
+		err := data.UpdateApplicationStatus(msg.LandingGearPath, msg.App, msg.NewStatus)
 		m.reloadPipelineData()
 		if err != nil {
 			m.pipeline, _ = m.pipeline.Update(screens.StatusUpdateFailedMsg{Err: err.Error()})
@@ -150,7 +150,7 @@ func (m appModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case screens.PipelineUpdateStatusAndNotesMsg:
 		// Issue 1380: atomic status + notes write from the discard reason picker.
-		err := data.UpdateApplicationStatusAndNotes(msg.CareerOpsPath, msg.App, msg.NewStatus, msg.NotesAppend)
+		err := data.UpdateApplicationStatusAndNotes(msg.LandingGearPath, msg.App, msg.NewStatus, msg.NotesAppend)
 		m.reloadPipelineData()
 		if err != nil {
 			m.pipeline, _ = m.pipeline.Update(screens.StatusUpdateFailedMsg{Err: err.Error()})
@@ -164,7 +164,7 @@ func (m appModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case screens.PipelineOpenReportMsg:
 		m.viewer = screens.NewViewerModel(
 			m.theme,
-			m.careerOpsPath,
+			m.landingGearPath,
 			msg.Path, msg.Title,
 			m.pipeline.Width(), m.pipeline.Height(),
 			msg.App,
@@ -194,7 +194,7 @@ func (m appModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 
-		err := data.UpdateApplicationStatus(m.careerOpsPath, msg.App, msg.NewStatus)
+		err := data.UpdateApplicationStatus(m.landingGearPath, msg.App, msg.NewStatus)
 		m.reloadPipelineData()
 		if err != nil {
 			// A sidecar failure can follow a successful tracker write. Reflect
@@ -204,7 +204,7 @@ func (m appModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				savedStatus, matches := "", 0
 				// A failed re-read leaves matches at 0, so the displayed status
 				// stays as it was — which is what the comment above promises.
-				saved, _ := data.ParseApplications(m.careerOpsPath)
+				saved, _ := data.ParseApplications(m.landingGearPath)
 				for _, app := range saved {
 					if app.ReportNumber == msg.App.ReportNumber {
 						savedStatus = app.Status
@@ -307,7 +307,7 @@ func runGeneratePDF(msg screens.PipelineGeneratePDFMsg) tea.Cmd {
 		if err != nil {
 			return screens.PipelinePDFGeneratedMsg{Err: err.Error()}
 		}
-		root, err := filepath.Abs(msg.CareerOpsPath)
+		root, err := filepath.Abs(msg.LandingGearPath)
 		if err != nil {
 			return screens.PipelinePDFGeneratedMsg{Err: err.Error()}
 		}
@@ -321,17 +321,17 @@ func runGeneratePDF(msg screens.PipelineGeneratePDFMsg) tea.Cmd {
 		}
 		cmd := exec.Command("node", args...)
 		cmd.Dir = filepath.Dir(script)
-		cmd.Env = append(cmd.Environ(), "CAREER_OPS_ROOT="+root)
+		cmd.Env = append(cmd.Environ(), "LANDING_GEAR_ROOT="+root)
 		// Preserve relative overrides before changing the child's working directory.
-		if tracker := resolveEnvPath(os.Getenv("CAREER_OPS_TRACKER")); tracker != "" {
-			cmd.Env = append(cmd.Env, "CAREER_OPS_TRACKER="+tracker)
+		if tracker := resolveEnvPath(os.Getenv("LANDING_GEAR_TRACKER")); tracker != "" {
+			cmd.Env = append(cmd.Env, "LANDING_GEAR_TRACKER="+tracker)
 		}
-		if index := os.Getenv("CAREER_OPS_PDF_INDEX"); index != "" {
+		if index := os.Getenv("LANDING_GEAR_PDF_INDEX"); index != "" {
 			absolute, err := filepath.Abs(index)
 			if err != nil {
 				return screens.PipelinePDFGeneratedMsg{Err: err.Error()}
 			}
-			cmd.Env = append(cmd.Env, "CAREER_OPS_PDF_INDEX="+absolute)
+			cmd.Env = append(cmd.Env, "LANDING_GEAR_PDF_INDEX="+absolute)
 		}
 		out, err := cmd.CombinedOutput()
 		if err != nil {
@@ -371,7 +371,7 @@ func (m appModel) View() string {
 }
 
 // getRepoRoot defers to internal/data, which already walks up from cwd looking
-// for path-resolver.mjs and is the function a relative CAREER_OPS_TRACKER
+// for path-resolver.mjs and is the function a relative LANDING_GEAR_TRACKER
 // resolves through.
 //
 // This used to be a second, shorter search — cwd and cwd's PARENT, then a
@@ -419,7 +419,7 @@ func resolveEnvPath(envVal string) string {
 		}
 		resolved := filepath.Clean(filepath.Join(cwd, trimmed))
 		fmt.Fprintf(os.Stderr,
-			"Warning: no career-ops checkout found above the working directory or the executable, "+
+			"Warning: no landing-gear checkout found above the working directory or the executable, "+
 				"so the relative path %q was resolved against the working directory: %s\n"+
 				"         The .mjs scripts resolve it against the repository root, so they may be using a "+
 				"different tracker. Pass an absolute path or --path to be sure.\n",
@@ -431,12 +431,12 @@ func resolveEnvPath(envVal string) string {
 
 func main() {
 	defaultPath := getRepoRoot()
-	if envPath := resolveEnvPath(os.Getenv("CAREER_OPS_ROOT")); envPath != "" {
+	if envPath := resolveEnvPath(os.Getenv("LANDING_GEAR_ROOT")); envPath != "" {
 		defaultPath = envPath
-	} else if envPath := resolveEnvPath(os.Getenv("CAREER_OPS_DATA_DIR")); envPath != "" {
+	} else if envPath := resolveEnvPath(os.Getenv("LANDING_GEAR_DATA_DIR")); envPath != "" {
 		defaultPath = envPath
 	} else {
-		markerFile := filepath.Join(getRepoRoot(), ".career-ops-data")
+		markerFile := filepath.Join(getRepoRoot(), ".landing-gear-data")
 		if content, err := os.ReadFile(markerFile); err == nil {
 			trimmed := strings.TrimSpace(string(content))
 			if trimmed != "" {
@@ -448,7 +448,7 @@ func main() {
 			}
 		}
 	}
-	pathFlag := flag.String("path", defaultPath, "Path to career-ops directory")
+	pathFlag := flag.String("path", defaultPath, "Path to landing-gear directory")
 	langFlag := flag.String("lang", "", "Language for UI (en, tr). Defaults to auto-detect/en.")
 	flag.Parse()
 
@@ -458,16 +458,16 @@ func main() {
 		i18n.SetLang(os.Getenv("LANG"))
 	}
 
-	careerOpsPath := *pathFlag
+	landingGearPath := *pathFlag
 
 	// Load applications
-	apps, trackerErr := data.ParseApplications(careerOpsPath)
+	apps, trackerErr := data.ParseApplications(landingGearPath)
 	if trackerErr != nil {
 		// Absent is a first run and keeps the original wording. Anything else is
 		// a file that IS there and could not be opened, and saying "could not
 		// find" sent the user looking for a file sitting in front of them.
 		if errors.Is(trackerErr, fs.ErrNotExist) {
-			fmt.Fprintf(os.Stderr, "Error: could not find applications.md in %s or %s/data/\n", careerOpsPath, careerOpsPath)
+			fmt.Fprintf(os.Stderr, "Error: could not find applications.md in %s or %s/data/\n", landingGearPath, landingGearPath)
 		} else {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", trackerErr)
 		}
@@ -475,7 +475,7 @@ func main() {
 	}
 
 	// Compute metrics
-	ledger, err := data.ReadStatusLedger(careerOpsPath)
+	ledger, err := data.ReadStatusLedger(landingGearPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
@@ -486,14 +486,14 @@ func main() {
 
 	// Batch-load all report summaries
 	t := theme.NewTheme("auto")
-	pm := screens.NewPipelineModel(t, apps, metrics, careerOpsPath, 120, 40)
+	pm := screens.NewPipelineModel(t, apps, metrics, landingGearPath, 120, 40)
 
-	enrichArchetypes(careerOpsPath, apps, &pm)
+	enrichArchetypes(landingGearPath, apps, &pm)
 	statsMetrics := data.ComputeStatsMetrics(apps)
 
 	m := appModel{
 		pipeline:        pm,
-		careerOpsPath:   careerOpsPath,
+		landingGearPath:   landingGearPath,
 		theme:           t,
 		progressMetrics: progressMetrics,
 		statsMetrics:    statsMetrics,

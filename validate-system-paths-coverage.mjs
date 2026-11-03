@@ -58,7 +58,6 @@ try {
 const ALL_PATHS = [...SYSTEM_PATHS, ...USER_PATHS, ...LOCAL_PATHS];
 
 const EXCLUDES = [
-  '.coderabbit.yaml',
   '.editorconfig',
   '.envrc',
   '.npmignore',
@@ -98,14 +97,9 @@ const RECONCILED_NOT_CHECKED_OUT = ['.gitignore'];
 
 // Repo-only files: tracked here, deliberately never shipped to an install.
 //
-// SIGNATURES.md is the append-only ledger of who signed the manifesto. It is
-// read by nobody on an install — manifesto.mjs parses MANIFESTO.md and never
-// touches it — and it changes far more often than the code does, so while it
-// sat in SYSTEM_PATHS every new signature made check()'s content diff report
-// `system-files-changed` on every install in the world, with no `apply` able
-// to clear it for long (#4062). Excluded rather than shipped: the fix is that
-// installs stop tracking a ledger they never use.
-const REPO_ONLY = ['SIGNATURES.md'];
+// Currently empty; list a file here when it churns faster than the code and
+// nothing on an install reads it.
+const REPO_ONLY = [];
 
 // Trees that live in the repo but deliberately OUTSIDE the updater's world:
 // web/ is the experimental web UI — its own release-please component, never
@@ -151,7 +145,6 @@ if (process.argv.includes('--self-test')) {
 
   // Test explicitly excluded files
   assert(covered('.gitignore') === true, '.gitignore must be covered (excluded)');
-  assert(covered('.coderabbit.yaml') === true, '.coderabbit.yaml must be covered (excluded)');
   assert(covered('.editorconfig') === true, '.editorconfig must be covered (excluded, #1438/#1613)');
   // Pinned as the CONSTANT, not the literal: if the declaration file is ever
   // renamed, an assertion on 'config/local-paths.txt' would keep passing while
@@ -182,11 +175,6 @@ if (process.argv.includes('--self-test')) {
   assert(covered('web/package.json') === true, 'web/ tree must be covered (isolation-contract prefix exclude)');
   assert(covered('web-dashboard/index.html') === false, 'web-dashboard/ must NOT ride the web/ prefix exclude');
   assert(covered('.npmignore') === true, '.npmignore must be covered (excluded)');
-  // Asserted through the MECHANISM as well as covered(): if SIGNATURES.md ever
-  // went back into SYSTEM_PATHS, covered() would still answer true while the
-  // #4062 false-positive drift came back on every install.
-  assert(covered('SIGNATURES.md') === true, 'SIGNATURES.md must be covered (repo-only exclude, #4062)');
-  assert(!SYSTEM_PATHS.includes('SIGNATURES.md'), 'SIGNATURES.md must NOT re-enter SYSTEM_PATHS: its churn reads as system-files-changed drift on every install (#4062)');
 
   // This path is already covered by reports/ in USER_PATHS, so generic
   // coverage alone cannot prove that an updater policy was chosen.

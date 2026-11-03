@@ -4,8 +4,8 @@ import path from "node:path";
 import { codexStreamArgs, isFatalClaudeStderr, isFatalCodexStderr, parseClaudeEvent, parseCodexEvent, parseGrokEvent } from "./run-cli-support.mjs";
 import { installedCliIds, pickUsableCli } from "./cli-pick.mjs";
 
-// Server-only (node imports). The agnostic runtimes career-ops can delegate to
-// in headless mode (AGENTS.md). Install URLs from career-ops-docs.
+// Server-only (node imports). The agnostic runtimes landing-gear can delegate to
+// in headless mode (AGENTS.md). Install URLs from landing-gear-docs.
 export type CliSpec = {
   id: string;
   name: string;

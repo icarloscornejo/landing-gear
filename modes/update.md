@@ -6,17 +6,17 @@ When the user runs `/landing-gear update`, execute this interactive update flow.
 
 Run `node update-system.mjs check --force` and parse the JSON output. `--force` because the user asked: a release they said no to earlier is shown too.
 
-- If `up-to-date`: Tell the user "career-ops is up to date (v{version})." and stop.
+- If `up-to-date`: Tell the user "landing-gear is up to date (v{version})." and stop.
 - If `offline`: Tell the user "Cannot reach GitHub to check for updates. Try again later." and stop.
-- If `no-remote-version`: Tell the user "Couldn't determine the latest career-ops release right now. Try again later." and stop.
+- If `no-remote-version`: Tell the user "Couldn't determine the latest landing-gear release right now. Try again later." and stop.
 - If `update-available`: Continue to Step 2.
 
 ## Step 2 — Show What Changed
 
-Show the user what will change: the release `apply` installs, `career-ops-v{remote}`, not `main`. Run:
+Show the user what will change: the release `apply` installs, `landing-gear-v{remote}`, not `main`. Run:
 
 ```bash
-git fetch https://github.com/career-ops-hq/career-ops.git career-ops-v{remote} || {
+git fetch https://github.com/icarloscornejo/landing-gear.git landing-gear-v{remote} || {
   echo "Failed to fetch latest changes. Cannot generate an accurate diff preview."
   exit 1
 }
@@ -48,7 +48,7 @@ Present to the user as a clear summary:
 
 `changelog` can come back empty, either because the release carries no notes or because the check resolved the version without reading the releases API. Do not render the **Changelog:** line when that happens — a lone `> **Changelog:**` with nothing under it reads as a failure, and nothing failed. Use this in place of those two lines:
 
-> **Changelog:** not available for v{remote}. The release notes are at https://github.com/career-ops-hq/career-ops/releases
+> **Changelog:** not available for v{remote}. The release notes are at https://github.com/icarloscornejo/landing-gear/releases
 
 If the user wants details on specific files, show the actual diff for those files using `git diff HEAD..FETCH_HEAD -- {path}`.
 
@@ -105,9 +105,6 @@ If yes:
    If the updater printed `Update applied but NOT committed`, relay that complete block instead
    of the plain success line: include the staged state, all three recovery options and their exact
    commands, and the `--commit-on-branch` opt-in (#3846).
-
-   If the updater's output ended with its note about the CareerOps Manifesto, relay it once (do not drop it when summarizing):
-   > "One more thing: this project ships with the CareerOps Manifesto — a new way of job searching is taking shape, and you are already practicing it. Run `npm run manifesto` to read it and sign it if you want to help. No action needed."
 
 If no:
 1. Run `node update-system.mjs dismiss --version {remote}`

@@ -106,10 +106,10 @@ try {
       stdio: ['ignore', 'pipe', 'pipe'],
       env: {
         ...process.env,
-        CAREER_OPS_ROOT: work,
-        CAREER_OPS_TRACKER: tracker,
-        CAREER_OPS_ADDITIONS: additions,
-        CAREER_OPS_BATCH_STATE: join(work, 'batch-state.tsv'),
+        LANDING_GEAR_ROOT: work,
+        LANDING_GEAR_TRACKER: tracker,
+        LANDING_GEAR_ADDITIONS: additions,
+        LANDING_GEAR_BATCH_STATE: join(work, 'batch-state.tsv'),
       },
     });
     const rows = readFileSync(tracker, 'utf8').split('\n').filter(line => /^\|\s*\d+\s*\|/.test(line));

@@ -46,7 +46,7 @@ try {
 const SQLITE = { skip: sqlite ? false : 'node:sqlite unavailable' };
 
 function sandbox() {
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-history-ledger-'));
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-history-ledger-'));
   mkdirSync(join(dir, 'data'), { recursive: true });
   writeFileSync(join(dir, 'data', 'applications.md'), TRACKER);
   return {
@@ -62,10 +62,10 @@ function run(sb, script, args) {
     cwd: sb.dir, encoding: 'utf-8', timeout: 60_000,
     env: {
       ...process.env,
-      CAREER_OPS_ROOT: sb.dir,
-      CAREER_OPS_DATA_DIR: '',
-      CAREER_OPS_TRACKER: '',
-      CAREER_OPS_TRACKER_DB: '',
+      LANDING_GEAR_ROOT: sb.dir,
+      LANDING_GEAR_DATA_DIR: '',
+      LANDING_GEAR_TRACKER: '',
+      LANDING_GEAR_TRACKER_DB: '',
     },
   });
   assert.equal(r.error, undefined, `spawn failed: ${r.error?.message}`);

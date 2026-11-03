@@ -114,7 +114,7 @@ same `portals.yml` and the same scripts are behind all of them.
 | --- | --- | --- |
 | Claude Code | `claude` (then `/landing-gear`) | "Validate my `portals.yml` and tell me which entries are broken." |
 | OpenCode | `opencode` (then `/landing-gear`) | "Add Acme Corp to my portals and validate it." |
-| Codex | `codex` (plain text) | "Run career-ops: add Acme Corp to portals.yml and validate." |
+| Codex | `codex` (plain text) | "Run landing-gear: add Acme Corp to portals.yml and validate." |
 | Antigravity CLI | `agy` (then `/landing-gear`) | "Check my portals.yml for dead boards." |
 | Qwen | `qwen` | "Validate portals.yml and report broken companies." |
 | Copilot CLI | `copilot -p "…"` | `copilot -p "Validate portals.yml in this repo"` |

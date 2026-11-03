@@ -41,8 +41,8 @@ function makeRoot({ profile, legacy } = {}) {
     writeFileSync(join(root, "modes", "_profile.md"), profile);
   }
   if (legacy !== undefined) {
-    mkdirSync(join(root, ".career-ops-web"), { recursive: true });
-    writeFileSync(join(root, ".career-ops-web", "memory.md"), legacy);
+    mkdirSync(join(root, ".landing-gear-web"), { recursive: true });
+    writeFileSync(join(root, ".landing-gear-web", "memory.md"), legacy);
   }
   return root;
 }
@@ -83,7 +83,7 @@ ${NOTES_END}
   assert.match(memory, /I contributed to the billing migration/);
 });
 
-test("the legacy .career-ops-web/memory.md is still read when there is no profile", () => {
+test("the legacy .landing-gear-web/memory.md is still read when there is no profile", () => {
   // Given: an install that predates modes/_profile.md as the memory store.
   // Deleting the second fs read in readProfileMemory() is what fails this.
   const root = makeRoot({ legacy: "- Wants roles in the EU only.\n" });
@@ -136,7 +136,7 @@ test("a file where modes/ belongs is an error, not silence", () => {
   // `modes` as a FILE throws ENOTDIR. An earlier version of this file folded that
   // into absent, reasoning that nobody had written a profile either way. That was
   // wrong: `modes/` SHIPS with the repo (175 tracked files), so in a default
-  // install the directory always exists, and with a separate CAREER_OPS_ROOT an
+  // install the directory always exists, and with a separate LANDING_GEAR_ROOT an
   // absent one reports ENOENT. A file standing where the directory belongs is a
   // broken path, never a fresh install, and silence there costs the guardrails.
   const root = mkdtempSync(join(tmpdir(), "co-profile-mem-"));

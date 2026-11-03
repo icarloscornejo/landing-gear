@@ -23,7 +23,7 @@ function sandbox(prefix) {
 }
 
 function runCli(dataRoot, args) {
-  const env = { ...process.env, CAREER_OPS_ROOT: dataRoot };
+  const env = { ...process.env, LANDING_GEAR_ROOT: dataRoot };
   for (const key of NOTION_KEYS) delete env[key];
   return spawnSync(process.execPath, [PLUGINS_CLI, ...args], {
     cwd: ROOT,
@@ -42,7 +42,7 @@ function writeNotionConfig(dir) {
 }
 
 test('plugins list reads activation and .env from the configured data root', () => {
-  const dir = sandbox('career-ops-plugin-list-');
+  const dir = sandbox('landing-gear-plugin-list-');
   try {
     writeNotionConfig(dir);
     const result = runCli(dir, ['list']);
@@ -57,7 +57,7 @@ test('plugins list reads activation and .env from the configured data root', () 
 });
 
 test('plugins run loads data-root .env before its required-key gate', () => {
-  const dir = sandbox('career-ops-plugin-run-');
+  const dir = sandbox('landing-gear-plugin-run-');
   try {
     writeNotionConfig(dir);
 
@@ -76,13 +76,13 @@ test('plugins run loads data-root .env before its required-key gate', () => {
 });
 
 test('scan preloads .env from the data root instead of the caller cwd', () => {
-  const dataRoot = sandbox('career-ops-scan-env-data-');
-  const callerRoot = sandbox('career-ops-scan-env-cwd-');
-  const key = 'CAREER_OPS_SPLIT_SCAN_ENV_TEST';
+  const dataRoot = sandbox('landing-gear-scan-env-data-');
+  const callerRoot = sandbox('landing-gear-scan-env-cwd-');
+  const key = 'LANDING_GEAR_SPLIT_SCAN_ENV_TEST';
   try {
     writeFileSync(join(dataRoot, '.env'), `${key}=from-data-root\n`);
     writeFileSync(join(callerRoot, '.env'), `${key}=from-caller-cwd\n`);
-    const env = { ...process.env, CAREER_OPS_ROOT: dataRoot };
+    const env = { ...process.env, LANDING_GEAR_ROOT: dataRoot };
     delete env[key];
     const scanUrl = pathToFileURL(join(ROOT, 'scan.mjs')).href;
     const result = spawnSync(
@@ -101,7 +101,7 @@ test('scan preloads .env from the data root instead of the caller cwd', () => {
 });
 
 test('plugin activation writes config/plugins.yml under the data root', async () => {
-  const dir = sandbox('career-ops-plugin-enable-');
+  const dir = sandbox('landing-gear-plugin-enable-');
   try {
     const { setPluginEnabled } = await import(
       pathToFileURL(PLUGINS_CLI).href + `?split-root-write=${Date.now()}`
@@ -120,9 +120,9 @@ test('plugin activation writes config/plugins.yml under the data root', async ()
 });
 
 test('provider engine discovers code in code root and config in data root', async () => {
-  const codeRoot = sandbox('career-ops-plugin-code-');
-  const dataRoot = sandbox('career-ops-plugin-data-');
-  const key = 'CAREER_OPS_SPLIT_PLUGIN_TOKEN';
+  const codeRoot = sandbox('landing-gear-plugin-code-');
+  const dataRoot = sandbox('landing-gear-plugin-data-');
+  const key = 'LANDING_GEAR_SPLIT_PLUGIN_TOKEN';
   const previous = process.env[key];
   try {
     const pluginDir = join(codeRoot, 'plugins', 'split-demo');
@@ -201,12 +201,12 @@ function writeKeylessProvider(codeRoot, id) {
 }
 
 test('split checkout: plugins.yml and .env left in the code root are named with where to move them', () => {
-  const codeRoot = sandbox('career-ops-plugin-left-code-');
-  const dataRoot = sandbox('career-ops-plugin-left-data-');
+  const codeRoot = sandbox('landing-gear-plugin-left-code-');
+  const dataRoot = sandbox('landing-gear-plugin-left-data-');
   try {
     writeKeylessProvider(codeRoot, 'left-demo');
     writeFileSync(join(codeRoot, 'config', 'plugins.yml'), 'plugins:\n  left-demo:\n    enabled: true\n');
-    writeFileSync(join(codeRoot, '.env'), 'CAREER_OPS_LEFT_BEHIND=1\n');
+    writeFileSync(join(codeRoot, '.env'), 'LANDING_GEAR_LEFT_BEHIND=1\n');
 
     const result = mergeInChild(codeRoot, dataRoot);
 
@@ -232,8 +232,8 @@ test('split checkout: plugins.yml and .env left in the code root are named with 
 });
 
 test('split checkout: plugins.yml in the data root raises no left-in-code warning', () => {
-  const codeRoot = sandbox('career-ops-plugin-moved-code-');
-  const dataRoot = sandbox('career-ops-plugin-moved-data-');
+  const codeRoot = sandbox('landing-gear-plugin-moved-code-');
+  const dataRoot = sandbox('landing-gear-plugin-moved-data-');
   try {
     // A stale copy in the code root does not matter once the data root has one.
     writeFileSync(join(codeRoot, 'config', 'plugins.yml'), 'plugins: {}\n');
@@ -251,10 +251,10 @@ test('split checkout: plugins.yml in the data root raises no left-in-code warnin
 });
 
 test('single root: plugins.yml and .env beside the code raise no warning', () => {
-  const root = sandbox('career-ops-plugin-one-root-');
+  const root = sandbox('landing-gear-plugin-one-root-');
   try {
     writeFileSync(join(root, 'config', 'plugins.yml'), 'plugins: {}\n');
-    writeFileSync(join(root, '.env'), 'CAREER_OPS_ONE_ROOT=1\n');
+    writeFileSync(join(root, '.env'), 'LANDING_GEAR_ONE_ROOT=1\n');
 
     const result = mergeInChild(root, root);
 

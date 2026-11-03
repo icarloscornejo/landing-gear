@@ -151,13 +151,13 @@ for (const [explicit, path, wantKind, wantSource, label] of kindCases) {
 // silently evicted the report's real CV row. Rejecting it here also keeps the
 // PDF from being written at all, so a mislabelled artifact never reaches apply.
 {
-  const sandbox = realpathSync(mkdtempSync(join(tmpdir(), 'career-ops-kind-guard-')));
+  const sandbox = realpathSync(mkdtempSync(join(tmpdir(), 'landing-gear-kind-guard-')));
   const manifestPath = join(sandbox, 'pdf-index.tsv');
   const before = `${HEADER}\n${cvRow}\n`;
   writeFileSync(manifestPath, before, 'utf-8');
 
-  const previousIndex = process.env.CAREER_OPS_PDF_INDEX;
-  process.env.CAREER_OPS_PDF_INDEX = manifestPath;
+  const previousIndex = process.env.LANDING_GEAR_PDF_INDEX;
+  process.env.LANDING_GEAR_PDF_INDEX = manifestPath;
 
   let rendered = false;
   const launchBrowser = async () => {
@@ -192,8 +192,8 @@ for (const [explicit, path, wantKind, wantSource, label] of kindCases) {
   } catch (err) {
     thrown = err;
   } finally {
-    if (previousIndex === undefined) delete process.env.CAREER_OPS_PDF_INDEX;
-    else process.env.CAREER_OPS_PDF_INDEX = previousIndex;
+    if (previousIndex === undefined) delete process.env.LANDING_GEAR_PDF_INDEX;
+    else process.env.LANDING_GEAR_PDF_INDEX = previousIndex;
   }
 
   const after = readFileSync(manifestPath, 'utf-8');

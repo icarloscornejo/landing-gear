@@ -1,6 +1,6 @@
-# career-ops-plugin-{{NAME}}
+# landing-gear-plugin-{{NAME}}
 
-A community plugin for [career-ops](https://github.com/career-ops-hq/career-ops).
+A community plugin for [landing-gear](https://github.com/icarloscornejo/landing-gear).
 
 ## What it does
 
@@ -9,11 +9,11 @@ TODO: one paragraph.
 ## Install
 
 ```bash
-# Once it's in the career-ops registry:
+# Once it's in the landing-gear registry:
 node plugins.mjs add {{NAME}}
 
 # Before listing (install directly from your repo at a pinned commit):
-node plugins.mjs add <your-github-user>/career-ops-plugin-{{NAME}} --sha <40-hex-commit>
+node plugins.mjs add <your-github-user>/landing-gear-plugin-{{NAME}} --sha <40-hex-commit>
 ```
 
 Then enable + consent:
@@ -30,8 +30,8 @@ node plugins.mjs enable {{NAME}} --confirm  # grants it
 
 ## Get it listed as approved
 
-Open a registry PR against career-ops (see
-[docs/PLUGINS.md](https://github.com/career-ops-hq/career-ops/blob/main/docs/PLUGINS.md)).
+Open a registry PR against landing-gear (see
+[docs/PLUGINS.md](https://github.com/icarloscornejo/landing-gear/blob/main/docs/PLUGINS.md)).
 
 ## License
 

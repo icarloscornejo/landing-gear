@@ -99,7 +99,7 @@ const tex = (company, bullet) => String.raw`\documentclass{article}
 `;
 
 function workspace({ withCv = true } = {}) {
-  const root = mkdtempSync(join(tmpdir(), 'career-ops-latex-gate-'));
+  const root = mkdtempSync(join(tmpdir(), 'landing-gear-latex-gate-'));
   mkdirSync(join(root, 'output'));
   if (withCv) writeFileSync(join(root, 'cv.md'), CV);
   return root;
@@ -118,7 +118,7 @@ function runLatex(root, ...args) {
     timeout: 30_000,
     // No engine on PATH: the gate must decide before compilation is attempted,
     // and a passing document then stops at "No LaTeX engine found".
-    env: { ...envWithoutPath(), CAREER_OPS_ROOT: root, CAREER_OPS_DATA_DIR: '', PATH: dirname(process.execPath) },
+    env: { ...envWithoutPath(), LANDING_GEAR_ROOT: root, LANDING_GEAR_DATA_DIR: '', PATH: dirname(process.execPath) },
   });
   let report = null;
   try { report = JSON.parse(result.stdout); } catch { /* asserted by the caller */ }

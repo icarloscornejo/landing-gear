@@ -50,7 +50,7 @@ const HEADER = [
  *          additionVia?: string|null, additionReport?: number}} opts
  */
 function merge(opts) {
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-merge-conf-'));
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-merge-conf-'));
   try {
     const tracker = join(dir, 'applications.md');
     const addsDir = join(dir, 'adds');
@@ -72,7 +72,7 @@ function merge(opts) {
       encoding: 'utf-8',
       timeout: 30_000,
       stdio: ['ignore', 'pipe', 'pipe'],
-      env: { ...process.env, CAREER_OPS_TRACKER: tracker, CAREER_OPS_ADDITIONS: addsDir, CAREER_OPS_BATCH_STATE: isolatedBatchStatePath(addsDir) },
+      env: { ...process.env, LANDING_GEAR_TRACKER: tracker, LANDING_GEAR_ADDITIONS: addsDir, LANDING_GEAR_BATCH_STATE: isolatedBatchStatePath(addsDir) },
     });
 
     const text = readFileSync(tracker, 'utf-8');
@@ -132,7 +132,7 @@ test('a LEGACY tracker with no Via column keeps its existing behaviour', () => {
   // So #3410 is closed for a migrated tracker and unchanged for a legacy one,
   // where `--migrate-via` is the way to get the guard. Pinned so that is a
   // decision on record rather than an omission.
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-merge-legacy-'));
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-merge-legacy-'));
   try {
     const tracker = join(dir, 'applications.md');
     const addsDir = join(dir, 'adds');
@@ -149,7 +149,7 @@ test('a LEGACY tracker with no Via column keeps its existing behaviour', () => {
       ['2', '2026-02-10', '?', 'Data Engineer', 'Applied', '4.3/5', '✅', '—', 're-blast', 'via=Hays'].join('\t') + '\n');
     execFileSync(process.execPath, [join(ROOT, 'merge-tracker.mjs')], {
       encoding: 'utf-8', timeout: 30_000, stdio: ['ignore', 'pipe', 'pipe'],
-      env: { ...process.env, CAREER_OPS_TRACKER: tracker, CAREER_OPS_ADDITIONS: addsDir, CAREER_OPS_BATCH_STATE: isolatedBatchStatePath(addsDir) },
+      env: { ...process.env, LANDING_GEAR_TRACKER: tracker, LANDING_GEAR_ADDITIONS: addsDir, LANDING_GEAR_BATCH_STATE: isolatedBatchStatePath(addsDir) },
     });
     const rows = readFileSync(tracker, 'utf-8').split('\n').filter((l) => /^\|\s*\d+\s*\|/.test(l));
     assert.equal(rows.length, 1, 'a legacy same-agency re-blast must still update in place');

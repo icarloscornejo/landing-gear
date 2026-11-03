@@ -6,20 +6,20 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/santifer/career-ops/dashboard/internal/model"
+	"github.com/icarloscornejo/landing-gear/dashboard/internal/model"
 )
 
 func TestPDFKeysUseSelectedIndexAndTrackerWorkspace(t *testing.T) {
 	for _, layout := range []string{"index-override", "canonical-tracker", "legacy-tracker"} {
 		t.Run(layout, func(t *testing.T) {
-			t.Setenv("CAREER_OPS_TRACKER", "")
-			t.Setenv("CAREER_OPS_PDF_INDEX", "")
+			t.Setenv("LANDING_GEAR_TRACKER", "")
+			t.Setenv("LANDING_GEAR_PDF_INDEX", "")
 			root := t.TempDir()
 			workspace := root
 			index := filepath.Join(root, "data", "pdf-index.tsv")
 			if layout == "index-override" {
 				index = filepath.Join(t.TempDir(), "custom.tsv")
-				t.Setenv("CAREER_OPS_PDF_INDEX", index)
+				t.Setenv("LANDING_GEAR_PDF_INDEX", index)
 			} else {
 				workspace = t.TempDir()
 				tracker := "data/applications.md"
@@ -27,7 +27,7 @@ func TestPDFKeysUseSelectedIndexAndTrackerWorkspace(t *testing.T) {
 					tracker = "applications.md"
 				}
 				writePDFFixture(t, workspace, tracker)
-				t.Setenv("CAREER_OPS_TRACKER", filepath.Join(workspace, tracker))
+				t.Setenv("LANDING_GEAR_TRACKER", filepath.Join(workspace, tracker))
 				index = filepath.Join(workspace, "data", "pdf-index.tsv")
 			}
 			pdf, html := "output/cv-exact.pdf", "output/cv-exact.html"
@@ -57,7 +57,7 @@ func TestPDFKeysUseSelectedIndexAndTrackerWorkspace(t *testing.T) {
 			if generated.HTMLPath != html || generated.PDFPath != pdf {
 				t.Fatalf("wrong artifact pair: %+v", generated)
 			}
-			if _, err := os.Stat(filepath.Join(generated.CareerOpsPath, html)); err != nil {
+			if _, err := os.Stat(filepath.Join(generated.LandingGearPath, html)); err != nil {
 				t.Fatalf("regeneration used wrong workspace: %+v, %v", generated, err)
 			}
 		})
@@ -65,8 +65,8 @@ func TestPDFKeysUseSelectedIndexAndTrackerWorkspace(t *testing.T) {
 }
 
 func TestPDFKeysKeepArtifactsInWorkspaceWithSymlinkedData(t *testing.T) {
-	t.Setenv("CAREER_OPS_TRACKER", "")
-	t.Setenv("CAREER_OPS_PDF_INDEX", "")
+	t.Setenv("LANDING_GEAR_TRACKER", "")
+	t.Setenv("LANDING_GEAR_PDF_INDEX", "")
 	root, external := t.TempDir(), t.TempDir()
 	writePDFFixture(t, external, "data/applications.md")
 	if err := os.Symlink(filepath.Join(external, "data"), filepath.Join(root, "data")); err != nil {
@@ -98,7 +98,7 @@ func TestPDFKeysKeepArtifactsInWorkspaceWithSymlinkedData(t *testing.T) {
 	if cmd == nil {
 		t.Fatalf("expected regeneration request: %s", updated.flash)
 	}
-	if got := cmd().(PipelineGeneratePDFMsg); got.CareerOpsPath != root || got.PDFPath != pdf || got.HTMLPath != html {
+	if got := cmd().(PipelineGeneratePDFMsg); got.LandingGearPath != root || got.PDFPath != pdf || got.HTMLPath != html {
 		t.Fatalf("regeneration followed data symlink out of the workspace: %+v", got)
 	}
 }

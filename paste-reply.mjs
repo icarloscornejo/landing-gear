@@ -37,7 +37,7 @@
  * treated as the body and the subject is left blank.
  *
  * Env:
- *   CAREER_OPS_REPLY_CANDIDATES  override the output JSON path (used by tests;
+ *   LANDING_GEAR_REPLY_CANDIDATES  override the output JSON path (used by tests;
  *                                 defaults to data/reply-candidates.json under
  *                                 the data root, matching reply-watch.mjs's default)
  */
@@ -48,11 +48,11 @@ import readline from 'node:readline';
 import { pathToFileURL } from 'node:url';
 import { writeFileAtomic } from './tracker-utils.mjs';
 import { withPipelineLock } from './pipeline-lock.mjs';
-import { getCareerOpsRoot } from './path-resolver.mjs';
+import { getLandingGearRoot } from './path-resolver.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
 
-const DATA_ROOT = getCareerOpsRoot();
-export const CANDIDATES_PATH = process.env.CAREER_OPS_REPLY_CANDIDATES
+const DATA_ROOT = getLandingGearRoot();
+export const CANDIDATES_PATH = process.env.LANDING_GEAR_REPLY_CANDIDATES
   || path.join(DATA_ROOT, 'data', 'reply-candidates.json');
 
 

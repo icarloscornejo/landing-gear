@@ -30,7 +30,7 @@ check('tailoring two same-company reports retains both application-specific CVs'
       const html = `<html><body>Verified CV for application ${number}</body></html>`;
       const result = spawnSync(process.execPath, ['--require', stub, 'openai-tailor.mjs', '--jd', jd, '--report', report, '--url', 'http://127.0.0.1:7777/v1', '--model', 'local-fixture'], {
         cwd: new URL('..', import.meta.url), encoding: 'utf8',
-        env: { ...process.env, CAREER_OPS_ROOT: root, CAREER_OPS_DATA_DIR: '', OPENAI_API_KEY: '', TEST_TAILORED_HTML: html },
+        env: { ...process.env, LANDING_GEAR_ROOT: root, LANDING_GEAR_DATA_DIR: '', OPENAI_API_KEY: '', TEST_TAILORED_HTML: html },
       });
       assert.equal(result.error, undefined);
       assert.equal(result.status, 0, result.stdout + result.stderr);
@@ -65,7 +65,7 @@ for (const reportFilename of [
       writeFileSync(stub, `globalThis.fetch = async () => ({ ok: true, json: async () => ({ choices: [{ message: { content: '<html><body>Verified CV</body></html>' } }] }) });`);
       const result = spawnSync(process.execPath, ['--require', stub, 'openai-tailor.mjs', '--jd', jd, '--report', report, '--url', 'http://127.0.0.1:7777/v1', '--model', 'local-fixture'], {
         cwd: new URL('..', import.meta.url), encoding: 'utf8',
-        env: { ...process.env, CAREER_OPS_ROOT: root, CAREER_OPS_DATA_DIR: '', OPENAI_API_KEY: '' },
+        env: { ...process.env, LANDING_GEAR_ROOT: root, LANDING_GEAR_DATA_DIR: '', OPENAI_API_KEY: '' },
       });
       assert.equal(result.error, undefined);
       assert.equal(result.status, 0, result.stdout + result.stderr);

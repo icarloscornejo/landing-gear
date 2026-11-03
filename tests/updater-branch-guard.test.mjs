@@ -161,9 +161,9 @@ console.log('\n🧪 Testing updater branch guard (#3846)...');
 // ── 8. Where the opt-in comes from ─────────────────────────────────────
 {
   const flag = commitOnBranchOptIn([COMMIT_ON_BRANCH_FLAG], {});
-  const env = commitOnBranchOptIn([], { CAREER_OPS_UPDATE_COMMIT_ON_BRANCH: '1' });
+  const env = commitOnBranchOptIn([], { LANDING_GEAR_UPDATE_COMMIT_ON_BRANCH: '1' });
   const neither = commitOnBranchOptIn(['apply', '--confirm', '--force'], {});
-  const notOne = commitOnBranchOptIn([], { CAREER_OPS_UPDATE_COMMIT_ON_BRANCH: '0' });
+  const notOne = commitOnBranchOptIn([], { LANDING_GEAR_UPDATE_COMMIT_ON_BRANCH: '0' });
   if (flag && env && !neither && !notOne) {
     pass('opt-in reads the flag and the env twin, and nothing else');
   } else {
@@ -400,8 +400,8 @@ function stashStagedArgs(g) {
   const [major, minor] = [Number(version[1]), Number(version[2])];
   const supportsStagedStash = major > 2 || (major === 2 && minor >= 35);
   return supportsStagedStash
-    ? ['stash', 'push', '--staged', '-m', 'career-ops']
-    : ['stash', 'push', '-m', 'career-ops'];
+    ? ['stash', 'push', '--staged', '-m', 'landing-gear']
+    : ['stash', 'push', '-m', 'landing-gear'];
 }
 
 // ── 12. NEGATIVE CONTROL + fix: pending snapshot is not a local edit ────

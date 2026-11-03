@@ -5,8 +5,8 @@
  * Plain .mjs (same pattern as clean-chips.mjs) so node:test and client bundles
  * can import it without a TS runner or Node-only deps.
  *
- * WHY A COPY EXISTS AT ALL: the live core lives in the user's career-ops
- * checkout and is resolved at runtime via careerOpsRoot() — unavailable in the
+ * WHY A COPY EXISTS AT ALL: the live core lives in the user's landing-gear
+ * checkout and is resolved at runtime via landingGearRoot() — unavailable in the
  * browser. Server code prefers the live export through getNormalizeTextKey()
  * in text-key.ts; this file is for (a) client components and (b) the last-resort
  * fallback when the core module can't be loaded.

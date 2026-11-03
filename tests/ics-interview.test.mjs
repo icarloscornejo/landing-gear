@@ -185,7 +185,7 @@ eq('DST: July wall time is UTC-4', new Date(wallToInstant({ y: 2026, mo: 7, d: 1
   try {
     const f = join(dir, 'invite.ics');
     writeFileSync(f, ics('SUMMARY:Chat', 'DTSTART;TZID=America/Toronto:20261105T140000', 'DTEND;TZID=America/Toronto:20261105T144500'));
-    const env = { ...process.env, CAREER_OPS_ROOT: dir, CAREER_OPS_PROFILE: '' };
+    const env = { ...process.env, LANDING_GEAR_ROOT: dir, LANDING_GEAR_PROFILE: '' };
     const out = JSON.parse(execFileSync(process.execPath, [SCRIPT, f, '--tz', 'UTC'], { encoding: 'utf-8', env }));
     eq('cli: JSON display zone', out.displayZone, { zone: 'UTC', source: '--tz' });
     eq('cli: JSON display time', out.event.display.start.time, '19:00');

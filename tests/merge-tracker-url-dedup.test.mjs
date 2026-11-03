@@ -1,7 +1,7 @@
 // tests/merge-tracker-url-dedup.test.mjs — URL-keyed deterministic dedup.
 //
 // Drives the REAL merge-tracker.mjs CLI end-to-end against a temp tracker via
-// the CAREER_OPS_TRACKER / CAREER_OPS_ADDITIONS env hooks — the merge path is
+// the LANDING_GEAR_TRACKER / LANDING_GEAR_ADDITIONS env hooks — the merge path is
 // where the bug lived, so asserting on the resulting tracker rows is what
 // actually proves the fix. normalizeUrl's own unit cases live in
 // tests/url-key.test.mjs.
@@ -42,21 +42,21 @@ function addTsv(env, name, cols) {
   writeFileSync(join(env.addDir, name), cols.join('\t'));
 }
 function runMerge(env, args = []) {
-  // Pin the data root to the fixture and drop every other CAREER_OPS_* override,
+  // Pin the data root to the fixture and drop every other LANDING_GEAR_* override,
   // the way merge-tracker-cli-roots.test.mjs does. Spreading process.env alone
-  // let CAREER_OPS_ROOT, CAREER_OPS_DATA_DIR, CAREER_OPS_BATCH_STATE and
-  // CAREER_OPS_CODE_ROOT through from whoever ran the suite, so a developer's
+  // let LANDING_GEAR_ROOT, LANDING_GEAR_DATA_DIR, LANDING_GEAR_BATCH_STATE and
+  // LANDING_GEAR_CODE_ROOT through from whoever ran the suite, so a developer's
   // real batch-state could decide whether a fixture row merged.
   const childEnv = {
     ...process.env,
-    CAREER_OPS_ROOT: env.base,
-    CAREER_OPS_TRACKER: env.tracker,
-    CAREER_OPS_ADDITIONS: env.addDir,
-    CAREER_OPS_BATCH_STATE: isolatedBatchStatePath(env.addDir),
+    LANDING_GEAR_ROOT: env.base,
+    LANDING_GEAR_TRACKER: env.tracker,
+    LANDING_GEAR_ADDITIONS: env.addDir,
+    LANDING_GEAR_BATCH_STATE: isolatedBatchStatePath(env.addDir),
   };
-  delete childEnv.CAREER_OPS_DATA_DIR;
-  delete childEnv.CAREER_OPS_BATCH_STATE;
-  delete childEnv.CAREER_OPS_CODE_ROOT;
+  delete childEnv.LANDING_GEAR_DATA_DIR;
+  delete childEnv.LANDING_GEAR_BATCH_STATE;
+  delete childEnv.LANDING_GEAR_CODE_ROOT;
   return execFileSync('node', [MERGE, ...args], { encoding: 'utf-8', env: childEnv });
 }
 function trackerRows(env) {
@@ -564,10 +564,10 @@ ok('row with `---` in its URL (Workday slug) stays visible to dedup', () => {
   } finally { cleanup(env); }
 });
 
-// runMerge spreads process.env and overrides only CAREER_OPS_TRACKER and
-// CAREER_OPS_ADDITIONS, so CAREER_OPS_ROOT, CAREER_OPS_DATA_DIR,
-// CAREER_OPS_BATCH_STATE and CAREER_OPS_CODE_ROOT leak in from whatever shell
-// runs the suite. merge-tracker.mjs:68 says CAREER_OPS_BATCH_STATE exists "used
+// runMerge spreads process.env and overrides only LANDING_GEAR_TRACKER and
+// LANDING_GEAR_ADDITIONS, so LANDING_GEAR_ROOT, LANDING_GEAR_DATA_DIR,
+// LANDING_GEAR_BATCH_STATE and LANDING_GEAR_CODE_ROOT leak in from whatever shell
+// runs the suite. merge-tracker.mjs:68 says LANDING_GEAR_BATCH_STATE exists "used
 // by tests", and this suite was the one not using it.
 //
 // The leak is observable because a batch-state row marked `failed` for a report
@@ -578,12 +578,12 @@ ok('row with `---` in its URL (Workday slug) stays visible to dedup', () => {
 ok('the merge ignores a batch-state inherited from the environment', () => {
   const env = makeEnv();
   const canary = join(env.base, '..', `leaked-batch-state-${process.pid}.tsv`);
-  const saved = process.env.CAREER_OPS_BATCH_STATE;
+  const saved = process.env.LANDING_GEAR_BATCH_STATE;
   try {
     // Six columns, status 'failed' at index 2 and the report number at index 5,
     // which is the shape loadFailedReportNumbers() reads.
     writeFileSync(canary, ['id\tx\tstatus\tx\tx\treport', 'w1\t-\tfailed\t-\t-\t7'].join('\n'));
-    process.env.CAREER_OPS_BATCH_STATE = canary;
+    process.env.LANDING_GEAR_BATCH_STATE = canary;
 
     writeTracker(env, []);
     addTsv(env, '7-acme.tsv', ['7', '2026-06-25', 'Acme', 'Head of Marketing', 'Evaluated', '4.0/5', '❌',
@@ -593,8 +593,8 @@ ok('the merge ignores a batch-state inherited from the environment', () => {
     const rows = trackerRows(env);
     assert.equal(rows.length, 1, 'the row merged, so the inherited batch-state was not consulted');
   } finally {
-    if (saved === undefined) delete process.env.CAREER_OPS_BATCH_STATE;
-    else process.env.CAREER_OPS_BATCH_STATE = saved;
+    if (saved === undefined) delete process.env.LANDING_GEAR_BATCH_STATE;
+    else process.env.LANDING_GEAR_BATCH_STATE = saved;
     rmSync(canary, { force: true });
     cleanup(env);
   }

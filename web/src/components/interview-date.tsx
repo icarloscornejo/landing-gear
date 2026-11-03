@@ -6,7 +6,7 @@ import { DATED_PHASES, currentMark, isOpenApplied } from "@/lib/lifecycle.mjs";
 import { formatInterviewDate, isoToWall } from "@/lib/interview-date.mjs";
 import { useLifecyclePost } from "@/lib/use-lifecycle-post";
 import { cn } from "@/lib/cn";
-import type { Application } from "@/lib/career-ops";
+import type { Application } from "@/lib/landing-gear";
 
 // The date of the round a row is in (house rule 25), shown and edited in place.
 // `expected` overrides the phase this control was drawn for, for a card that has

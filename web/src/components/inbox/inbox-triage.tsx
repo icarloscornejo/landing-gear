@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search, Undo2 } from "lucide-react";
 import { useJobs } from "@/components/jobs/job-store";
-import type { InboxJob } from "@/lib/career-ops";
+import type { InboxJob } from "@/lib/landing-gear";
 import type { AtsSource } from "@/lib/explore";
 import { daysSince, sourceFromUrl } from "@/lib/inbox";
 import { splitTriageLabel } from "@/lib/lifecycle.mjs";
@@ -14,9 +14,9 @@ import { cn } from "@/lib/cn";
 import { estimateRunCost } from "@/lib/run-cost-estimate.mjs";
 import { createInboxSkipActions, queueInboxSkip } from "@/lib/inbox-skip-client.mjs";
 
-const SHORTLIST_KEY = "career-ops:shortlist";
-const HIDDEN_KEY = "career-ops:hidden";
-const CONFIG_KEY = "career-ops:config";
+const SHORTLIST_KEY = "landing-gear:shortlist";
+const HIDDEN_KEY = "landing-gear:hidden";
+const CONFIG_KEY = "landing-gear:config";
 type UndoNotice = { label: string; fn: () => Promise<void>; busy?: boolean; error?: string };
 
 // The inbox as a TRIAGE surface: Abundance → Triage → Shortlist → Opt-in Score.

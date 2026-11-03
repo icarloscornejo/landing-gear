@@ -39,7 +39,7 @@
  *   - the same fixture IS drift without the exclusion                  (the bug, reproduced)
  *   - a genuine upstream change to .agents/skills/landing-gear/SKILL.md
  *     (the canonical file the entrypoints point at) is STILL drift      (nothing hidden)
- *   - a genuine upstream change under scaffolder/ (the entrypoint
+ *   - a genuine upstream change under lib/ (the entrypoint
  *     mechanism itself) is STILL drift                                 (nothing hidden)
  *   - an empty skillEntrypoints list is a no-op (pathspec unchanged)
  */
@@ -50,7 +50,7 @@ import { join } from 'path';
 import { pass, fail, rmSync, ROOT, hermeticGitRunner } from './helpers.mjs';
 import { gitIn, systemTreeDiffers, driftPathspecExcludingSkillEntrypoints } from '../update-system.mjs';
 
-const SYSTEM_PATHS = ['scan.mjs', '.agents/', '.claude/skills/', 'scaffolder/'];
+const SYSTEM_PATHS = ['scan.mjs', '.agents/', '.claude/skills/', 'lib/'];
 const ENTRYPOINT_PATH = '.claude/skills/landing-gear/SKILL.md';
 const SKILL_ENTRYPOINTS = [{ path: ENTRYPOINT_PATH }];
 const POINTER_TEXT = '../../../.agents/skills/landing-gear/SKILL.md';
@@ -79,10 +79,10 @@ function makeOrigin() {
   g('init', '-q', '-b', 'main', '.');
   sealFixtureRepo(dir, g);
   mkdirSync(join(dir, '.agents/skills/landing-gear'), { recursive: true });
-  mkdirSync(join(dir, 'scaffolder/bin'), { recursive: true });
+  mkdirSync(join(dir, 'lib'), { recursive: true });
   writeFileSync(join(dir, 'scan.mjs'), '// scan v1\n');
   writeFileSync(join(dir, '.agents/skills/landing-gear/SKILL.md'), 'canonical skill content v1\n');
-  writeFileSync(join(dir, 'scaffolder/bin/skill-entrypoints.mjs'), '// entrypoints v1\n');
+  writeFileSync(join(dir, 'lib/skill-entrypoints.mjs'), '// entrypoints v1\n');
   g('add', '-A');
   // The entrypoint ships as a real symlink upstream: git mode 120000, blob
   // content is the pointer TEXT, not the target's content. The runner has no
@@ -207,7 +207,7 @@ console.log('\n🧪 Testing updater drift detection over materialized skill entr
     materializeAndCommit(install);
     install.g('fetch', '-q', origin.dir, 'main');
 
-    writeFileSync(join(origin.dir, 'scaffolder/bin/skill-entrypoints.mjs'), '// entrypoints v2 — new CLI added\n');
+    writeFileSync(join(origin.dir, 'lib/skill-entrypoints.mjs'), '// entrypoints v2 — new CLI added\n');
     origin.g('add', '-A');
     origin.g('commit', '-qm', 'genuine entrypoint mechanism update');
     install.g('fetch', '-q', origin.dir, 'main');
@@ -215,9 +215,9 @@ console.log('\n🧪 Testing updater drift detection over materialized skill entr
     const runGit = (...a) => gitIn(install.dir, ...a);
     const excludedPaths = driftPathspecExcludingSkillEntrypoints(SYSTEM_PATHS, SKILL_ENTRYPOINTS);
     if (systemTreeDiffers(excludedPaths, 'FETCH_HEAD', { git: runGit }) === true) {
-      pass('a genuine upstream change to the entrypoint mechanism (scaffolder/) is still detected as drift');
+      pass('a genuine upstream change to the entrypoint mechanism (lib/) is still detected as drift');
     } else {
-      fail('REGRESSION: a real change under scaffolder/ was hidden by the exclusion');
+      fail('REGRESSION: a real change under lib/ was hidden by the exclusion');
     }
   } finally {
     cleanup(origin.dir, install.dir);

@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import * as yaml from "js-yaml";
-import { careerOpsRoot, rootScript } from "@/lib/career-ops";
+import { landingGearRoot, rootScript } from "@/lib/landing-gear";
 import { writeTempPortals, cleanupTempPortals } from "./portals";
 import { profileTargetKeywords } from "@/lib/profile-keywords.mjs";
 import { titleFit } from "@/lib/title-fit.mjs";
@@ -54,7 +54,7 @@ function firstMatch(title: string, positives: string[]): string | undefined {
  */
 function loadProfileTargets(): string[] {
   try {
-    const doc = yaml.load(fs.readFileSync(path.join(careerOpsRoot(), "config", "profile.yml"), "utf8"));
+    const doc = yaml.load(fs.readFileSync(path.join(landingGearRoot(), "config", "profile.yml"), "utf8"));
     return profileTargetKeywords(doc && typeof doc === "object" ? (doc as Record<string, unknown>) : null);
   } catch {
     return [];
@@ -161,7 +161,7 @@ type ScanJson = {
 // the default (a broken config must not block scanning).
 function readScanTimeoutMs(): number {
   try {
-    const parsed = yaml.load(fs.readFileSync(path.join(careerOpsRoot(), "config", "profile.yml"), "utf8"));
+    const parsed = yaml.load(fs.readFileSync(path.join(landingGearRoot(), "config", "profile.yml"), "utf8"));
     return resolveScanTimeoutMs(parsed);
   } catch {
     return resolveScanTimeoutMs(undefined);
@@ -208,8 +208,8 @@ function runScanner(
     if (useJson) args.push("--json");
 
     const child = spawn(process.execPath, args, {
-      cwd: careerOpsRoot(),
-      env: { ...process.env, CAREER_OPS_PORTALS: tempPortals },
+      cwd: landingGearRoot(),
+      env: { ...process.env, LANDING_GEAR_PORTALS: tempPortals },
     });
 
     const { offers, seen } = sink;

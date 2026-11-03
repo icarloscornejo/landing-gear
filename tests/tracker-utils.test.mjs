@@ -70,12 +70,12 @@ test('normalizeCompany preserves meaningful non-Latin company names', () => {
 });
 
 test('tracker paths follow the workspace selected by the tracker', () => {
-  const root = mkdtempSync(join(tmpdir(), 'career-ops-tracker-utils-'));
-  const oldTracker = process.env.CAREER_OPS_TRACKER;
-  const oldPdfIndex = process.env.CAREER_OPS_PDF_INDEX;
+  const root = mkdtempSync(join(tmpdir(), 'landing-gear-tracker-utils-'));
+  const oldTracker = process.env.LANDING_GEAR_TRACKER;
+  const oldPdfIndex = process.env.LANDING_GEAR_PDF_INDEX;
   try {
-    delete process.env.CAREER_OPS_TRACKER;
-    delete process.env.CAREER_OPS_PDF_INDEX;
+    delete process.env.LANDING_GEAR_TRACKER;
+    delete process.env.LANDING_GEAR_PDF_INDEX;
     mkdirSync(join(root, 'data'));
     writeFileSync(join(root, 'data', 'applications.md'), '# tracker\n');
     const tracker = resolveTrackerPath(root);
@@ -84,13 +84,13 @@ test('tracker paths follow the workspace selected by the tracker', () => {
     assert.equal(resolvePdfIndexPath(tracker), join(canonicalRoot, 'data', 'pdf-index.tsv'));
 
     const alternate = join(root, 'custom-applications.md');
-    process.env.CAREER_OPS_TRACKER = alternate;
+    process.env.LANDING_GEAR_TRACKER = alternate;
     assert.equal(resolveTrackerPath(root), alternate);
   } finally {
-    if (oldTracker === undefined) delete process.env.CAREER_OPS_TRACKER;
-    else process.env.CAREER_OPS_TRACKER = oldTracker;
-    if (oldPdfIndex === undefined) delete process.env.CAREER_OPS_PDF_INDEX;
-    else process.env.CAREER_OPS_PDF_INDEX = oldPdfIndex;
+    if (oldTracker === undefined) delete process.env.LANDING_GEAR_TRACKER;
+    else process.env.LANDING_GEAR_TRACKER = oldTracker;
+    if (oldPdfIndex === undefined) delete process.env.LANDING_GEAR_PDF_INDEX;
+    else process.env.LANDING_GEAR_PDF_INDEX = oldPdfIndex;
     rmSync(root, { recursive: true, force: true });
   }
 });
@@ -104,12 +104,12 @@ test('status input resolves through the canonical states file', () => {
 });
 
 test('resolveWorkspaceRootFor keeps a symlinked data/ inside the repo (#3169)', () => {
-  const parent = mkdtempSync(join(tmpdir(), 'career-ops-symlinked-data-'));
+  const parent = mkdtempSync(join(tmpdir(), 'landing-gear-symlinked-data-'));
   const repo = join(parent, 'repo');
   const external = join(parent, 'external');
-  const oldTracker = process.env.CAREER_OPS_TRACKER;
+  const oldTracker = process.env.LANDING_GEAR_TRACKER;
   try {
-    delete process.env.CAREER_OPS_TRACKER;
+    delete process.env.LANDING_GEAR_TRACKER;
     mkdirSync(repo, { recursive: true });
     mkdirSync(join(external, 'data'), { recursive: true });
     writeFileSync(join(external, 'data', 'applications.md'), '# tracker\n');
@@ -133,13 +133,13 @@ test('resolveWorkspaceRootFor keeps a symlinked data/ inside the repo (#3169)', 
     assert.equal(realpathSync(resolveWorkspaceRootFor(repo)), canonicalRepo);
     assert.notEqual(realpathSync(resolveWorkspaceRootFor(repo)), canonicalExternal);
 
-    // #2471: an explicitly external CAREER_OPS_TRACKER still moves the whole set
+    // #2471: an explicitly external LANDING_GEAR_TRACKER still moves the whole set
     // together, so the workspace follows the env var out of the repo.
-    process.env.CAREER_OPS_TRACKER = join(external, 'data', 'applications.md');
+    process.env.LANDING_GEAR_TRACKER = join(external, 'data', 'applications.md');
     assert.equal(realpathSync(resolveWorkspaceRootFor(repo)), canonicalExternal);
   } finally {
-    if (oldTracker === undefined) delete process.env.CAREER_OPS_TRACKER;
-    else process.env.CAREER_OPS_TRACKER = oldTracker;
+    if (oldTracker === undefined) delete process.env.LANDING_GEAR_TRACKER;
+    else process.env.LANDING_GEAR_TRACKER = oldTracker;
     rmSync(parent, { recursive: true, force: true });
   }
 });

@@ -73,7 +73,7 @@ For hvert spørgsmål, byg svaret efter dette skema:
 2. **Tidligere Blok G**: Hvis et udkast findes, så brug det som grundlag og finpuds
 3. **Tonen "Jeg vælger jer"**: samme framework som i auto-pipeline -- selvsikker, ikke bønfaldende
 4. **Specificitet**: citér noget konkret fra opslaget, der er synligt på skærmen
-5. **career-ops proof point**: inkludér i "Yderligere oplysninger", hvis et sådant felt findes
+5. **landing-gear proof point**: inkludér i "Yderligere oplysninger", hvis et sådant felt findes
 
 **Felter, der er specifikke for almindelige danske formularer:**
 - **Lønforventning (brutto årsløn)** -> Interval fra `profile.yml`, i DKK, med bemærkningen "forhandlelig afhængigt af den samlede pakke"

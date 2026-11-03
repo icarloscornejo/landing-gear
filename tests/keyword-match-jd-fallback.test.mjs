@@ -26,7 +26,7 @@ function run(reportText, extraArgs = []) {
   writeFileSync(reportPath, reportText);
   return spawnSync(NODE, [join(ROOT, 'keyword-match.mjs'), reportPath, '--cv', cvPath, ...extraArgs], {
     encoding: 'utf-8',
-    env: { ...process.env, CAREER_OPS_ROOT: dir },
+    env: { ...process.env, LANDING_GEAR_ROOT: dir },
   });
 }
 

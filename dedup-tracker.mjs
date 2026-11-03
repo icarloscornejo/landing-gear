@@ -9,13 +9,13 @@
  * and runs the same status hooks set-status.mjs runs (lib/status-hooks.mjs).
  * Merges notes.
  *
- * Run: node career-ops/dedup-tracker.mjs [--dry-run]
+ * Run: node landing-gear/dedup-tracker.mjs [--dry-run]
  */
 
 import { readFileSync, copyFileSync, existsSync, mkdirSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
-import { getCareerOpsRoot, resolveTrackerPath } from './path-resolver.mjs';
+import { getLandingGearRoot, resolveTrackerPath } from './path-resolver.mjs';
 import { postingUrlRelation } from './url-key.mjs';
 import {
   openTrackerTransaction, rebuildRow, normalizeCompany, companiesMatchIgnoringCorporateForm,
@@ -24,11 +24,11 @@ import {
 import { resolveColumns, parseTrackerRow, normalizeVia, extractReqNumber, parseScore } from './tracker-parse.mjs';
 import { validateFlags } from './lib/cli-flags.mjs';
 
-const CAREER_OPS = getCareerOpsRoot();
+const LANDING_GEAR = getLandingGearRoot();
 // Support both layouts: data/applications.md (boilerplate) and applications.md
-// (original). CAREER_OPS_TRACKER lets tests point the script at an isolated
+// (original). LANDING_GEAR_TRACKER lets tests point the script at an isolated
 // fixture so the real user tracker is never touched.
-const APPS_FILE = resolveTrackerPath(CAREER_OPS);
+const APPS_FILE = resolveTrackerPath(LANDING_GEAR);
 
 // ── CLI args ────────────────────────────────────────────────────────
 // Same shape as scan-ats-full.mjs (#1633/PR #1635) and reply-watch.mjs

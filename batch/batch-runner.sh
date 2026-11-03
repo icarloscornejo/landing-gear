@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# career-ops batch runner — standalone orchestrator for headless agent workers
+# landing-gear batch runner — standalone orchestrator for headless agent workers
 # Reads batch-input.tsv, delegates each offer to a worker, tracks state in
 # batch-state.tsv for resumability.
 #
@@ -26,7 +26,7 @@ case "$(uname -s)" in
   MINGW*|MSYS*|CYGWIN*) command -v cygpath >/dev/null 2>&1 && PROJECT_DIR="$(cygpath -m "$PROJECT_DIR")" ;;
 esac
 # The user layer (profile, reports, tracker additions) lives under the data
-# root, which CAREER_OPS_ROOT / CAREER_OPS_DATA_DIR / a .career-ops-data marker
+# root, which LANDING_GEAR_ROOT / LANDING_GEAR_DATA_DIR / a .landing-gear-data marker
 # can place outside the checkout. Every path here used to be built from
 # PROJECT_DIR, so under an external data root workers were scored against the
 # checkout's template profile, and their reports and tracker lines were looked
@@ -41,14 +41,14 @@ if [[ -f "$PROJECT_DIR/path-resolver.mjs" ]]; then
     import { dirname } from "node:path";
     import { pathToFileURL } from "node:url";
     const resolver = process.argv[1];
-    const { getCareerOpsRoot } = await import(pathToFileURL(resolver).href);
+    const { getLandingGearRoot } = await import(pathToFileURL(resolver).href);
     const real = (p) => { try { return realpathSync(p); } catch { return p; } };
-    const root = getCareerOpsRoot();
+    const root = getLandingGearRoot();
     if (real(root) !== real(dirname(resolver))) {
       process.stdout.write(process.platform === "win32" ? root.replace(/\\/g, "/") : root);
     }
   ' "$PROJECT_DIR/path-resolver.mjs")"; then
-    echo "ERROR: could not resolve the career-ops data root through path-resolver.mjs" >&2
+    echo "ERROR: could not resolve the landing-gear data root through path-resolver.mjs" >&2
     exit 1
   fi
   if [[ -n "$resolved_data_root" ]]; then
@@ -59,7 +59,7 @@ BATCH_DIR="$SCRIPT_DIR"
 INPUT_FILE="$BATCH_DIR/batch-input.tsv"
 STATE_FILE="$BATCH_DIR/batch-state.tsv"
 PROMPT_FILE="$BATCH_DIR/batch-prompt.md"
-# The profile follows CAREER_OPS_PROFILE as well as the data root, like every
+# The profile follows LANDING_GEAR_PROFILE as well as the data root, like every
 # other reader does through path-resolver.mjs (#5144). Building it from the
 # data root here left a run reading the data root's profile for spend_tier and
 # for the prompt's personalization while the .mjs readers used the override.
@@ -73,26 +73,26 @@ if [[ -f "$PROJECT_DIR/path-resolver.mjs" ]]; then
     const resolver = process.argv[1];
     const { getProfilePath } = await import(pathToFileURL(resolver).href);
     if (typeof getProfilePath !== "function") {
-      process.stderr.write("WARN: path-resolver.mjs has no getProfilePath(), so CAREER_OPS_PROFILE is ignored in this run. Update the install to use the override.\n");
+      process.stderr.write("WARN: path-resolver.mjs has no getProfilePath(), so LANDING_GEAR_PROFILE is ignored in this run. Update the install to use the override.\n");
     } else {
       const profile = getProfilePath();
       process.stdout.write(process.platform === "win32" ? profile.replace(/\\/g, "/") : profile);
     }
   ' "$PROJECT_DIR/path-resolver.mjs")"; then
-    echo "ERROR: could not resolve the career-ops profile path through path-resolver.mjs" >&2
+    echo "ERROR: could not resolve the landing-gear profile path through path-resolver.mjs" >&2
     exit 1
   fi
   if [[ -n "$resolved_profile_file" ]]; then
     PROFILE_FILE="$resolved_profile_file"
     PROFILE_RESOLVED=true
   fi
-elif [[ -n "${CAREER_OPS_PROFILE:-}" ]]; then
-  echo "WARN: no path-resolver.mjs next to this script, so CAREER_OPS_PROFILE is ignored in this run." >&2
+elif [[ -n "${LANDING_GEAR_PROFILE:-}" ]]; then
+  echo "WARN: no path-resolver.mjs next to this script, so LANDING_GEAR_PROFILE is ignored in this run." >&2
 fi
-if [[ -n "${CAREER_OPS_PROFILE:-}" && "$PROFILE_RESOLVED" == "true" && ! -f "$PROFILE_FILE" ]]; then
+if [[ -n "${LANDING_GEAR_PROFILE:-}" && "$PROFILE_RESOLVED" == "true" && ! -f "$PROFILE_FILE" ]]; then
   # Before the override was honored this read the data root's profile anyway.
   # Say it, instead of silently running with no profile at all.
-  echo "WARN: no profile at $PROFILE_FILE (CAREER_OPS_PROFILE); the prompt gets no profile and spend_tier is not taken from it." >&2
+  echo "WARN: no profile at $PROFILE_FILE (LANDING_GEAR_PROFILE); the prompt gets no profile and spend_tier is not taken from it." >&2
 fi
 LOGS_DIR="$BATCH_DIR/logs"
 DISCARD_LOG="$LOGS_DIR/discard.log"
@@ -103,10 +103,10 @@ REPORTS_DIR="$DATA_ROOT/reports"
 # to the data root, where this runner never writes it, so name the real file
 # for them: both skip report numbers this run recorded as failed. Built from
 # PROJECT_DIR, which is the form node can open under Git Bash (see above).
-export CAREER_OPS_BATCH_STATE="$PROJECT_DIR/batch/batch-state.tsv"
+export LANDING_GEAR_BATCH_STATE="$PROJECT_DIR/batch/batch-state.tsv"
 # Workers run unattended, so nobody can confirm a change to the user's standing
 # rules. modes/_shared.md tells an agent that sees this flag not to write them.
-export CAREER_OPS_HEADLESS=1
+export LANDING_GEAR_HEADLESS=1
 LOCK_FILE="$BATCH_DIR/batch-runner.pid"
 PAUSE_FILE="$BATCH_DIR/batch-runner.paused"
 THROTTLE_FILE="$BATCH_DIR/batch-runner.throttled"
@@ -146,9 +146,9 @@ is_decimal_number() {
 
 usage() {
   cat <<'USAGE'
-career-ops batch runner — process job offers in batch via headless agent workers
+landing-gear batch runner — process job offers in batch via headless agent workers
 Defaults to claude; other CLIs via --cli. For claude the model is resolved from
-spend_tier in config/profile.yml (or in the file CAREER_OPS_PROFILE names)
+spend_tier in config/profile.yml (or in the file LANDING_GEAR_PROFILE names)
 unless --model overrides it.
 
 Usage: batch-runner.sh [OPTIONS]
@@ -158,7 +158,7 @@ Options:
   --model NAME         Model for the CLI (e.g. qwen2.5:32b for opencode/ollama).
                        For claude, overrides the tier-resolved model (otherwise
                        the spend_tier in config/profile.yml, or in the file
-                       CAREER_OPS_PROFILE names: economy/standard/premium;
+                       LANDING_GEAR_PROFILE names: economy/standard/premium;
                        default standard).
   --parallel N         Number of parallel workers (default: 3 for claude, 1 otherwise).
                        On a rate limit, the rest of the batch runs on 1 worker.
@@ -198,10 +198,10 @@ Files:
   logs/                Per-offer logs
   tracker-additions/   Tracker lines for post-batch merge
 
-With a data root outside the checkout (CAREER_OPS_ROOT, CAREER_OPS_DATA_DIR
-or a .career-ops-data marker), config/profile.yml, reports/ and
+With a data root outside the checkout (LANDING_GEAR_ROOT, LANDING_GEAR_DATA_DIR
+or a .landing-gear-data marker), config/profile.yml, reports/ and
 batch/tracker-additions/ are read and written there. The other files stay
-beside this script. CAREER_OPS_PROFILE, when set, names the profile read for
+beside this script. LANDING_GEAR_PROFILE, when set, names the profile read for
 spend_tier and injected into the prompt, as it does for the other scripts.
 
 Examples:
@@ -549,7 +549,7 @@ get_retries() {
 }
 
 # Read spend_tier from $PROFILE_FILE (config/profile.yml, or the file
-# CAREER_OPS_PROFILE names). Defaults to "standard" if the key is absent or
+# LANDING_GEAR_PROFILE names). Defaults to "standard" if the key is absent or
 # invalid.
 read_spend_tier() {
   local raw=""
@@ -1148,7 +1148,7 @@ process_offer() {
           --max-time 20 --connect-timeout 5 \
           --fail --compressed \
           --proto '=http,https' --proto-redir 'https,http' --max-filesize 5000000 \
-          --user-agent "Mozilla/5.0 (compatible; career-ops/batch)" \
+          --user-agent "Mozilla/5.0 (compatible; landing-gear/batch)" \
           --header "Accept: text/html,application/xhtml+xml,*/*;q=0.8" \
           --dump-header "$redirect_headers" \
           --output "$jd_file" \
@@ -1424,7 +1424,7 @@ process_offer() {
     } >> "$resolved_prompt"
   fi
 
-  # The .md prompts name config/profile.yml. When CAREER_OPS_PROFILE names a
+  # The .md prompts name config/profile.yml. When LANDING_GEAR_PROFILE names a
   # different file, the worker would read the wrong profile for everything
   # except the personalization injected below, so name the file this run uses.
   # With the data root outside the checkout the runtime block above already
@@ -1434,7 +1434,7 @@ process_offer() {
   # same file, but not always the same string: through a junction or symlink
   # getProfilePath() returns the real path while DATA_ROOT keeps the one pwd
   # gave, and that alone used to add this block.
-  local profile_override="${CAREER_OPS_PROFILE:-}"
+  local profile_override="${LANDING_GEAR_PROFILE:-}"
   if [[ -n "${profile_override//[[:space:]]/}" && "$PROFILE_RESOLVED" == "true" && "$PROFILE_FILE" != "$DATA_ROOT/config/profile.yml" && "$DATA_ROOT" == "$PROJECT_DIR" ]]; then
     {
       printf '\n\n---\n\n'
@@ -2053,7 +2053,7 @@ main() {
     exit 0
   fi
 
-  echo "=== career-ops batch runner ==="
+  echo "=== landing-gear batch runner ==="
   if (( LIMIT > 0 )); then
     echo "Parallel: $PARALLEL | Max retries: $MAX_RETRIES | Limit: $LIMIT"
   else

@@ -463,12 +463,12 @@ test('a rules file that defines no rules is an error, not a clean pass', () => {
 });
 
 /**
- * Run the CLI. CAREER_OPS_PROFILE picks the default template, so a developer
+ * Run the CLI. LANDING_GEAR_PROFILE picks the default template, so a developer
  * who exports it lints a different file than CI does, and the rest of the
  * environment is kept so node itself still works.
  */
 const cli = (args) => {
-  const { CAREER_OPS_PROFILE, ...env } = process.env;
+  const { LANDING_GEAR_PROFILE, ...env } = process.env;
   return spawnSync(process.execPath, ['cv-templates.mjs', ...args], { cwd: ROOT, encoding: 'utf-8', env });
 };
 
@@ -485,21 +485,21 @@ test('the CLI refuses a non-HTML template rather than reporting it clean', () =>
   assert.equal(JSON.parse(html.stdout).ok, true);
 });
 
-test('the CLI test helper does not inherit CAREER_OPS_PROFILE', () => {
+test('the CLI test helper does not inherit LANDING_GEAR_PROFILE', () => {
   // The variable picks the default CV template, so the suite passed or failed
   // on whatever the developer happened to export. Pointed at a profile naming
   // a template that does not exist, the inheriting helper could not resolve.
   const profile = join(mkdtempSync(join(tmpdir(), 'atsprofile-')), 'profile.yml');
   writeFileSync(profile, 'cv:\n  template: no-such-template\n');
-  const prior = process.env.CAREER_OPS_PROFILE;
-  process.env.CAREER_OPS_PROFILE = profile;
+  const prior = process.env.LANDING_GEAR_PROFILE;
+  process.env.LANDING_GEAR_PROFILE = profile;
   try {
     const html = cli(['lint', 'cv']);
-    assert.equal(html.status, 0, `an ambient CAREER_OPS_PROFILE must not reach the child: ${html.stderr}`);
+    assert.equal(html.status, 0, `an ambient LANDING_GEAR_PROFILE must not reach the child: ${html.stderr}`);
     assert.equal(JSON.parse(html.stdout).ok, true);
   } finally {
-    if (prior === undefined) delete process.env.CAREER_OPS_PROFILE;
-    else process.env.CAREER_OPS_PROFILE = prior;
+    if (prior === undefined) delete process.env.LANDING_GEAR_PROFILE;
+    else process.env.LANDING_GEAR_PROFILE = prior;
   }
 });
 

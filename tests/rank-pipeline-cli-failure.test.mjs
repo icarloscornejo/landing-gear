@@ -18,7 +18,7 @@ test('a CLI that fails every batch exits 1 with a one-line reason and no prompt 
   // `node -p <prompt>` evaluates the prompt as JavaScript and fails with a
   // SyntaxError, an offline stand-in for a CLI whose login has expired.
   const result = spawnSync(process.execPath, [join(ROOT, 'rank-pipeline.mjs'), '--cli', process.execPath], {
-    env: { ...process.env, CAREER_OPS_ROOT: root, CAREER_OPS_DATA_DIR: root },
+    env: { ...process.env, LANDING_GEAR_ROOT: root, LANDING_GEAR_DATA_DIR: root },
     encoding: 'utf8', timeout: 30_000,
   });
   assert.ifError(result.error);

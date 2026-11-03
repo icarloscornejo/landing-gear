@@ -33,7 +33,7 @@ function fixture(run, initialText = sourceText) {
     const source = join(root, 'source.tex');
     const manifest = join(root, 'manifest.json');
     const output = join(root, 'output.tex');
-    const env = { ...process.env, CAREER_OPS_ROOT: root, CAREER_OPS_TRACKER: '' };
+    const env = { ...process.env, LANDING_GEAR_ROOT: root, LANDING_GEAR_TRACKER: '' };
     const cli = (script, args) => spawnSync(process.execPath, [script, ...args], { cwd: new URL('..', import.meta.url), env, encoding: 'utf8' });
     writeFileSync(source, initialText);
     const extracted = cli('extract-latex-content.mjs', [source, '--out', manifest]);

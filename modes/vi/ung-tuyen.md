@@ -169,7 +169,7 @@ Với mỗi câu hỏi, tạo câu trả lời theo:
 2. **Block H / Application Answers trước đó**: nếu đã có bản nháp hoặc bản cuối, dùng làm nền rồi tinh chỉnh
 3. **Giọng "Tôi chọn Anh/Chị"**: cùng khung với auto-pipeline -- tự tin, không van xin
 4. **Cụ thể**: nhắc một chi tiết cụ thể của JD đang hiển thị trên màn hình
-5. **Proof point career-ops**: thêm vào ô "Thông tin bổ sung" nếu có
+5. **Proof point landing-gear**: thêm vào ô "Thông tin bổ sung" nếu có
 6. **Bản đồ rủi ro phía nhà tuyển dụng**: dùng `modes/heuristics/recruiter-side.md` để nhận ra câu hỏi đang cố giải tỏa nghi ngờ nào (động lực, độ khớp stack, hậu cần, lương, quyền làm việc, thời gian sẵn sàng, seniority) và trả lời thẳng nghi ngờ đó.
 7. **Kỷ luật công bố**: trả lời câu hỏi hậu cần trung thực khi được hỏi, nhưng không tự nêu chi tiết nhạy cảm hay chỉ dành cho HR trong các câu trả lời động lực/độ khớp không liên quan.
 

@@ -21,7 +21,7 @@ import { validateFlags } from './lib/cli-flags.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
 
 const GITHUB_URL_RE = /^https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+?(?:\.git)?$/;
-const NAME_RE = /^career-ops-plugin-([a-z0-9][a-z0-9-]*)$/;
+const NAME_RE = /^landing-gear-plugin-([a-z0-9][a-z0-9-]*)$/;
 const SHA_RE = /^[0-9a-f]{40}$/;
 const MIN_FILES = ['manifest.json', 'index.mjs', 'README.md', 'LICENSE'];
 
@@ -33,7 +33,7 @@ export function parseRepoArg(arg) {
   if (!GITHUB_URL_RE.test(url)) throw new Error(`refusing non-GitHub/unsafe repo URL: ${arg} (expected https://github.com/<owner>/<repo>)`);
   const repoName = url.split('/').pop() || '';
   const m = NAME_RE.exec(repoName);
-  if (!m) throw new Error(`repo must be named "career-ops-plugin-<name>" (got "${repoName}")`);
+  if (!m) throw new Error(`repo must be named "landing-gear-plugin-<name>" (got "${repoName}")`);
   return { url, id: m[1] };
 }
 
@@ -163,7 +163,7 @@ clone/scaffold/validate engine behind plugins.mjs, which owns the CLI:
       # its capability card (--confirm also enables it)
 
 Install constraints enforced here: the repo must be named
-career-ops-plugin-<name>, live at https://github.com/<owner>/<repo>, and be
+landing-gear-plugin-<name>, live at https://github.com/<owner>/<repo>, and be
 pinned to a 40-hex commit SHA — a registry entry supplies the SHA, anything
 else requires --sha. See docs/PLUGINS.md.`;
 

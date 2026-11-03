@@ -5,7 +5,7 @@
 // evaluate it standalone, because four copies existed and the evaluators run on
 // import (arg parse + network) so the helper could not be imported. The copies
 // have since been consolidated into lib/tracker-addition.mjs
-// (career-ops-hq/career-ops#3796), so the behaviour half is a plain import.
+// (upstream #3796), so the behaviour half is a plain import.
 //
 // The discovery half stays, inverted: rather than sweeping for copies to test,
 // it now asserts there are none. A fifth evaluator that grows its own

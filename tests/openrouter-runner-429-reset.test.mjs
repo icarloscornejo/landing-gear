@@ -57,11 +57,11 @@ function scriptedFetch(models, script) {
  * call on its own module instance (own rotation index, counters and model list).
  */
 async function loadRunner(dataRoot, label) {
-  const names = ['CAREER_OPS_ROOT', 'CAREER_OPS_DATA_DIR', 'CAREER_OPS_MODEL', 'OPENROUTER_API_KEY'];
+  const names = ['LANDING_GEAR_ROOT', 'LANDING_GEAR_DATA_DIR', 'LANDING_GEAR_MODEL', 'OPENROUTER_API_KEY'];
   const previous = Object.fromEntries(names.map((n) => [n, process.env[n]]));
-  process.env.CAREER_OPS_ROOT = dataRoot;
-  delete process.env.CAREER_OPS_DATA_DIR;
-  delete process.env.CAREER_OPS_MODEL;
+  process.env.LANDING_GEAR_ROOT = dataRoot;
+  delete process.env.LANDING_GEAR_DATA_DIR;
+  delete process.env.LANDING_GEAR_MODEL;
   process.env.OPENROUTER_API_KEY = 'test-key';
   try {
     const url = `${pathToFileURL(join(ROOT, 'openrouter-runner.mjs')).href}?429-reset=${label}`;
@@ -85,7 +85,7 @@ async function callOnce(runner) {
 }
 
 async function withRunner(label, models, script, body) {
-  const dataRoot = mkdtempSync(join(tmpdir(), 'career-ops-429-'));
+  const dataRoot = mkdtempSync(join(tmpdir(), 'landing-gear-429-'));
   const realFetch = globalThis.fetch;
   const realKey = process.env.OPENROUTER_API_KEY;
   try {

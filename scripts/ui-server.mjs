@@ -7,7 +7,7 @@ import net from "node:net";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { getCareerOpsRoot } from "../path-resolver.mjs";
+import { getLandingGearRoot } from "../path-resolver.mjs";
 import { isWildcardAddress, planNextRun } from "../web/src/lib/bind-host.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -105,26 +105,26 @@ try {
 
 // Print header banner
 console.log("\x1b[1m\x1b[36m=====================================================\x1b[0m");
-console.log("\x1b[1m\x1b[36m             Career-ops Local Web UI                \x1b[0m");
+console.log("\x1b[1m\x1b[36m             Landing-gear Local Web UI                \x1b[0m");
 console.log("\x1b[1m\x1b[36m=====================================================\x1b[0m\n");
 
 // Resolve data root canonically
-const dataRoot = getCareerOpsRoot();
+const dataRoot = getLandingGearRoot();
 console.log("\x1b[32m✓\x1b[0m Data root resolved: " + dataRoot);
 
-// Plan Next.js run and resolve bind host from CAREER_OPS_WEB_ALLOWED_HOSTS
+// Plan Next.js run and resolve bind host from LANDING_GEAR_WEB_ALLOWED_HOSTS
 const plan = planNextRun({
   command: "dev",
   extra: host !== "127.0.0.1" ? ["-H", host, "-p", String(port)] : ["-p", String(port)],
-  envValue: process.env.CAREER_OPS_WEB_ALLOWED_HOSTS,
+  envValue: process.env.LANDING_GEAR_WEB_ALLOWED_HOSTS,
 });
 if (!plan.ok) {
   console.error(`\x1b[31mError:\x1b[0m ${plan.error}`);
   process.exit(1);
 }
 if (host !== "127.0.0.1" && plan.grantsNoNewHost) {
-  console.error(`\x1b[31mError:\x1b[0m --host cannot open the UI to the network without CAREER_OPS_WEB_ALLOWED_HOSTS opt-in.`);
-  console.error(`To allow network access, set CAREER_OPS_WEB_ALLOWED_HOSTS="${host}". See web/README.md.\n`);
+  console.error(`\x1b[31mError:\x1b[0m --host cannot open the UI to the network without LANDING_GEAR_WEB_ALLOWED_HOSTS opt-in.`);
+  console.error(`To allow network access, set LANDING_GEAR_WEB_ALLOWED_HOSTS="${host}". See web/README.md.\n`);
   process.exit(1);
 }
 
@@ -144,7 +144,7 @@ const urlHost = rawUrlHost.includes(":") && !rawUrlHost.startsWith("[") ? `[${ra
 
 const url = `http://${urlHost}:${port}`;
 
-console.log("\n\x1b[1mStarting Career-ops Web Server...\x1b[0m");
+console.log("\n\x1b[1mStarting Landing-gear Web Server...\x1b[0m");
 console.log(`\x1b[32mWeb UI:\x1b[0m \x1b[4m\x1b[34m${url}\x1b[0m\n`);
 console.log("Press \x1b[1mCtrl+C\x1b[0m to stop.\n");
 
@@ -194,7 +194,7 @@ const childEnv = {
   ...process.env,
   PORT: String(port),
   HOSTNAME: bindHost,
-  CAREER_OPS_ROOT: dataRoot,
+  LANDING_GEAR_ROOT: dataRoot,
 };
 
 // Spawn Next.js server directly via node executable (no shell parsing, avoiding shell escaping issues)
@@ -220,7 +220,7 @@ function cleanup() {
   if (shuttingDown) return;
   shuttingDown = true;
   polling = false;
-  console.log("\nShutting down Career-ops UI...");
+  console.log("\nShutting down Landing-gear UI...");
   if (child && !child.killed && child.exitCode === null) {
     if (isWindows) {
       try {

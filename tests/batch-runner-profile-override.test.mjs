@@ -1,5 +1,5 @@
 // tests/batch-runner-profile-override.test.mjs — batch-runner.sh resolves the
-// profile through path-resolver.mjs, so CAREER_OPS_PROFILE reaches both the
+// profile through path-resolver.mjs, so LANDING_GEAR_PROFILE reaches both the
 // spend_tier model choice and the personalization injected into the worker
 // prompt (#5144).
 //
@@ -7,7 +7,7 @@
 //
 // PROFILE_FILE was built as "$DATA_ROOT/config/profile.yml", while every .mjs
 // reader resolves the profile through path-resolver.mjs. A run with
-// CAREER_OPS_PROFILE set therefore read the data root's profile for spend_tier
+// LANDING_GEAR_PROFILE set therefore read the data root's profile for spend_tier
 // and for the prompt's personalization: it could launch a different model, and
 // hand the worker the wrong candidate profile, than an interactive run.
 //
@@ -35,7 +35,7 @@ const LEGACY_RESOLVER = [
   'import { dirname } from "node:path";',
   'import { fileURLToPath } from "node:url";',
   'const here = dirname(fileURLToPath(import.meta.url));',
-  'export function getCareerOpsRoot() { return here; }',
+  'export function getLandingGearRoot() { return here; }',
 ].join('\n') + '\n';
 
 /** The model a spend tier maps to, read from the script's own table. */
@@ -54,7 +54,7 @@ const runnerPath = (value) => (process.platform === 'win32' ? value.replace(/\\/
 /**
  * A throwaway install: batch/ beside path-resolver.mjs, the data root's own
  * config/profile.yml, and a second profile elsewhere that only
- * CAREER_OPS_PROFILE names. `externalDataRoot` puts the data root in a
+ * LANDING_GEAR_PROFILE names. `externalDataRoot` puts the data root in a
  * subdirectory, which is what makes the runner append its runtime-path block.
  */
 function fixture({ resolver = 'current', externalDataRoot = false } = {}) {
@@ -114,19 +114,19 @@ function fixture({ resolver = 'current', externalDataRoot = false } = {}) {
 }
 
 /** Run the fixture runner; `dryRun: false` goes through the worker path with the stub claude. */
-function run(f, { profile, dryRun = true, model, careerOpsRoot = f.dataRoot } = {}) {
+function run(f, { profile, dryRun = true, model, landingGearRoot = f.dataRoot } = {}) {
   const env = {
     ...process.env,
     PATH: `${f.binDir}${delimiter}${process.env.PATH}`,
     CAPTURE_DIR: f.captureDir,
-    // tests/helpers.mjs pins CAREER_OPS_ROOT to the suite's sandbox; this
+    // tests/helpers.mjs pins LANDING_GEAR_ROOT to the suite's sandbox; this
     // fixture's data root is its own directory, so pin it back and leave the
     // profile variable as the only thing that differs between the runs.
-    CAREER_OPS_ROOT: careerOpsRoot,
+    LANDING_GEAR_ROOT: landingGearRoot,
   };
-  delete env.CAREER_OPS_DATA_DIR;
-  if (profile === undefined) delete env.CAREER_OPS_PROFILE;
-  else env.CAREER_OPS_PROFILE = profile;
+  delete env.LANDING_GEAR_DATA_DIR;
+  if (profile === undefined) delete env.LANDING_GEAR_PROFILE;
+  else env.LANDING_GEAR_PROFILE = profile;
   const args = ['--parallel', '1', '--max-retries', '0', '--rate-limit-sleep', '0'];
   if (model) args.push('--model', model);
   if (dryRun) args.push('--dry-run');
@@ -143,7 +143,7 @@ function run(f, { profile, dryRun = true, model, careerOpsRoot = f.dataRoot } = 
 
 const modelLine = (result) => (result.stdout.match(/CLI: \S+ \| Model: [^\n]+/) || [])[0] || '';
 
-test('the data root profile is still the default when CAREER_OPS_PROFILE is unset', () => {
+test('the data root profile is still the default when LANDING_GEAR_PROFILE is unset', () => {
   const f = fixture();
   try {
     const result = run(f);
@@ -160,7 +160,7 @@ test('the data root profile is still the default when CAREER_OPS_PROFILE is unse
   }
 });
 
-test('CAREER_OPS_PROFILE decides spend_tier and therefore the claude model', () => {
+test('LANDING_GEAR_PROFILE decides spend_tier and therefore the claude model', () => {
   const f = fixture();
   try {
     const result = run(f, { profile: join(f.altDir, 'me.yml') });
@@ -174,7 +174,7 @@ test('an override that names no file is reported, not silently downgraded', () =
   const f = fixture();
   try {
     const result = run(f, { profile: join(f.altDir, 'missing.yml') });
-    assert.match(result.stderr, /WARN: no profile at .*missing\.yml \(CAREER_OPS_PROFILE\)/, result.stderr);
+    assert.match(result.stderr, /WARN: no profile at .*missing\.yml \(LANDING_GEAR_PROFILE\)/, result.stderr);
     assert.match(modelLine(result), /spend_tier=standard/, result.stdout);
 
     // The warning is not a side effect of resolving spend_tier: an explicit
@@ -199,7 +199,7 @@ test('a resolver without getProfilePath warns and keeps the data root profile', 
     // named it.
     rmSync(join(f.dir, 'config', 'profile.yml'));
     const missing = run(f, { profile: join(f.altDir, 'me.yml') });
-    assert.doesNotMatch(missing.stderr, /no profile at .*\(CAREER_OPS_PROFILE\)/, missing.stderr);
+    assert.doesNotMatch(missing.stderr, /no profile at .*\(LANDING_GEAR_PROFILE\)/, missing.stderr);
   } finally {
     rmSync(f.dir, { recursive: true, force: true });
   }
@@ -242,7 +242,7 @@ test('the worker prompt carries the override profile, not the data root profile'
 test('a checkout reached through a link gets no Runtime profile block without an override', (t) => {
   const f = fixture();
   const link = `${f.dir}-link`;
-  // CAREER_OPS_ROOT names the same directory through a second link, so the
+  // LANDING_GEAR_ROOT names the same directory through a second link, so the
   // profile path the resolver returns differs from DATA_ROOT whichever way the
   // runner spells PROJECT_DIR: the case cannot pass vacuously on a platform
   // where `pwd` happens to give the real path.
@@ -256,7 +256,7 @@ test('a checkout reached through a link gets no Runtime profile block without an
       t.skip(`cannot create a directory link here (${error.code})`);
       return;
     }
-    run({ ...f, dir: link, runner: join(link, 'batch', 'batch-runner.sh') }, { dryRun: false, careerOpsRoot: rootLink });
+    run({ ...f, dir: link, runner: join(link, 'batch', 'batch-runner.sh') }, { dryRun: false, landingGearRoot: rootLink });
     const captured = join(f.captureDir, 'resolved-prompt.md');
     assert.ok(existsSync(captured), 'the stub claude did not capture a resolved system prompt');
     const prompt = readFileSync(captured, 'utf8');

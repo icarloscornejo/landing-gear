@@ -77,9 +77,9 @@ try {
 
   // A plugin living in its own checkout, linked into plugins.local/ under the
   // id it declares. The manifest id must match the LINK name, not the target
-  // directory name, which is what a developer linking `career-ops-plugin-demo`
+  // directory name, which is what a developer linking `landing-gear-plugin-demo`
   // in as `demo` actually gets.
-  const externalCheckout = writePlugin(join(tmp, 'checkouts', 'career-ops-plugin-demo'), 'demo');
+  const externalCheckout = writePlugin(join(tmp, 'checkouts', 'landing-gear-plugin-demo'), 'demo');
   linkPlugin(externalCheckout, join(local, 'demo'));
 
   // A plain directory plugin alongside it — the sibling that must keep working.
@@ -138,7 +138,7 @@ try {
   const loadLocal = join(tmpEnabled, 'plugins.local');
   mkdirSync(loadLocal, { recursive: true });
   const linkedCheckout = writePlugin(
-    join(tmpEnabled, 'checkouts', 'career-ops-plugin-linked'),
+    join(tmpEnabled, 'checkouts', 'landing-gear-plugin-linked'),
     'linked',
     'export default { ingest: async (ctx) => ({ ran: true, dryRun: ctx.dryRun }) };\n',
   );

@@ -261,7 +261,7 @@ node fix-slugs.mjs --apply                    # alias for --fix
 node fix-slugs.mjs --file templates/portals.example.yml
 ```
 
-The default path is `portals.yml`, overridable with `--file` or the `CAREER_OPS_PORTALS` environment variable. A missing portals file is reported and treated as nothing to do, not as an error.
+The default path is `portals.yml`, overridable with `--file` or the `LANDING_GEAR_PORTALS` environment variable. A missing portals file is reported and treated as nothing to do, not as an error.
 
 **Exit codes:** `0` on every normal run, `1` only if the run itself fails. Unlike `check-table-freshness`, pending fixes in a dry run do **not** fail the run, so this is a maintenance tool rather than a CI gate.
 
@@ -350,7 +350,7 @@ node build-cv-latex.mjs --test
 
 ## sync-check
 
-Validates that the career-ops setup is internally consistent: `cv.md` exists and is not too short, `config/profile.yml` exists with required fields, no hardcoded metrics in `modes/_shared.md` or `batch/batch-prompt.md`, and `article-digest.md` freshness (warns if older than 30 days).
+Validates that the landing-gear setup is internally consistent: `cv.md` exists and is not too short, `config/profile.yml` exists with required fields, no hardcoded metrics in `modes/_shared.md` or `batch/batch-prompt.md`, and `article-digest.md` freshness (warns if older than 30 days).
 
 ```bash
 npm run sync-check
@@ -510,7 +510,7 @@ Default silence window: `templates/benchmarks.yml` `days_first_response.range_da
 
 ## contacts
 
-Your job-search phonebook, exportable to your phone. Reads `data/contacts.tsv` (one contact per line — the schema is the vCard fields, nothing more) and emits vCard 3.0 (`VERSION:3.0` for iOS/Android import compatibility) with CRLF line endings, byte-safe 75-octet line folding, and a stable deterministic UID `careerops-{uidPart(name)}--{uidPart(company)}` (double-dash boundary between the two parts). Each `uidPart` is the lowercase slug of the raw value (non-alphanumeric runs collapsed to single dashes, ends trimmed) suffixed with an 8-hex sha1 of the *raw* value — e.g. `jane-doe-cac7bbb6`; when the slug is empty — a fully non-ASCII value such as a CJK name — the part is the bare 8-hex hash. Hashing the raw value (not the lossy slug) keeps distinct inputs that slug identically — e.g. `José` and `Josè` both slug to `jos` (the accented char drops out), and `Acme Inc` and `Acme, Inc.` both to `acme-inc` — from colliding into one UID. Re-importing updates existing entries instead of duplicating them on platforms that honor vCard UID (iOS fallback: assign imports to a group, delete the group to bulk-remove). `--caller-id` renders the display name as `Jane Doe (Acme recruiter)` so the lock screen tells you which recruiter is calling — useful when a phone number is known (often it isn't). Malformed rows are reported in a `quality` block, never dropped silently.
+Your job-search phonebook, exportable to your phone. Reads `data/contacts.tsv` (one contact per line — the schema is the vCard fields, nothing more) and emits vCard 3.0 (`VERSION:3.0` for iOS/Android import compatibility) with CRLF line endings, byte-safe 75-octet line folding, and a stable deterministic UID `landinggear-{uidPart(name)}--{uidPart(company)}` (double-dash boundary between the two parts). Each `uidPart` is the lowercase slug of the raw value (non-alphanumeric runs collapsed to single dashes, ends trimmed) suffixed with an 8-hex sha1 of the *raw* value — e.g. `jane-doe-cac7bbb6`; when the slug is empty — a fully non-ASCII value such as a CJK name — the part is the bare 8-hex hash. Hashing the raw value (not the lossy slug) keeps distinct inputs that slug identically — e.g. `José` and `Josè` both slug to `jos` (the accented char drops out), and `Acme Inc` and `Acme, Inc.` both to `acme-inc` — from colliding into one UID. Re-importing updates existing entries instead of duplicating them on platforms that honor vCard UID (iOS fallback: assign imports to a group, delete the group to bulk-remove). `--caller-id` renders the display name as `Jane Doe (Acme recruiter)` so the lock screen tells you which recruiter is calling — useful when a phone number is known (often it isn't). Malformed rows are reported in a `quality` block, never dropped silently.
 
 ```bash
 node contacts.mjs                    # JSON (contacts + quality + total)
@@ -526,7 +526,7 @@ Contact line format (TSV, one per line, `#`-prefixed lines are comments):
 {name}\t{company}\t{type}\t{title}\t{phone}\t{email}\t{linkedin}\t{tracker#|-}\t{notes}
 ```
 
-`type`: recruiter | hiring-manager | peer | interviewer | internal-referral | other — optional; when present it must be one of the enum, else it is flagged in `quality`. `internal-referral` (#4691) is distinct from `peer`: `peer` assumes no prior relationship (do not ask for a job), `internal-referral` exists only because a real one already does (a past interviewer, or a contact saved from an earlier application at the same company) — see `contact-lookup.mjs` below and `modes/contacto.md`. Only name + company are required (>= 4 cells); all channels are optional; `-` for the tracker number when the contact precedes an application. Lines are updated in place when a contact's details change — unlike the append-only salary log. If two lines resolve to the same generated UID (`careerops-{uidPart(name)}--{uidPart(company)}` — normally rows with the same name + company), the LAST one wins the `--vcf` export (JSON keeps all rows and reports the clash in `quality.duplicates`). Import: send the `.vcf` to your phone (AirDrop/email/messaging) and open it — iOS Contacts offers "Add All Contacts", Android imports via Contacts → Fix & manage → Import.
+`type`: recruiter | hiring-manager | peer | interviewer | internal-referral | other — optional; when present it must be one of the enum, else it is flagged in `quality`. `internal-referral` (#4691) is distinct from `peer`: `peer` assumes no prior relationship (do not ask for a job), `internal-referral` exists only because a real one already does (a past interviewer, or a contact saved from an earlier application at the same company) — see `contact-lookup.mjs` below and `modes/contacto.md`. Only name + company are required (>= 4 cells); all channels are optional; `-` for the tracker number when the contact precedes an application. Lines are updated in place when a contact's details change — unlike the append-only salary log. If two lines resolve to the same generated UID (`landinggear-{uidPart(name)}--{uidPart(company)}` — normally rows with the same name + company), the LAST one wins the `--vcf` export (JSON keeps all rows and reports the clash in `quality.duplicates`). Import: send the `.vcf` to your phone (AirDrop/email/messaging) and open it — iOS Contacts offers "Add All Contacts", Android imports via Contacts → Fix & manage → Import.
 
 **Exit codes:** `0` always (an empty/missing store prints an explanatory message and writes no file), `1` self-test failure or a `--vcf` path escaping the project directory.
 
@@ -735,7 +735,7 @@ node closing-soon.mjs --tracker path/to/applications.md --jds path/to/jds
 
 ## reeval-candidates
 
-Lists tracker rows that were scored against older candidate evidence. A row's score is fixed when the role is evaluated, while the primary sources the evaluation read keep changing (`expand` adds proof points, `add` adds a project, the profile gains a target). This script compares each row's last evaluation date with the last change to `cv.md`, `article-digest.md`, `config/profile.yml` (through `getProfilePath()`, so `CAREER_OPS_PROFILE` is honored) and `modes/_profile.md`, all under the data root, and lists the rows that predate it, oldest evaluation first, with the source(s) that changed after each one.
+Lists tracker rows that were scored against older candidate evidence. A row's score is fixed when the role is evaluated, while the primary sources the evaluation read keep changing (`expand` adds proof points, `add` adds a project, the profile gains a target). This script compares each row's last evaluation date with the last change to `cv.md`, `article-digest.md`, `config/profile.yml` (through `getProfilePath()`, so `LANDING_GEAR_PROFILE` is honored) and `modes/_profile.md`, all under the data root, and lists the rows that predate it, oldest evaluation first, with the source(s) that changed after each one.
 
 - **When a source last changed:** the committer date of the last commit that touched it, when the file is tracked in the git repository that contains it and has no uncommitted changes. Otherwise (no git, an untracked or gitignored file, which is the default layout, or uncommitted edits) the file's mtime, labelled `mtime` because it is approximate: a copy, sync, restore or checkout moves it without changing the content.
 - **When a row was last evaluated:** the latest of the Date column (which `merge-tracker.mjs` rewrites on a re-evaluation), every `Re-eval YYYY-MM-DD` marker in Notes, and the header date of each linked report (the first bold header field holding an ISO date, in any label language), falling back to the date in the report filename. The latest wins because a re-evaluation writes its score through to the row. A report link to a missing file is flagged and the row is still dated from the tracker; a row with no readable date at all is listed under `undated`.
@@ -757,7 +757,7 @@ node reeval-candidates.mjs --tracker path/to/applications.md
 
 ## update:check
 
-Checks whether a newer career-ops release is published. Changes merged to `main` between releases never report an update: `update` installs the release, not `main`. Outputs JSON to stdout:
+Checks whether a newer landing-gear release is published. Changes merged to `main` between releases never report an update: `update` installs the release, not `main`. Outputs JSON to stdout:
 
 ```bash
 npm run update:check
@@ -771,7 +771,7 @@ Possible JSON responses:
 | `update-available` | Newer version exists (includes `local`, `remote`, `changelog`) |
 | `dismissed` | User said no to this release (`update-system.mjs dismiss --version X.Y.Z`); a newer release reports again |
 | `offline` | Could not reach GitHub |
-| `no-remote-version` | GitHub answered without a usable `career-ops-vX.Y.Z` release |
+| `no-remote-version` | GitHub answered without a usable `landing-gear-vX.Y.Z` release |
 | `worktree-without-main` | Run from a linked git worktree while no checkout has `main` checked out (see **update** below) |
 
 `check --force` ignores a dismissal. `check --channel main` keeps the previous behaviour for installs that follow `main`: main's `VERSION` plus system-file drift (`reason: system-files-changed`).
@@ -793,13 +793,13 @@ node update-system.mjs status
 Example output:
 
 ```
-career-ops v1.32.0 (ae919b6f)
+landing-gear v1.32.0 (ae919b6f)
 ```
 
 On a tarball install with no git metadata the short SHA is omitted:
 
 ```
-career-ops v1.32.0
+landing-gear v1.32.0
 ```
 
 **Exit codes:** `0` always.
@@ -816,7 +816,7 @@ A system file this install has changed is not replaced. `update` lists it, tries
 npm run update
 ```
 
-**From a linked git worktree** (the default session layout of agents such as Claude Code), `check`, `update`, `rollback` and `dismiss` re-run themselves in the checkout that has `main` checked out, so the update is committed to `main` rather than the worktree's throwaway branch. Afterwards, `git merge main` inside the worktree picks it up. If no checkout has `main`, or that checkout has uncommitted changes to tracked files, `update` and `rollback` refuse without changing anything. Set `CAREER_OPS_UPDATE_IN_WORKTREE=1` to update the worktree's own branch instead.
+**From a linked git worktree** (the default session layout of agents such as Claude Code), `check`, `update`, `rollback` and `dismiss` re-run themselves in the checkout that has `main` checked out, so the update is committed to `main` rather than the worktree's throwaway branch. Afterwards, `git merge main` inside the worktree picks it up. If no checkout has `main`, or that checkout has uncommitted changes to tracked files, `update` and `rollback` refuse without changing anything. Set `LANDING_GEAR_UPDATE_IN_WORKTREE=1` to update the worktree's own branch instead.
 
 **Exit codes:** `0` success, `1` lock conflict or safety violation, `3` the update was applied but `npm install` failed (run `npm install`). An installed updater from before this exit code existed reports that last case as `1`, after its own "self-reexec failed" lines.
 
@@ -913,19 +913,19 @@ node scan.mjs --include-blacklisted   # audit: let blacklisted companies through
 
 | Variable | Default |
 |---|---|
-| `CAREER_OPS_PORTALS` | `portals.yml` |
-| `CAREER_OPS_PROFILE` | `config/profile.yml` |
-| `CAREER_OPS_PIPELINE` | `data/pipeline.md` |
-| `CAREER_OPS_SCAN_HISTORY` | `data/scan-history.tsv` |
+| `LANDING_GEAR_PORTALS` | `portals.yml` |
+| `LANDING_GEAR_PROFILE` | `config/profile.yml` |
+| `LANDING_GEAR_PIPELINE` | `data/pipeline.md` |
+| `LANDING_GEAR_SCAN_HISTORY` | `data/scan-history.tsv` |
 
 ```bash
-CAREER_OPS_PORTALS=portals.bridge.yml \
-CAREER_OPS_PIPELINE=data/pipeline.bridge.md \
-CAREER_OPS_SCAN_HISTORY=data/scan-history.bridge.tsv \
+LANDING_GEAR_PORTALS=portals.bridge.yml \
+LANDING_GEAR_PIPELINE=data/pipeline.bridge.md \
+LANDING_GEAR_SCAN_HISTORY=data/scan-history.bridge.tsv \
   node scan.mjs
 ```
 
-Give a lane its own `CAREER_OPS_SCAN_HISTORY`, not just its own pipeline. That file is the dedup source, so lanes sharing it silently suppress each other: a posting surfaced in one lane counts as a duplicate in the other and never appears there, with only the `Duplicates: skipped` counter to show for it.
+Give a lane its own `LANDING_GEAR_SCAN_HISTORY`, not just its own pipeline. That file is the dedup source, so lanes sharing it silently suppress each other: a posting surfaced in one lane counts as a duplicate in the other and never appears there, with only the `Duplicates: skipped` counter to show for it.
 
 Defaults are unchanged, so a single-lane setup needs none of this. Note that the remaining outputs (`data/scan-runs.tsv`, `data/portal-health.tsv`, `data/applications.md`) are still shared across lanes, so `stats.mjs` and the other analytics scripts pool lanes together.
 
@@ -1035,9 +1035,9 @@ How many upstream queries that becomes depends on the OS resolver: `dns.lookup()
 Cache hits and lookups that coalesce onto an in-flight one are free, so only uncached, non-coalesced lookup keys count against the ceiling — a hostname not in the cache, or a cached one requested with different resolver options (the cache key is hostname plus `family`/`all`/`hints`/`verbatim`).
 
 ```bash
-CAREER_OPS_DNS_LOOKUPS_PER_MIN=800 npm run scan:full   # raise the ceiling
-CAREER_OPS_DNS_LOOKUPS_PER_MIN=0 npm run scan:full     # no pacing (pre-#2229 behaviour)
-CAREER_OPS_NO_DNS_CACHE=1 npm run scan:full            # no DNS cache AND no pacing
+LANDING_GEAR_DNS_LOOKUPS_PER_MIN=800 npm run scan:full   # raise the ceiling
+LANDING_GEAR_DNS_LOOKUPS_PER_MIN=0 npm run scan:full     # no pacing (pre-#2229 behaviour)
+LANDING_GEAR_NO_DNS_CACHE=1 npm run scan:full            # no DNS cache AND no pacing
 ```
 
 The cost is real: a full Workday + iCIMS + BambooHR sweep becomes DNS-bound at roughly 63 minutes (25,205 hostnames ÷ 400/min default pacing). Raise the ceiling if your resolver has the budget — but if you see `fetch failed` in bulk from one ATS section, suspect the resolver before the boards.
@@ -1116,7 +1116,7 @@ node tracker.mjs delete --num 42          # remove row 42 from applications.md (
 
 **The round-trip carries the layout, not only the values (#3703).** `sync` maps columns by header NAME, so a customized tracker (a `Location`, `Via` or `URL` column, or one of your own) indexes correctly — but `export` used to write nine fixed columns in a fixed order under a fixed `# Applications Tracker` title, so adopting its output cost you those columns with no warning, right after `sync` reported a clean index. Losing the `URL` column in particular disables `merge-tracker.mjs`'s deterministic dedup pass, which is not visible in the file either. `export` now replays the header row it read, puts unmapped cells back in their own columns, and keeps the lines before and after the table (your own title, a legend, a trailing note) plus the file's line endings. The schema itself is still the canonical nine fields — extra columns ride along by position, so they are preserved by `export` but not queryable via `query`.
 
-**What "lossless" covers, exactly.** The guarantee is about *structure*, not bytes: `export` preserves the layout and every value it does not deliberately repair. Concretely it keeps the title, preamble and trailing lines *with their own whitespace* (they are copied, not re-rendered), the header and separator, the column set and every row's position in it, and CRLF vs LF. Enforced by `tests/tracker-columns.test.mjs`, including localized headers career-ops cannot name, unknown user columns, indented tables and indented prose.
+**What "lossless" covers, exactly.** The guarantee is about *structure*, not bytes: `export` preserves the layout and every value it does not deliberately repair. Concretely it keeps the title, preamble and trailing lines *with their own whitespace* (they are copied, not re-rendered), the header and separator, the column set and every row's position in it, and CRLF vs LF. Enforced by `tests/tracker-columns.test.mjs`, including localized headers landing-gear cannot name, unknown user columns, indented tables and indented prose.
 
 The round-trip `md → db → md` is **byte-identical** only for a one-table file that is already in canonical form and where `export` reports no losses. Three things change bytes without being losses, because each is either the point of the tool or cosmetic:
 
@@ -1345,7 +1345,7 @@ MCP tools, `codex exec --sandbox read-only`, `pi --no-tools`,
 matches no tool or server, so neither built-in nor MCP tools are offered, and opencode with
 `OPENCODE_CONFIG_CONTENT` denying every permission). The prompt asks for scores from
 the listed company, title and URL text, without opening the postings.
-A call times out after 180 s; set `CAREER_OPS_RANK_TIMEOUT_MS` to change that.
+A call times out after 180 s; set `LANDING_GEAR_RANK_TIMEOUT_MS` to change that.
 Every row left unranked is listed with the reason, and a run where every call
 fails or returns no usable JSON exits 1, `--dry-run` included.
 
@@ -1468,7 +1468,7 @@ These have no `npm run` binding — modes and agents call them with
 | `node agent-inbox.mjs add "..."` | Append a request to the queue the agent drains at the next session start |
 | `node agent-inbox.mjs list [--all]` | List pending (or all) queued items by stable number — gaps mean already resolved |
 | `node agent-inbox.mjs resolve <n> [--expect "..."] [--result "..."]` | Tick item `n` and stamp a one-line result; `--expect` aborts unless the item contains that substring |
-| `node generate-latex.mjs <input.tex> [output.pdf] [--compile-only] [--source <path>] [--skip-fact-check] [--help]` | Fact-check, validate and compile a generated `.tex` CV via tectonic or pdflatex. The CV fact gate runs first whenever the data root has a `cv.md`, and a blocked document is not compiled; `--source` adds an evidence file (repeatable; `latex-tex` passes the user's own `.tex`). `--compile-only` skips career-ops template validation so a user-owned `.tex` compiles as-is (`latex-tex` mode) |
+| `node generate-latex.mjs <input.tex> [output.pdf] [--compile-only] [--source <path>] [--skip-fact-check] [--help]` | Fact-check, validate and compile a generated `.tex` CV via tectonic or pdflatex. The CV fact gate runs first whenever the data root has a `cv.md`, and a blocked document is not compiled; `--source` adds an evidence file (repeatable; `latex-tex` passes the user's own `.tex`). `--compile-only` skips landing-gear template validation so a user-owned `.tex` compiles as-is (`latex-tex` mode) |
 | `node install-latex-engine.mjs [--check] [--force] [--json] [--help]` | Opt-in local LaTeX engine: downloads a pinned tectonic release for this platform, verifies its SHA-256 before extracting, and places it in the repo root (gitignored) where `generate-latex.mjs` looks first. Downloads are bounded by a timeout and a size cap. No-op when tectonic is already available (a pdflatex-only host still gets tectonic, which the CJK template needs); `--check` never downloads |
 | `node classify-tier.mjs` | Classify a job title into intern / entry / mid / senior |
 | `node ats-payload.mjs <payload.json> [--summary]` | ATS payload transform: folds `competencies[]` into `skills[]` (one safe, idempotent transform) and reports three judgement calls it deliberately does not apply. Payload on stdout, findings on stderr |

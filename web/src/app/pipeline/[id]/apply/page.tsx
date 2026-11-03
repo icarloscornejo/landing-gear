@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { notFound } from "next/navigation";
-import { careerOpsRoot, findApplication, isRegularContainedFile, readReport, rootScript } from "@/lib/career-ops";
+import { landingGearRoot, findApplication, isRegularContainedFile, readReport, rootScript } from "@/lib/landing-gear";
 import { resolvePdfIndexPath } from "@/lib/core/pdf-index";
 import { parseReport } from "@/lib/format";
 import { pipelineQuery } from "@/lib/pipeline-navigation.mjs";
@@ -40,7 +40,7 @@ export default async function ApplyPage({
     answers = answerCopyItems(snapshot);
   }
 
-  const root = careerOpsRoot();
+  const root = landingGearRoot();
   const cvPath = path.join(root, "cv.md");
   let cvText: string | null = null;
   try {

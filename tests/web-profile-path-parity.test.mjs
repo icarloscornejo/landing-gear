@@ -14,12 +14,12 @@
 // the core helper itself wherever the two contracts agree (second block), with the
 // places they differ on purpose pinned on both sides:
 //   - no root argument semantics are the web's "derived data root" case, where
-//     the CAREER_OPS_PROFILE override (trimmed; blank counts as unset) wins;
+//     the LANDING_GEAR_PROFILE override (trimmed; blank counts as unset) wins;
 //   - an explicit root names <root>/config/profile.yml and the override does
 //     NOT beat it;
 //   - the default is <root>/config/profile.yml;
-//   - a relative override resolves like core's CAREER_OPS_PORTALS /
-//     CAREER_OPS_PIPELINE / CAREER_OPS_SCAN_HISTORY: against the cwd the core CLI
+//   - a relative override resolves like core's LANDING_GEAR_PORTALS /
+//     LANDING_GEAR_PIPELINE / LANDING_GEAR_SCAN_HISTORY: against the cwd the core CLI
 //     runs in. The web's own cwd is web/, one directory too deep, so the web
 //     anchors it to the root it passes (the spawned core scripts run with that
 //     root as their cwd); an absolute one is unchanged.
@@ -52,12 +52,12 @@ if (!existsSync(join(ROOT, 'web'))) {
   const override = resolve('/fixture/elsewhere/me.yml');
   const cases = [
     ['no override resolves <root>/config/profile.yml', getProfilePath(root, { env: {} }), def],
-    ['override wins over the derived root', getProfilePath(root, { env: { CAREER_OPS_PROFILE: override } }), override],
-    ['override is trimmed', getProfilePath(root, { env: { CAREER_OPS_PROFILE: `  ${override}\n` } }), override],
-    ['blank override counts as unset', getProfilePath(root, { env: { CAREER_OPS_PROFILE: ' \t ' } }), def],
-    ['relative override resolves against the root the web passes', getProfilePath(root, { env: { CAREER_OPS_PROFILE: 'profiles/me.yml' } }), join(root, 'profiles', 'me.yml')],
-    ['absolute override is unchanged', getProfilePath(root, { env: { CAREER_OPS_PROFILE: override } }), override],
-    ['explicit root beats the override', getProfilePath(root, { explicitRoot: true, env: { CAREER_OPS_PROFILE: override } }), def],
+    ['override wins over the derived root', getProfilePath(root, { env: { LANDING_GEAR_PROFILE: override } }), override],
+    ['override is trimmed', getProfilePath(root, { env: { LANDING_GEAR_PROFILE: `  ${override}\n` } }), override],
+    ['blank override counts as unset', getProfilePath(root, { env: { LANDING_GEAR_PROFILE: ' \t ' } }), def],
+    ['relative override resolves against the root the web passes', getProfilePath(root, { env: { LANDING_GEAR_PROFILE: 'profiles/me.yml' } }), join(root, 'profiles', 'me.yml')],
+    ['absolute override is unchanged', getProfilePath(root, { env: { LANDING_GEAR_PROFILE: override } }), override],
+    ['explicit root beats the override', getProfilePath(root, { explicitRoot: true, env: { LANDING_GEAR_PROFILE: override } }), def],
   ];
   for (const [label, got, want] of cases) {
     if (got === want) pass(label);
@@ -85,15 +85,15 @@ if (!existsSync(join(ROOT, 'web'))) {
   const { tmpdir } = await import('os');
   const dataRoot = realpathSync(mkdtempSync(join(tmpdir(), 'web-core-profile-parity-')));
   const elsewhere = join(dataRoot, 'elsewhere', 'me.yml');
-  const saved = { root: process.env.CAREER_OPS_ROOT, dir: process.env.CAREER_OPS_DATA_DIR, profile: process.env.CAREER_OPS_PROFILE, cwd: process.cwd() };
+  const saved = { root: process.env.LANDING_GEAR_ROOT, dir: process.env.LANDING_GEAR_DATA_DIR, profile: process.env.LANDING_GEAR_PROFILE, cwd: process.cwd() };
   const withCore = (profile, cwd, fn) => {
-    process.env.CAREER_OPS_ROOT = dataRoot;
-    process.env.CAREER_OPS_DATA_DIR = '';
-    if (profile === undefined) delete process.env.CAREER_OPS_PROFILE; else process.env.CAREER_OPS_PROFILE = profile;
+    process.env.LANDING_GEAR_ROOT = dataRoot;
+    process.env.LANDING_GEAR_DATA_DIR = '';
+    if (profile === undefined) delete process.env.LANDING_GEAR_PROFILE; else process.env.LANDING_GEAR_PROFILE = profile;
     process.chdir(cwd);
     try { return fn(); } finally {
       process.chdir(saved.cwd);
-      for (const [k, v] of [['CAREER_OPS_ROOT', saved.root], ['CAREER_OPS_DATA_DIR', saved.dir], ['CAREER_OPS_PROFILE', saved.profile]]) {
+      for (const [k, v] of [['LANDING_GEAR_ROOT', saved.root], ['LANDING_GEAR_DATA_DIR', saved.dir], ['LANDING_GEAR_PROFILE', saved.profile]]) {
         if (v === undefined) delete process.env[k]; else process.env[k] = v;
       }
     }
@@ -107,12 +107,12 @@ if (!existsSync(join(ROOT, 'web'))) {
     ];
     for (const [label, profile] of agree) {
       const fromCore = withCore(profile, dataRoot, () => core.getProfilePath());
-      const fromWeb = web(dataRoot, { env: profile === undefined ? {} : { CAREER_OPS_PROFILE: profile } });
+      const fromWeb = web(dataRoot, { env: profile === undefined ? {} : { LANDING_GEAR_PROFILE: profile } });
       if (fromCore === fromWeb) pass(`web mirror equals core getProfilePath() for ${label}`);
       else fail(`web mirror and core getProfilePath() differ for ${label}: web ${fromWeb}, core ${fromCore}`);
     }
     const coreExplicit = withCore(elsewhere, dataRoot, () => core.getProfilePath(dataRoot));
-    const webExplicit = web(dataRoot, { explicitRoot: true, env: { CAREER_OPS_PROFILE: elsewhere } });
+    const webExplicit = web(dataRoot, { explicitRoot: true, env: { LANDING_GEAR_PROFILE: elsewhere } });
     if (coreExplicit === webExplicit) pass('web explicitRoot equals core getProfilePath(rootDir): the override does not redirect an explicit root');
     else fail(`explicit-root semantics differ: web ${webExplicit}, core ${coreExplicit}`);
 
@@ -122,7 +122,7 @@ if (!existsSync(join(ROOT, 'web'))) {
     const cwd = join(dataRoot, 'elsewhere');
     mkdirSync(cwd, { recursive: true });
     const relCore = withCore('profiles/me.yml', cwd, () => core.getProfilePath());
-    const relWeb = web(dataRoot, { env: { CAREER_OPS_PROFILE: 'profiles/me.yml' } });
+    const relWeb = web(dataRoot, { env: { LANDING_GEAR_PROFILE: 'profiles/me.yml' } });
     if (relCore === join(cwd, 'profiles', 'me.yml') && relWeb === join(dataRoot, 'profiles', 'me.yml')) {
       pass('a relative override differs on purpose: core resolves it against the cwd, the web against the root it passes');
     } else {
@@ -135,7 +135,7 @@ if (!existsSync(join(ROOT, 'web'))) {
 
 // ---------------------------------------------------------------------------
 // Scan guard: no tracked file under web/src builds the profile path by hand. A
-// new site that does is the next one to ignore CAREER_OPS_PROFILE (#5026). This
+// new site that does is the next one to ignore LANDING_GEAR_PROFILE (#5026). This
 // is a lexical guard, not proof every reader is covered: comment lines are
 // skipped, the helper is exempt, and batch/batch-runner.sh plus the prompts under
 // modes/ and batch/ are outside this change.
@@ -151,8 +151,8 @@ const BY_HAND = [
   // so they do not match; a literal inside a longer sentence is not whole-string.
   /\b(?:exists\w*|has|statSync|accessSync|readFileSync|readFile|join|resolve)\([^)]*["'`]config\/profile\.yml["'`]/,
   // A direct read of the variable; only the exempt files below may do it.
-  /\bprocess\.env\.CAREER_OPS_PROFILE\b/,
-  /\benv\.CAREER_OPS_PROFILE\b/,
+  /\bprocess\.env\.LANDING_GEAR_PROFILE\b/,
+  /\benv\.LANDING_GEAR_PROFILE\b/,
 ];
 const isComment = (line) => /^\s*(\/\/|\/\*|\*)/.test(line);
 const handBuilt = (line) => !isComment(line) && BY_HAND.some((re) => re.test(line));
@@ -170,9 +170,9 @@ const probes = [
   ['  "config/profile.yml": "your profile - target roles, comp, location",', false],
   ['["config/profile.yml", "config/profile.yml"],', false],
   ['// existsSync(join(root, "config/profile.yml"))', false],
-  ['const p = process.env.CAREER_OPS_PROFILE?.trim();', true],
-  ['const p = env.CAREER_OPS_PROFILE;', true],
-  ['// reads process.env.CAREER_OPS_PROFILE', false],
+  ['const p = process.env.LANDING_GEAR_PROFILE?.trim();', true],
+  ['const p = env.LANDING_GEAR_PROFILE;', true],
+  ['// reads process.env.LANDING_GEAR_PROFILE', false],
 ];
 for (const [line, want] of probes) {
   if (handBuilt(line) === want) pass(`scan classifies: ${line}`);

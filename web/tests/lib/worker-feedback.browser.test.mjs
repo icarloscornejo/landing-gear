@@ -23,7 +23,7 @@ test("worker dismiss stays discoverable without hover and by keyboard", { skip: 
       try {
         const page = await context.newPage();
         const unexpected = [];
-        await page.addInitScript(() => localStorage.setItem("career-ops:jobs", JSON.stringify([{
+        await page.addInitScript(() => localStorage.setItem("landing-gear:jobs", JSON.stringify([{
           id: "dismiss-fixture", title: "Fictional evaluation", subtitle: "Engineer", status: "done",
           steps: [], text: "", startedAt: 1, endedAt: 2,
         }])));
@@ -63,7 +63,7 @@ test("worker dismiss stays discoverable without hover and by keyboard", { skip: 
           assert.ok(nodes.some((n) => !n.ignored && n.role?.value === "button" && n.name?.value === "Dismiss worker: Fictional evaluation · Engineer" && n.properties?.some((p) => p.name === "focused" && p.value.value === true)));
           await page.keyboard.press("Enter");
         }
-        await until(() => page.evaluate(() => JSON.parse(localStorage.getItem("career-ops:jobs") || "[]").length === 0), "dismiss removes the worker");
+        await until(() => page.evaluate(() => JSON.parse(localStorage.getItem("landing-gear:jobs") || "[]").length === 0), "dismiss removes the worker");
         assert.equal(page.url(), `${origin.origin}/pipeline?tab=ALL`, "dismiss must not follow the details link");
         assert.deepEqual(unexpected, [], "dismiss must not write through an API");
       } finally {

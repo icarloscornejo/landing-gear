@@ -1,6 +1,6 @@
 # dashboard/
 
-Standalone Go TUI for browsing the career-ops pipeline.
+Standalone Go TUI for browsing the landing-gear pipeline.
 
 ## Purpose
 
@@ -22,7 +22,7 @@ value.
 Requires Go 1.24+ (`go.mod`). From the repo root:
 
 ```bash
-npm run serve:dashboard    # go run . --path .. (The script automatically resolves external data directories by falling back through CAREER_OPS_ROOT and CAREER_OPS_DATA_DIR enviornment variables,defaulting to repository root.)
+npm run serve:dashboard    # go run . --path .. (The script automatically resolves external data directories by falling back through LANDING_GEAR_ROOT and LANDING_GEAR_DATA_DIR enviornment variables,defaulting to repository root.)
 npm run build:dashboard    # build the standalone binary
 ```
 
@@ -30,7 +30,7 @@ npm run build:dashboard    # build the standalone binary
 an extension-less binary on Windows; the wrapper picks the platform-correct
 output name (`career-dashboard.exe` on Windows, `career-dashboard` elsewhere).
 
-The binary accepts `--path <dir>` pointing at a career-ops directory
+The binary accepts `--path <dir>` pointing at a landing-gear directory
 (default `.`). The data loader tries both `{path}/applications.md` and
 `{path}/data/applications.md` for layout compatibility.
 

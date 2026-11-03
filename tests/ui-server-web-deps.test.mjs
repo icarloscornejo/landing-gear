@@ -45,7 +45,7 @@ async function launch(dir) {
     cwd: dir,
     encoding: 'utf-8',
     timeout: 30_000,
-    env: { ...process.env, CAREER_OPS_ROOT: dir, CAREER_OPS_WEB_ALLOWED_HOSTS: '' },
+    env: { ...process.env, LANDING_GEAR_ROOT: dir, LANDING_GEAR_WEB_ALLOWED_HOSTS: '' },
   });
   return { ...run, port };
 }

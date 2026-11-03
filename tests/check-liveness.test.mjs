@@ -66,7 +66,7 @@ else fail('no args prints usage to stderr');
 // non-ATS, so both take the browser rung, and both must come back uncertain
 // with the install hint while the run still exits non-zero.
 console.log('\ncheck-liveness — a failed browser launch does not end the batch');
-const emptyBrowsers = mkdtempSync(join(tmpdir(), 'career-ops-no-browsers-'));
+const emptyBrowsers = mkdtempSync(join(tmpdir(), 'landing-gear-no-browsers-'));
 const batch = spawnSync(NODE, [scriptPath, '--no-record',
   'https://careers.example.com/closed/job-1',
   'https://careers.example.com/closed/job-2',

@@ -5,12 +5,12 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/santifer/career-ops/dashboard/internal/model"
+	"github.com/icarloscornejo/landing-gear/dashboard/internal/model"
 )
 
 func TestPDFKeysKeepCVWhenCoverWasGeneratedLater(t *testing.T) {
-	t.Setenv("CAREER_OPS_TRACKER", "")
-	t.Setenv("CAREER_OPS_PDF_INDEX", "")
+	t.Setenv("LANDING_GEAR_TRACKER", "")
+	t.Setenv("LANDING_GEAR_PDF_INDEX", "")
 	root := t.TempDir()
 	pdf, html := "output/resume-acme.pdf", "output/resume-acme.html"
 	writePDFFixture(t, root, pdf)

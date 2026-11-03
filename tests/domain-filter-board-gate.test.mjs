@@ -299,7 +299,7 @@ check(!buildDomainFilter(['word:rwa'])('Software RWAs Team'), 'an explicit `word
     writeFileSync(join(dir, 'portals.yml'), 'title_filter:\n  positive: [engineer]\ndomain_filter:\n  - defi\n  - "solana + word:"\n');
     const r = spawnSync(process.execPath, ['scan-ats-full.mjs', '--dry-run'], {
       cwd: ROOT, encoding: 'utf-8', timeout: 30_000,
-      env: { ...process.env, CAREER_OPS_ROOT: dir, CAREER_OPS_DATA_DIR: '' },
+      env: { ...process.env, LANDING_GEAR_ROOT: dir, LANDING_GEAR_DATA_DIR: '' },
     });
     check(r.status === 1 && /domain_filter\[1\]: a word:\/stem: prefix needs a term/.test(r.stderr),
       `scan-ats-full refuses to start on a bare domain prefix (exit ${r.status})`);

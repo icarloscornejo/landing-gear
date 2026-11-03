@@ -5,13 +5,13 @@ Radware challenge. This recipe does not fetch the site, solve the challenge, or
 reuse browser credentials. It only parses rendered result pages that you save
 after using the site normally in your own browser.
 
-This is a cookbook recipe, not a bundled career-ops integration. Copy the
+This is a cookbook recipe, not a bundled landing-gear integration. Copy the
 parser into the gitignored `local/` directory before using it so you can adjust
 site-specific HTML handling without changing core.
 
 ## Set up
 
-From the career-ops checkout:
+From the landing-gear checkout:
 
 ```bash
 mkdir -p local data/gojobs
@@ -57,9 +57,9 @@ tracked_companies:
 ```
 
 Run `node scan.mjs` as usual. The local-parser provider starts the copied script
-from the career-ops checkout, and the parser resolves capture paths through
-`CAREER_OPS_ROOT`, `CAREER_OPS_DATA_DIR`, or `.career-ops-data` using the same
-precedence as the rest of career-ops. Normal scan filters, deduplication, and
+from the landing-gear checkout, and the parser resolves capture paths through
+`LANDING_GEAR_ROOT`, `LANDING_GEAR_DATA_DIR`, or `.landing-gear-data` using the same
+precedence as the rest of landing-gear. Normal scan filters, deduplication, and
 pipeline writes still apply. Refreshing coverage requires another manual save;
 this is not real-time or unattended scanning.
 

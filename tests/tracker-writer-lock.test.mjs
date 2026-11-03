@@ -53,7 +53,7 @@ const deadline = (ms) => new Promise(resolve => setTimeout(resolve, ms).unref())
 // nothing.
 //
 // The SEMANTIC timeouts are the argument to launchWriter() (the child's
-// CAREER_OPS_TRACKER_LOCK_TIMEOUT_MS) and the lock's own timeoutMs / staleMs /
+// LANDING_GEAR_TRACKER_LOCK_TIMEOUT_MS) and the lock's own timeoutMs / staleMs /
 // retryMs. Those are what the tests assert on.
 const HARNESS_WAIT_MS = 10_000;
 
@@ -123,9 +123,9 @@ async function runWhileLocked({
   mutateWhileLocked,
   beforeMutationOutput = null,
 }) {
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-writer-lock-'));
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-writer-lock-'));
   const tracker = join(dir, 'applications.md');
-  const lockDir = join(dir, `career-ops-merge-tracker-${name}.lock`);
+  const lockDir = join(dir, `landing-gear-merge-tracker-${name}.lock`);
   const db = join(dir, 'applications.db');
   writeFileSync(tracker, content);
 
@@ -143,10 +143,10 @@ async function runWhileLocked({
 
   const childEnv = {
     ...process.env,
-    CAREER_OPS_TRACKER: tracker,
-    CAREER_OPS_TRACKER_DB: db,
-    CAREER_OPS_TRACKER_LOCK: lockDir,
-    CAREER_OPS_TRACKER_LOCK_RETRY_MS: '20',
+    LANDING_GEAR_TRACKER: tracker,
+    LANDING_GEAR_TRACKER_DB: db,
+    LANDING_GEAR_TRACKER_LOCK: lockDir,
+    LANDING_GEAR_TRACKER_LOCK_RETRY_MS: '20',
   };
   const launchWriter = (timeoutMs, markerPath = null) => {
     let stdout = '';
@@ -160,9 +160,9 @@ async function runWhileLocked({
         // the lock held and created the recover guard (tracker-utils.mjs).
         ...(markerPath ? {
           NODE_ENV: 'test',
-          CAREER_OPS_TRACKER_TEST_LOCK_WAIT_MARKER: markerPath,
+          LANDING_GEAR_TRACKER_TEST_LOCK_WAIT_MARKER: markerPath,
         } : {}),
-        CAREER_OPS_TRACKER_LOCK_TIMEOUT_MS: String(timeoutMs),
+        LANDING_GEAR_TRACKER_LOCK_TIMEOUT_MS: String(timeoutMs),
       },
       stdio: ['pipe', 'pipe', 'pipe'],
     });
@@ -343,7 +343,7 @@ function writerCase({
           + 'so this case did not spend 3s learning the same thing (see that case for the cause)'));
         assert.ok(marker,
           say('the writer left no contention marker, so the fixture mutation was not ordered after its read — '
-          + 'the CAREER_OPS_TRACKER_TEST_LOCK_WAIT_MARKER hook in tracker-utils.mjs is gone, renamed, or no '
+          + 'the LANDING_GEAR_TRACKER_TEST_LOCK_WAIT_MARKER hook in tracker-utils.mjs is gone, renamed, or no '
           + 'longer reached on contention'));
         assert.equal(marker.lockDir, lockDir, say('the marker names a different lock'));
         assert.equal(marker.guardCreated, true, say('the marker does not record the recover guard being created'));
@@ -525,9 +525,9 @@ writerCase({
 // followup-seed.mjs is absent from the matrix above because it is not a
 // tracker writer. It READS applications.md to find the row and its apply date,
 // then writes only data/follow-ups.md, under its own lock keyed by the
-// FOLLOW-UPS path and prefixed `career-ops-followups-` (followup-seed.mjs's
+// FOLLOW-UPS path and prefixed `landing-gear-followups-` (followup-seed.mjs's
 // FOLLOWUPS_LOCK_PREFIX and resolveLockDir) rather than the shared
-// `career-ops-merge-tracker-` lock every writer above contends on.
+// `landing-gear-merge-tracker-` lock every writer above contends on.
 //
 // That split is the safe arrangement, not an oversight:
 //   - The two locks guard two different files' critical sections. The tracker
@@ -552,11 +552,11 @@ writerCase({
 // included. Give followup-seed the tracker lock and (a) fails; give it a
 // tracker write and (c) fails.
 test('followup-seed: seeds follow-ups under its own lock while the tracker lock is held, and writes no tracker bytes', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-followup-seed-lock-'));
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-followup-seed-lock-'));
   const tracker = join(dir, 'applications.md');
   const followups = join(dir, 'follow-ups.md');
-  const trackerLockDir = join(dir, 'career-ops-merge-tracker-followup-seed.lock');
-  const followupsLockDir = join(dir, 'career-ops-followups-seed.lock');
+  const trackerLockDir = join(dir, 'landing-gear-merge-tracker-followup-seed.lock');
+  const followupsLockDir = join(dir, 'landing-gear-followups-seed.lock');
   const content = trackerTable([
     '| 1 | 2026-01-01 | Acme | Engineer | 4.0/5 | Applied | ❌ | [1](reports/001-acme.md) | Applied 2026-01-01 |',
   ]);
@@ -587,17 +587,17 @@ test('followup-seed: seeds follow-ups under its own lock while the tracker lock 
         cwd: ROOT,
         env: {
           ...process.env,
-          CAREER_OPS_TRACKER: tracker,
-          CAREER_OPS_FOLLOWUPS: followups,
-          CAREER_OPS_FOLLOWUPS_LOCK: followupsLockDir,
-          CAREER_OPS_FOLLOWUPS_LOCK_RETRY_MS: '20',
-          CAREER_OPS_FOLLOWUPS_LOCK_TIMEOUT_MS: '3000',
+          LANDING_GEAR_TRACKER: tracker,
+          LANDING_GEAR_FOLLOWUPS: followups,
+          LANDING_GEAR_FOLLOWUPS_LOCK: followupsLockDir,
+          LANDING_GEAR_FOLLOWUPS_LOCK_RETRY_MS: '20',
+          LANDING_GEAR_FOLLOWUPS_LOCK_TIMEOUT_MS: '3000',
           // Short enough that a followup-seed which DID reach for the shared
           // tracker lock would time out and fail loudly inside the harness
           // wait, instead of hanging until the suite's own timeout.
-          CAREER_OPS_TRACKER_LOCK: trackerLockDir,
-          CAREER_OPS_TRACKER_LOCK_TIMEOUT_MS: '500',
-          CAREER_OPS_TRACKER_LOCK_RETRY_MS: '20',
+          LANDING_GEAR_TRACKER_LOCK: trackerLockDir,
+          LANDING_GEAR_TRACKER_LOCK_TIMEOUT_MS: '500',
+          LANDING_GEAR_TRACKER_LOCK_RETRY_MS: '20',
         },
         stdio: ['pipe', 'pipe', 'pipe'],
       });
@@ -630,7 +630,7 @@ test('followup-seed: seeds follow-ups under its own lock while the tracker lock 
 });
 
 test('tracker lock release retries after owner.json was removed by partial cleanup', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-lock-release-'));
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-lock-release-'));
   const lockDir = join(dir, 'tracker.lock');
   let removeAttempts = 0;
   try {
@@ -668,7 +668,7 @@ test('tracker lock release retries after owner.json was removed by partial clean
 });
 
 test('stale tracker lock handle preserves a replacement after partial cleanup', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-lock-replacement-'));
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-lock-replacement-'));
   const lockDir = join(dir, 'tracker.lock');
   let removeAttempts = 0;
   try {
@@ -702,7 +702,7 @@ test('stale tracker lock handle preserves a replacement after partial cleanup', 
 });
 
 test('tracker transaction close preserves completed writes and reports cleanup failure', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-transaction-close-'));
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-transaction-close-'));
   const tracker = join(dir, 'applications.md');
   const lockDir = join(dir, 'tracker.lock');
   const originalConsoleError = console.error;
@@ -733,7 +733,7 @@ test('tracker transaction close preserves completed writes and reports cleanup f
 });
 
 test('reply-watch surfaces conflicting replies without applying an arbitrary last status', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-reply-conflict-'));
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-reply-conflict-'));
   const tracker = join(dir, 'applications.md');
   const candidatesPath = join(dir, 'candidates.json');
   const db = join(dir, 'applications.db');
@@ -765,11 +765,11 @@ test('reply-watch surfaces conflicting replies without applying an arbitrary las
       cwd: ROOT,
       env: {
         ...process.env,
-        CAREER_OPS_TRACKER: tracker,
-        CAREER_OPS_TRACKER_DB: db,
-        CAREER_OPS_TRACKER_LOCK: join(dir, 'career-ops-merge-tracker-conflict.lock'),
-        CAREER_OPS_TRACKER_LOCK_TIMEOUT_MS: '1000',
-        CAREER_OPS_TRACKER_LOCK_RETRY_MS: '20',
+        LANDING_GEAR_TRACKER: tracker,
+        LANDING_GEAR_TRACKER_DB: db,
+        LANDING_GEAR_TRACKER_LOCK: join(dir, 'landing-gear-merge-tracker-conflict.lock'),
+        LANDING_GEAR_TRACKER_LOCK_TIMEOUT_MS: '1000',
+        LANDING_GEAR_TRACKER_LOCK_RETRY_MS: '20',
       },
       stdio: ['pipe', 'pipe', 'pipe'],
     });
@@ -828,7 +828,7 @@ const INSIDE_GRACE_MS = 100;   // ownerless for 100ms: past staleMs, well inside
 const SMALL_STALE_MS = 10;
 
 test('ownerless lock inside the grace period is not stolen by a small staleMs', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-ownerless-'));
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-ownerless-'));
   const lockDir = join(dir, 'tracker.lock');
   try {
     // Stands in for a winner that has run mkdirSync but not yet written
@@ -854,7 +854,7 @@ test('ownerless lock inside the grace period is not stolen by a small staleMs', 
 });
 
 test('ownerless lock older than the grace period is still recovered', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-ownerless-aged-'));
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-ownerless-aged-'));
   const lockDir = join(dir, 'tracker.lock');
   try {
     // A real orphan: ownerless *and* older than any grace period.
@@ -871,7 +871,7 @@ test('ownerless lock older than the grace period is still recovered', async () =
 });
 
 test('recover guard held by a live caller is not evicted by a small staleMs', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-guard-live-'));
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-guard-live-'));
   const lockDir = join(dir, 'tracker.lock');
   const guardDir = `${lockDir}.recover`;
   try {

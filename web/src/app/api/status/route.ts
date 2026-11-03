@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import fs from "node:fs";
-import { findApplication, rootScript } from "@/lib/career-ops";
+import { findApplication, rootScript } from "@/lib/landing-gear";
 import { canonicalizeStatus } from "@/lib/core/states";
 import { parseCliJson, trackerRowArg } from "@/lib/status-cli.mjs";
 import { readJsonObject } from "@/lib/json-body";
@@ -64,7 +64,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "n must be a tracker row number" }, { status: 400 });
   }
 
-  // A data-only CAREER_OPS_ROOT has no scripts; answer that explicitly.
+  // A data-only LANDING_GEAR_ROOT has no scripts; answer that explicitly.
   if (!fs.existsSync(rootScript("set-status"))) {
     return NextResponse.json(
       {

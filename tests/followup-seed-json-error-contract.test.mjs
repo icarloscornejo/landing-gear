@@ -17,21 +17,21 @@ const SCRIPT = join(ROOT, 'followup-seed.mjs');
 
 // A throwaway sandbox: the invalid-date error is raised before any tracker is
 // opened, and pointing every path at a temp dir keeps the real workspace out of
-// the way. CAREER_OPS_ROOT and CAREER_OPS_PROFILE are pinned for the same
-// reason tests/helpers.mjs blanks CAREER_OPS_TRACKER: followup-seed.mjs resolves
-// the data root at module load (getCareerOpsRoot, line 88), so a developer whose
+// the way. LANDING_GEAR_ROOT and LANDING_GEAR_PROFILE are pinned for the same
+// reason tests/helpers.mjs blanks LANDING_GEAR_TRACKER: followup-seed.mjs resolves
+// the data root at module load (getLandingGearRoot, line 88), so a developer whose
 // shell already exports one would have this child read their real data root and
-// profile. Pinning ROOT also outranks CAREER_OPS_DATA_DIR, the other alias that
+// profile. Pinning ROOT also outranks LANDING_GEAR_DATA_DIR, the other alias that
 // resolver honours. Returns { code, stdout, stderr }, like the other CLI suites.
 function run(args) {
   const dir = mkdtempSync(join(tmpdir(), 'co-seed-json-'));
   const env = {
     ...process.env,
-    CAREER_OPS_ROOT: dir,
-    CAREER_OPS_PROFILE: join(dir, 'profile.yml'),
-    CAREER_OPS_TRACKER: join(dir, 'applications.md'),
-    CAREER_OPS_FOLLOWUPS: join(dir, 'follow-ups.md'),
-    CAREER_OPS_FOLLOWUPS_LOCK: join(dir, `career-ops-followups-json-${Math.random().toString(36).slice(2)}.lock`),
+    LANDING_GEAR_ROOT: dir,
+    LANDING_GEAR_PROFILE: join(dir, 'profile.yml'),
+    LANDING_GEAR_TRACKER: join(dir, 'applications.md'),
+    LANDING_GEAR_FOLLOWUPS: join(dir, 'follow-ups.md'),
+    LANDING_GEAR_FOLLOWUPS_LOCK: join(dir, `landing-gear-followups-json-${Math.random().toString(36).slice(2)}.lock`),
   };
   try {
     const stdout = execFileSync(NODE, [SCRIPT, ...args], { cwd: ROOT, env, encoding: 'utf-8', timeout: 30_000 });

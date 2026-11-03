@@ -1,7 +1,7 @@
 {
-  "name": "career-ops-plugin-workspace-mcp",
+  "name": "landing-gear-plugin-workspace-mcp",
   "id": "workspace-mcp",
-  "repo": "https://github.com/theridgerugby/career-ops-plugin-workspace-mcp",
+  "repo": "https://github.com/theridgerugby/landing-gear-plugin-workspace-mcp",
   "author": "theridgerugby",
   "hooks": [
     "export"

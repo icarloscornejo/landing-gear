@@ -1,6 +1,6 @@
 # landing-gear web (alpha)
 
-An **experimental, opt-in web UI** for career-ops. It is a local-first *view* over
+An **experimental, opt-in web UI** for landing-gear. It is a local-first *view* over
 the exact same files the CLI reads and writes (`data/pipeline.md`,
 `data/applications.md`, `reports/`, `config/`): no parallel engine, no separate
 database, no server. If you never run it, nothing about your CLI workflow changes.
@@ -19,7 +19,7 @@ npm ci
 npm run dev
 ```
 
-Open http://localhost:3000. The app reads the career-ops checkout it lives in
+Open http://localhost:3000. The app reads the landing-gear checkout it lives in
 (the parent directory) — your existing CV, pipeline and reports appear as-is.
 
 The server binds IPv4 loopback, so reach it as `localhost` or `127.0.0.1`;
@@ -45,7 +45,7 @@ The server binds IPv4 loopback, so reach it as `localhost` or `127.0.0.1`;
 - **Loopback by default:** `npm run dev` and `npm start` bind `127.0.0.1`, so
   nothing else on your network can reach the dashboard. It has no login — the
   bind is the access control. Opt out deliberately with
-  `CAREER_OPS_WEB_ALLOWED_HOSTS` ([below](#exposing-it-beyond-this-machine)).
+  `LANDING_GEAR_WEB_ALLOWED_HOSTS` ([below](#exposing-it-beyond-this-machine)).
 - **Never auto-submits:** the apply flow drafts and prefills; submitting is
   always a human action.
 - **CV generation never asks the agent to write:** the `pdf` worker tailors your
@@ -86,15 +86,15 @@ npx tsc --noEmit     # typecheck
 npm run build        # production build
 ```
 
-Set `CAREER_OPS_ROOT=/path/to/checkout` in `web/.env.local` to point the app at
-a different career-ops directory (useful for testing against sample data).
+Set `LANDING_GEAR_ROOT=/path/to/checkout` in `web/.env.local` to point the app at
+a different landing-gear directory (useful for testing against sample data).
 Root scripts such as `doctor.mjs` run from the checkout that holds `web/`, not
-from `CAREER_OPS_ROOT`; set `CAREER_OPS_CODE_ROOT` when the app runs outside it.
+from `LANDING_GEAR_ROOT`; set `LANDING_GEAR_CODE_ROOT` when the app runs outside it.
 
 Every route but build assets is gated by the same-origin + loopback guard in
 `src/lib/origin-guard.mjs`. Two opt-ins widen it, both unset by default and both in `web/.env.local`:
-`CAREER_OPS_WEB_ALLOWED_HOSTS` names extra non-loopback hosts the dashboard may
-answer on, and `CAREER_OPS_ALLOWED_ORIGINS` names origins allowed to call the
+`LANDING_GEAR_WEB_ALLOWED_HOSTS` names extra non-loopback hosts the dashboard may
+answer on, and `LANDING_GEAR_ALLOWED_ORIGINS` names origins allowed to call the
 API from outside the app — a comma- or space-separated list, no trailing slash.
 The second is what a local companion client needs: a browser extension calls
 from a `chrome-extension://` origin, which Fetch Metadata always reports as
@@ -105,13 +105,13 @@ Pass one-off flags through npm's `--`: `npm run dev -- -p 4000`.
 
 ### Exposing it beyond this machine
 
-`CAREER_OPS_WEB_ALLOWED_HOSTS` is the list of hosts allowed to reach the
+`LANDING_GEAR_WEB_ALLOWED_HOSTS` is the list of hosts allowed to reach the
 dashboard. Unset (or blank) the server binds `127.0.0.1`; name a host it cannot
 already reach on loopback and the socket opens, with the guard answering for
 loopback and the hosts you named:
 
 ```bash
-CAREER_OPS_WEB_ALLOWED_HOSTS="192.168.1.50" npm run dev
+LANDING_GEAR_WEB_ALLOWED_HOSTS="192.168.1.50" npm run dev
 ```
 
 It is not an on/off switch, and it is not read as one: `off`, `false`, `no` and
@@ -147,7 +147,7 @@ Naming only loopback (`localhost`, `127.0.0.1`, `::1`) is not an opt-in and
 changes nothing — the guard already answers for those, so widening the socket
 would expose every interface while granting no host that wasn't already allowed.
 
-Set through `CAREER_OPS_WEB_ALLOWED_HOSTS`, neither layer can widen without the
+Set through `LANDING_GEAR_WEB_ALLOWED_HOSTS`, neither layer can widen without the
 other — the bind and the allow-list are derived from that one value. They are not
 equivalent, and two things move them apart: the guard also answers for loopback,
 which no bind address changes, and a `-H` of your own moves the bind while the
@@ -228,10 +228,10 @@ on every PR, including that `npm test` never goes back to listing suites by name
 
 ### Assistant conversations
 
-The assistant saves conversations in `.career-ops-web/chats/` under the resolved
+The assistant saves conversations in `.landing-gear-web/chats/` under the resolved
 user data root. New chat keeps the previous conversation; use the history picker
 to switch, rename, or delete it. Clearing browser storage does not delete saved
-conversations. The old `career-ops:chat` browser entry is migrated once and only
+conversations. The old `landing-gear:chat` browser entry is migrated once and only
 removed after its disk write succeeds. Empty greetings are not saved.
 
 Writes are atomic and revision-checked: a stale tab cannot overwrite newer

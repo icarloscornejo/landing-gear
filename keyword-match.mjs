@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * keyword-match.mjs — ATS keyword coverage check for career-ops
+ * keyword-match.mjs — ATS keyword coverage check for landing-gear
  *
  * Closes the evaluation loop: given a report's keyword section (`## Keywords
  * extracted`, or the translated heading a localized evaluation mode writes) and
@@ -22,7 +22,7 @@
 import { readFileSync, existsSync, statSync  } from 'fs';
 import { join, isAbsolute, basename } from 'path';
 import { isMainModule } from './lib/is-main-module.mjs';
-import { getCareerOpsRoot } from './path-resolver.mjs';
+import { getLandingGearRoot } from './path-resolver.mjs';
 import { extractSkills } from './skill-extract.mjs';
 
 /**
@@ -562,7 +562,7 @@ if (isMainModule(import.meta.url)) {
     let keywordNote = null;
 
     if (keywords.length === 0) {
-      keywords = [...extractSkills(archivedJdText(reportText, getCareerOpsRoot()))].sort();
+      keywords = [...extractSkills(archivedJdText(reportText, getLandingGearRoot()))].sort();
       if (keywords.length === 0) {
         console.error(
           'No "## Keywords extracted" block found (or it is empty), and no known skills were found under ' +
@@ -580,7 +580,7 @@ if (isMainModule(import.meta.url)) {
 
     const cvPath = cvArg
       ? (isAbsolute(cvArg) ? cvArg : join(process.cwd(), cvArg))
-      : join(getCareerOpsRoot(), 'cv.md');
+      : join(getLandingGearRoot(), 'cv.md');
 
     if (!existsSync(cvPath) || !statSync(cvPath).isFile()) {
       console.error(`CV not found: ${cvPath}. Pass --cv <path> to point at your CV.`);

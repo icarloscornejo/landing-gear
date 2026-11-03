@@ -26,7 +26,7 @@ function scan(companyCount, flags) {
     writeFileSync(portals, `title_filter:\n  positive:\n    - "Engineer"\ntracked_companies:\n${companies}\njob_boards: []\n`);
     return spawnSync(NODE, [SCAN, '--dry-run', ...flags], {
       cwd: dir,
-      env: { ...process.env, CAREER_OPS_ROOT: dir, CAREER_OPS_PORTALS: portals },
+      env: { ...process.env, LANDING_GEAR_ROOT: dir, LANDING_GEAR_PORTALS: portals },
       encoding: 'utf-8',
       timeout: 120_000,
     });
@@ -56,7 +56,7 @@ function progress(stderr) {
   let receipt = null;
   try { receipt = JSON.parse(run.stdout).version; } catch { /* reported below */ }
   const seen = progress(run.stderr);
-  if (run.status === 0 && receipt === 'careerops.scan.receipt@1' && seen.join(',') === '3/3') {
+  if (run.status === 0 && receipt === 'landinggear.scan.receipt@1' && seen.join(',') === '3/3') {
     pass('--json keeps stdout to the receipt and reports progress on stderr');
   } else {
     fail(`--json progress: status ${run.status}, receipt ${receipt}, lines ${JSON.stringify(seen)}\n${run.stderr.slice(-400)}`);

@@ -2,7 +2,7 @@
 
 ## Overview
 
-career-ops is maintained by [@santifer](https://github.com/santifer) under a **BDFL (Benevolent Dictator for Life)** model with a clear path for community members to earn trust and take on responsibilities.
+landing-gear is maintained by [@icarloscornejo](https://github.com/icarloscornejo) under a **BDFL (Benevolent Dictator for Life)** model with a clear path for community members to earn trust and take on responsibilities.
 
 The goal is to build a self-sustaining community where the project thrives even when the maintainer is offline.
 
@@ -29,7 +29,7 @@ This is the one place the ladder and its criteria are written down: [MAINTAINERS
 
 ### Contributor
 
-**Earned with your 3rd merged PR.** It brings an invitation to the [career-ops-hq](https://github.com/career-ops-hq) organization (the **contributors** team). That is the whole criterion, and it is retroactive: no vote, no nomination, no application. If yours has not arrived, say so in an issue.
+**Earned with your 3rd merged PR.** It brings an invitation as a collaborator on the repository. That is the whole criterion, and it is retroactive: no vote, no nomination, no application. If yours has not arrived, say so in an issue.
 
 - Listed in release notes when their contributions ship
 - Input is weighted more heavily in issue discussions

@@ -3,7 +3,7 @@
 //
 // generate-cover-letter.mjs anchored OUTPUT_ROOT to its own directory, while
 // the PDF guard in generate-pdf.mjs bounds every write by the tracker
-// workspace, which is the data root (#4389). With CAREER_OPS_ROOT set the two
+// workspace, which is the data root (#4389). With LANDING_GEAR_ROOT set the two
 // could not both be satisfied: `--out output/x.pdf` resolved into
 // <checkout>/output and the render refused it, and an absolute path under the
 // data root was refused by the cover letter's own guard first. No cover letter
@@ -13,7 +13,7 @@
 // root by tests/writer-scripts-data-root.test.mjs, and doctor's code-layer
 // checks by tests/doctor-code-root-checks.test.mjs.
 //
-// Each child runs with CAREER_OPS_ROOT set and the cwd pointed at a different
+// Each child runs with LANDING_GEAR_ROOT set and the cwd pointed at a different
 // directory, so a path following the cwd or the checkout cannot pass by
 // accident. The render goes through renderHtmlToPdf's launchBrowser seam with a
 // stub browser: no Chromium is needed (the CI test job installs none), while
@@ -39,8 +39,8 @@ const PROBE = `cover-data-root-probe-${process.pid}.pdf`;
 function fixture() {
   // realpathSync because generate-pdf.mjs compares canonical paths, and on
   // macOS the temp dir is reached through a symlink (/var -> /private/var).
-  const dataRoot = realpathSync(mkdtempSync(join(tmpdir(), 'career-ops-coverroot-')));
-  const decoyCwd = realpathSync(mkdtempSync(join(tmpdir(), 'career-ops-covercwd-')));
+  const dataRoot = realpathSync(mkdtempSync(join(tmpdir(), 'landing-gear-coverroot-')));
+  const decoyCwd = realpathSync(mkdtempSync(join(tmpdir(), 'landing-gear-covercwd-')));
   mkdirSync(join(dataRoot, 'data'), { recursive: true });
   mkdirSync(join(dataRoot, 'output'), { recursive: true });
   writeFileSync(join(dataRoot, 'data', 'applications.md'), '# Applications Tracker\n');
@@ -71,10 +71,10 @@ function runChild(body, f) {
     timeout: 60_000,
     env: {
       ...process.env,
-      CAREER_OPS_ROOT: f.dataRoot,
-      CAREER_OPS_DATA_DIR: '',
-      CAREER_OPS_TRACKER: '',
-      CAREER_OPS_PDF_INDEX: '',
+      LANDING_GEAR_ROOT: f.dataRoot,
+      LANDING_GEAR_DATA_DIR: '',
+      LANDING_GEAR_TRACKER: '',
+      LANDING_GEAR_PDF_INDEX: '',
     },
   });
   assert.equal(r.error, undefined, `spawn failed: ${r.error?.message}`);

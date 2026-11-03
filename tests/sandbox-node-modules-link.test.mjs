@@ -21,7 +21,7 @@ import { pathToFileURL } from 'url';
 
 console.log('\nsandbox node_modules link — the dependency tree a copied script borrows');
 
-const tmp = mkdtempSync(join(tmpdir(), 'career-ops-nm-link-'));
+const tmp = mkdtempSync(join(tmpdir(), 'landing-gear-nm-link-'));
 try {
   const { linkNodeModules } = await import(pathToFileURL(join(ROOT, 'tests/helpers.mjs')).href);
 

@@ -1,7 +1,7 @@
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
 import path from "node:path";
-import { careerOpsRoot, rootScript, type Application } from "@/lib/career-ops";
+import { landingGearRoot, rootScript, type Application } from "@/lib/landing-gear";
 import { readTrackerFile } from "@/lib/core/tracker-files.mjs";
 import { parseApplications } from "@/lib/tracker-table.mjs";
 import { parseCliJson, clientErrorMessage } from "@/lib/status-cli.mjs";
@@ -21,9 +21,9 @@ const LOCK_WAIT_DEFAULT_MS = 10_000;
 const LOCK_WAIT_CEILING_MS = SET_STATUS_TIMEOUT_MS - 5_000;
 
 function boundedLockWait(): Record<string, string> {
-  const raw = Number(process.env.CAREER_OPS_TRACKER_LOCK_TIMEOUT_MS);
+  const raw = Number(process.env.LANDING_GEAR_TRACKER_LOCK_TIMEOUT_MS);
   const requested = Number.isFinite(raw) && raw > 0 ? raw : LOCK_WAIT_DEFAULT_MS;
-  return { CAREER_OPS_TRACKER_LOCK_TIMEOUT_MS: String(Math.min(requested, LOCK_WAIT_CEILING_MS)) };
+  return { LANDING_GEAR_TRACKER_LOCK_TIMEOUT_MS: String(Math.min(requested, LOCK_WAIT_CEILING_MS)) };
 }
 
 // set-status.mjs exit codes (CLI_EXIT in tracker-utils.mjs) → HTTP. 3 also covers
@@ -43,7 +43,7 @@ export function runNodeScript(script: string, args: string[], timeoutMs = SET_ST
     execFile(
       process.execPath,
       [script, ...args],
-      { cwd: careerOpsRoot(), timeout: timeoutMs, env: { ...process.env, ...boundedLockWait() } },
+      { cwd: landingGearRoot(), timeout: timeoutMs, env: { ...process.env, ...boundedLockWait() } },
       (err, stdout, stderr) => {
         // A killed child (our timeout) carries no numeric exit code, so `killed`
         // is checked first to tell it apart from a spawn failure.
@@ -97,10 +97,10 @@ export function setStatusFailure(result: CliResult, label: string): { status: nu
  * for set-status's --expect-tracker: a write only lands if nothing changed since.
  */
 export function readRowWithHash(row: string): { app: Application | null; sha: string } | null {
-  const md = readTrackerFile(careerOpsRoot());
+  const md = readTrackerFile(landingGearRoot());
   if (md == null) return null;
   const sha = createHash("sha256").update(md, "utf8").digest("hex");
-  const apps = parseApplications(md, careerOpsRoot(), path.resolve(process.cwd(), "..")) as Application[];
+  const apps = parseApplications(md, landingGearRoot(), path.resolve(process.cwd(), "..")) as Application[];
   const app = apps.find((a) => parseInt(a.n, 10) === Number(row)) ?? null;
   return { app, sha };
 }

@@ -21,8 +21,8 @@
  *                  same company, with a roleFuzzyMatch() title.
  * A Rejected row is surfaced with a warning flag, never as a block.
  *
- * The tracker comes from resolveTrackerPath(getCareerOpsRoot()), so
- * CAREER_OPS_TRACKER / CAREER_OPS_ROOT / CAREER_OPS_DATA_DIR / .career-ops-data
+ * The tracker comes from resolveTrackerPath(getLandingGearRoot()), so
+ * LANDING_GEAR_TRACKER / LANDING_GEAR_ROOT / LANDING_GEAR_DATA_DIR / .landing-gear-data
  * are honoured exactly as in set-status.mjs.
  */
 
@@ -37,7 +37,7 @@ import {
 import { normalizeUrl } from './url-key.mjs';
 import { titleIdentityKey } from './detect-reposts.mjs';
 import { roleFuzzyMatch } from './role-matcher.mjs';
-import { getCareerOpsRoot } from './path-resolver.mjs';
+import { getLandingGearRoot } from './path-resolver.mjs';
 import { flagValue, validateFlags } from './lib/cli-flags.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
 
@@ -170,7 +170,7 @@ if (isMainModule(import.meta.url)) {
     console.error('precheck-duplicate: give at least one of --title, --req or --url besides --company.\n' + USAGE);
     process.exit(1);
   }
-  const trackerPath = resolveTrackerPath(getCareerOpsRoot());
+  const trackerPath = resolveTrackerPath(getLandingGearRoot());
   const rows = loadTrackerRows(trackerPath);
   const candidates = rows ? findDuplicateCandidates(rows, input) : [];
   if (json) {

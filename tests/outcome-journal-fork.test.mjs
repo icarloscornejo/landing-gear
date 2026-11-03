@@ -41,7 +41,7 @@ const TRACKER = (role) => [
 ].join('\n');
 
 function sandbox() {
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-outcome-fork-'));
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-outcome-fork-'));
   mkdirSync(join(dir, 'data'), { recursive: true });
   return dir;
 }
@@ -51,7 +51,7 @@ function record(dir, args) {
     cwd: ROOT,
     encoding: 'utf-8',
     timeout: 30_000,
-    env: { ...process.env, CAREER_OPS_TRACKER: join(dir, 'data', 'applications.md') },
+    env: { ...process.env, LANDING_GEAR_TRACKER: join(dir, 'data', 'applications.md') },
   });
   assert.equal(r.error, undefined, `spawn failed: ${r.error?.message}`);
   // Exit status, not just "it spawned". outcome.mjs writes outcome.md BEFORE

@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/santifer/career-ops/dashboard/internal/model"
+	"github.com/icarloscornejo/landing-gear/dashboard/internal/model"
 )
 
 func TestFunnelHistoryTerminalAchievements(t *testing.T) {
@@ -38,7 +38,7 @@ func TestFunnelHistoryTerminalAchievements(t *testing.T) {
 
 func TestFunnelHistoryTrackerOverride(t *testing.T) {
 	root := t.TempDir()
-	t.Setenv("CAREER_OPS_TRACKER", filepath.Join(root, "custom.md"))
+	t.Setenv("LANDING_GEAR_TRACKER", filepath.Join(root, "custom.md"))
 	if err := os.WriteFile(filepath.Join(root, "status-log.tsv"), []byte("1\t2026-09-01\tOffer\tDiscarded\n"), 0600); err != nil {
 		t.Fatal(err)
 	}
@@ -54,7 +54,7 @@ func TestFunnelHistoryTrackerOverride(t *testing.T) {
 
 func TestReadFunnelHistoryMissingLedger(t *testing.T) {
 	root := t.TempDir()
-	t.Setenv("CAREER_OPS_TRACKER", filepath.Join(root, "applications.md"))
+	t.Setenv("LANDING_GEAR_TRACKER", filepath.Join(root, "applications.md"))
 	history, err := ReadFunnelHistory(root)
 	if err != nil || len(history) != 0 {
 		t.Fatalf("missing ledger = %v, %v; want empty history without an error", history, err)
@@ -67,7 +67,7 @@ func TestReadFunnelHistoryMissingLedger(t *testing.T) {
 
 func TestReadFunnelHistoryPropagatesReadFailure(t *testing.T) {
 	root := t.TempDir()
-	t.Setenv("CAREER_OPS_TRACKER", filepath.Join(root, "applications.md"))
+	t.Setenv("LANDING_GEAR_TRACKER", filepath.Join(root, "applications.md"))
 	ledger := filepath.Join(root, "status-log.tsv")
 	// A directory reliably fails ReadFile, including when tests run as root.
 	if err := os.Mkdir(ledger, 0700); err != nil {

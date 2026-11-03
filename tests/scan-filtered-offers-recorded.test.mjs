@@ -51,12 +51,12 @@ tracked_companies:
 // the suite runner's own data (the reasoning is spelled out in
 // tests/scan-output-paths.test.mjs).
 const SCANNER_PATH_VARS = [
-  'CAREER_OPS_PORTALS',
-  'CAREER_OPS_PROFILE',
-  'CAREER_OPS_PIPELINE',
-  'CAREER_OPS_SCAN_HISTORY',
-  'CAREER_OPS_ROOT',
-  'CAREER_OPS_DATA_DIR',
+  'LANDING_GEAR_PORTALS',
+  'LANDING_GEAR_PROFILE',
+  'LANDING_GEAR_PIPELINE',
+  'LANDING_GEAR_SCAN_HISTORY',
+  'LANDING_GEAR_ROOT',
+  'LANDING_GEAR_DATA_DIR',
 ];
 
 function makeLane(portalsYaml = PORTALS) {
@@ -73,7 +73,7 @@ function runScan(dir, portals, args = []) {
   for (const name of SCANNER_PATH_VARS) delete childEnv[name];
   return execFileSync(NODE, [join(ROOT, 'scan.mjs'), ...args], {
     cwd: dir,
-    env: { ...childEnv, CAREER_OPS_ROOT: dir, CAREER_OPS_PORTALS: portals },
+    env: { ...childEnv, LANDING_GEAR_ROOT: dir, LANDING_GEAR_PORTALS: portals },
     encoding: 'utf-8',
     stdio: ['ignore', 'pipe', 'pipe'],
   });

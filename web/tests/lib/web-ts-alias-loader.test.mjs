@@ -86,9 +86,9 @@ test("with the loader, a TS module reached through @/ loads", { skip: skipTs }, 
 
 test("an extensionless @/ specifier resolves .ts", { skip: skipTs }, () => {
   const r = run(`${IMPORT_LOADER}
-    const m = await import("@/lib/career-ops");
-    console.log(typeof m.careerOpsRoot);`);
-  assert.equal(r.ok, true, `expected @/lib/career-ops to resolve to the .ts file:\n${r.err}`);
+    const m = await import("@/lib/landing-gear");
+    console.log(typeof m.landingGearRoot);`);
+  assert.equal(r.ok, true, `expected @/lib/landing-gear to resolve to the .ts file:\n${r.err}`);
   assert.equal(r.out, "function");
 });
 
@@ -99,8 +99,8 @@ test("the @/ alias resolves from a cwd outside web/", { skip: skipTs }, () => {
   // and a file anchor are indistinguishable. From the repo root they are not:
   // there is no src/ beside this repo's package.json at all.
   const r = run(`${IMPORT_LOADER}
-    const m = await import("@/lib/career-ops");
-    console.log(process.cwd() !== ${JSON.stringify(WEB)}, typeof m.careerOpsRoot);`, [], REPO_ROOT);
+    const m = await import("@/lib/landing-gear");
+    console.log(process.cwd() !== ${JSON.stringify(WEB)}, typeof m.landingGearRoot);`, [], REPO_ROOT);
   assert.equal(r.ok, true, `@/ must resolve from the repo root too:\n${r.err}`);
   // The first flag proves the child really ran somewhere else, so a silently
   // ignored cwd cannot make this case pass for web/'s reasons.
@@ -132,8 +132,8 @@ test("importing the loader twice still resolves, and leaves its flag set", { ski
   // and the flag it reads is set in this realm whether or not the loader realm
   // registered again on its own.
   const r = run(`${IMPORT_LOADER}${IMPORT_LOADER}
-    const m = await import("@/lib/career-ops");
-    console.log(globalThis.__careerOpsWebAliasRegistered === true, typeof m.careerOpsRoot);`);
+    const m = await import("@/lib/landing-gear");
+    console.log(globalThis.__landingGearWebAliasRegistered === true, typeof m.landingGearRoot);`);
   assert.equal(r.ok, true, `a second import must not break resolution:\n${r.err}`);
   assert.equal(r.out, "true function");
 });
@@ -173,7 +173,7 @@ test("the .ts skip gate keys on the signal that actually predicts the failure", 
   assert.equal(gate.ok, true, `expected the probe to run:\n${gate.err}`);
   assert.notEqual(gate.out, "false", `the gate must skip where types cannot be stripped; got ${gate.out}`);
 
-  const r = run(`${IMPORT_LOADER} await import("@/lib/career-ops");`, OFF);
+  const r = run(`${IMPORT_LOADER} await import("@/lib/landing-gear");`, OFF);
   assert.equal(r.ok, false, "a .ts import must fail where types cannot be stripped");
   assert.match(r.err, /ERR_UNKNOWN_FILE_EXTENSION/, "and fail for that reason, before resolve() matters");
 });

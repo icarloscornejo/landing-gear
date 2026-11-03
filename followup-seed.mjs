@@ -46,14 +46,14 @@
  *   4 lock timeout
  *
  * Env overrides (mirroring merge-tracker.mjs / followup-cadence.mjs):
- *   CAREER_OPS_TRACKER                     tracker path
- *   CAREER_OPS_FOLLOWUPS                   follow-ups path
- *   CAREER_OPS_PROFILE                     profile.yml path (cadence overrides)
- *   CAREER_OPS_FOLLOWUPS_LOCK              lock directory override
- *   CAREER_OPS_FOLLOWUPS_LOCK_TIMEOUT_MS   lock acquire timeout
- *   CAREER_OPS_FOLLOWUPS_LOCK_RETRY_MS     lock retry interval
- *   CAREER_OPS_FOLLOWUPS_LOCK_STALE_MS     stale-lock recovery threshold
- *   CAREER_OPS_OWNERLESS_GRACE_MS          ownerless-lock floor (lib/dir-lock.mjs; shared, not per-script)
+ *   LANDING_GEAR_TRACKER                     tracker path
+ *   LANDING_GEAR_FOLLOWUPS                   follow-ups path
+ *   LANDING_GEAR_PROFILE                     profile.yml path (cadence overrides)
+ *   LANDING_GEAR_FOLLOWUPS_LOCK              lock directory override
+ *   LANDING_GEAR_FOLLOWUPS_LOCK_TIMEOUT_MS   lock acquire timeout
+ *   LANDING_GEAR_FOLLOWUPS_LOCK_RETRY_MS     lock retry interval
+ *   LANDING_GEAR_FOLLOWUPS_LOCK_STALE_MS     stale-lock recovery threshold
+ *   LANDING_GEAR_OWNERLESS_GRACE_MS          ownerless-lock floor (lib/dir-lock.mjs; shared, not per-script)
  */
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync, rmSync, realpathSync } from 'fs';
@@ -79,10 +79,10 @@ import {
   isRealCalendarDate,
 } from './followup-cadence.mjs';
 import { flagValue } from './lib/cli-flags.mjs';
-import { getCareerOpsRoot, canonicalizeTrackerPath, resolveTrackerPath as sharedResolveTrackerPath } from './path-resolver.mjs';
+import { getLandingGearRoot, canonicalizeTrackerPath, resolveTrackerPath as sharedResolveTrackerPath } from './path-resolver.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
 
-const CAREER_OPS = getCareerOpsRoot();
+const LANDING_GEAR = getLandingGearRoot();
 
 /** Canonical header written when data/follow-ups.md doesn't exist yet. */
 export const FOLLOWUPS_HEADER = [
@@ -92,7 +92,7 @@ export const FOLLOWUPS_HEADER = [
   '|---|---|---|---|---|---|---|---|',
 ].join('\n');
 
-const FOLLOWUPS_LOCK_PREFIX = 'career-ops-followups-';
+const FOLLOWUPS_LOCK_PREFIX = 'landing-gear-followups-';
 
 /**
  * Minimum age before directory age alone may condemn an ownerless lock.
@@ -208,13 +208,13 @@ export function formatPinLine(appNum, nextDate, setDate) {
 
 function resolveTrackerPath(override) {
   if (override) return override;
-  return sharedResolveTrackerPath(CAREER_OPS);
+  return sharedResolveTrackerPath(LANDING_GEAR);
 }
 
 function resolveFollowupsPath(override) {
   if (override) return override;
-  if (process.env.CAREER_OPS_FOLLOWUPS) return process.env.CAREER_OPS_FOLLOWUPS;
-  return join(CAREER_OPS, 'data/follow-ups.md');
+  if (process.env.LANDING_GEAR_FOLLOWUPS) return process.env.LANDING_GEAR_FOLLOWUPS;
+  return join(LANDING_GEAR, 'data/follow-ups.md');
 }
 
 function envInt(name, fallback) {
@@ -272,7 +272,7 @@ function resolveLockDir(explicitLockDir, followupsPath) {
   // Canonicalize the parent so the key stays stable when the file is first created.
   const lockPath = join(canonicalizeTrackerPath(dirname(followupsPath)), basename(followupsPath));
   const lockKey = createHash('sha256').update(lockPath).digest('hex').slice(0, 16);
-  return resolveFollowupsLockDir(process.env.CAREER_OPS_FOLLOWUPS_LOCK, lockKey);
+  return resolveFollowupsLockDir(process.env.LANDING_GEAR_FOLLOWUPS_LOCK, lockKey);
 }
 
 /**
@@ -389,9 +389,9 @@ export async function withFollowupsLock(followupsPath, fn, options = {}) {
   const resolvedPath = resolveFollowupsPath(followupsPath);
   const lockDir = resolveLockDir(options.lockDir, resolvedPath);
   const lock = await acquireFollowupsLock(lockDir, resolvedPath, {
-    timeoutMs: options.timeoutMs ?? envInt('CAREER_OPS_FOLLOWUPS_LOCK_TIMEOUT_MS', 60_000),
-    retryMs: options.retryMs ?? envInt('CAREER_OPS_FOLLOWUPS_LOCK_RETRY_MS', 75),
-    staleMs: options.staleMs ?? envInt('CAREER_OPS_FOLLOWUPS_LOCK_STALE_MS', 10 * 60_000),
+    timeoutMs: options.timeoutMs ?? envInt('LANDING_GEAR_FOLLOWUPS_LOCK_TIMEOUT_MS', 60_000),
+    retryMs: options.retryMs ?? envInt('LANDING_GEAR_FOLLOWUPS_LOCK_RETRY_MS', 75),
+    staleMs: options.staleMs ?? envInt('LANDING_GEAR_FOLLOWUPS_LOCK_STALE_MS', 10 * 60_000),
   });
   try {
     return await fn();
@@ -519,9 +519,9 @@ export async function seedFollowup(appNum, options = {}) {
 
   const lockDir = resolveLockDir(options.lockDir, followupsPath);
   const lock = await acquireFollowupsLock(lockDir, followupsPath, {
-    timeoutMs: options.lockTimeoutMs ?? envInt('CAREER_OPS_FOLLOWUPS_LOCK_TIMEOUT_MS', 60_000),
-    retryMs: options.lockRetryMs ?? envInt('CAREER_OPS_FOLLOWUPS_LOCK_RETRY_MS', 75),
-    staleMs: options.lockStaleMs ?? envInt('CAREER_OPS_FOLLOWUPS_LOCK_STALE_MS', 10 * 60_000),
+    timeoutMs: options.lockTimeoutMs ?? envInt('LANDING_GEAR_FOLLOWUPS_LOCK_TIMEOUT_MS', 60_000),
+    retryMs: options.lockRetryMs ?? envInt('LANDING_GEAR_FOLLOWUPS_LOCK_RETRY_MS', 75),
+    staleMs: options.lockStaleMs ?? envInt('LANDING_GEAR_FOLLOWUPS_LOCK_STALE_MS', 10 * 60_000),
   });
 
   try {
@@ -591,9 +591,9 @@ export async function seedBackfill(options = {}) {
 
   const lockDir = resolveLockDir(options.lockDir, followupsPath);
   const lock = await acquireFollowupsLock(lockDir, followupsPath, {
-    timeoutMs: options.lockTimeoutMs ?? envInt('CAREER_OPS_FOLLOWUPS_LOCK_TIMEOUT_MS', 60_000),
-    retryMs: options.lockRetryMs ?? envInt('CAREER_OPS_FOLLOWUPS_LOCK_RETRY_MS', 75),
-    staleMs: options.lockStaleMs ?? envInt('CAREER_OPS_FOLLOWUPS_LOCK_STALE_MS', 10 * 60_000),
+    timeoutMs: options.lockTimeoutMs ?? envInt('LANDING_GEAR_FOLLOWUPS_LOCK_TIMEOUT_MS', 60_000),
+    retryMs: options.lockRetryMs ?? envInt('LANDING_GEAR_FOLLOWUPS_LOCK_RETRY_MS', 75),
+    staleMs: options.lockStaleMs ?? envInt('LANDING_GEAR_FOLLOWUPS_LOCK_STALE_MS', 10 * 60_000),
   });
 
   try {

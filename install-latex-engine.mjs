@@ -227,7 +227,7 @@ export async function installTectonic({
   }
 
   const target = localTectonicPath(root, platform);
-  const work = mkdtempSync(join(tmpdir(), 'career-ops-tectonic-'));
+  const work = mkdtempSync(join(tmpdir(), 'landing-gear-tectonic-'));
   let staged = null;
   let version;
   try {

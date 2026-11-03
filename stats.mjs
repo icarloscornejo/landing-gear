@@ -26,14 +26,14 @@ import { loadYaml } from './lib/yaml-document.mjs';
 import { localToday } from './lib/local-today.mjs';
 import { resolveColumns, parseTrackerRow } from './tracker-parse.mjs';
 import { normalizeStatus, analyzeFromContent } from './followup-cadence.mjs';
-import { getCareerOpsRoot, resolveTrackerPath } from './path-resolver.mjs';
+import { getLandingGearRoot, resolveTrackerPath } from './path-resolver.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
 import { parseStatusLogStages, recoverFunnelStages } from './funnel-stages.mjs';
 export { parseStatusLogStages } from './funnel-stages.mjs';
 import { parseScanHistoryLine } from './lib/scan-history-columns.mjs';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
-const DATA_ROOT = getCareerOpsRoot();
+const DATA_ROOT = getLandingGearRoot();
 const APPS_FILE = resolveTrackerPath(DATA_ROOT);
 const SCAN_HISTORY_FILE = join(DATA_ROOT, 'data', 'scan-history.tsv');
 const FOLLOWUPS_FILE = join(DATA_ROOT, 'data', 'follow-ups.md');
@@ -161,7 +161,7 @@ export function computeColdAppNums(trackerContent, followupsContent) {
  * Snapshot interview/offer counts are lower bounds; use ledger history to
  * recover stages reached before a rejection or withdrawal (#3273).
  *
- * This is the canonical funnel definition for career-ops going forward;
+ * This is the canonical funnel definition for landing-gear going forward;
  * dashboard/web consuming this JSON instead of keeping independent copies is
  * a named follow-up in #1604.
  */

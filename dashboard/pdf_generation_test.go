@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/santifer/career-ops/dashboard/internal/ui/screens"
+	"github.com/icarloscornejo/landing-gear/dashboard/internal/ui/screens"
 )
 
 type pdfNodeCapture struct {
@@ -23,10 +23,10 @@ type pdfNodeCapture struct {
 // A copy of this test executable serves as node, so the regression exercises
 // real process arguments/environment without Chromium or a shell fixture.
 func init() {
-	if capture := os.Getenv("CAREER_OPS_TEST_PDF_CAPTURE"); capture != "" {
+	if capture := os.Getenv("LANDING_GEAR_TEST_PDF_CAPTURE"); capture != "" {
 		cwd, _ := os.Getwd()
 		payload, _ := json.Marshal(pdfNodeCapture{os.Args[1:], cwd,
-			os.Getenv("CAREER_OPS_ROOT"), os.Getenv("CAREER_OPS_TRACKER"), os.Getenv("CAREER_OPS_PDF_INDEX")})
+			os.Getenv("LANDING_GEAR_ROOT"), os.Getenv("LANDING_GEAR_TRACKER"), os.Getenv("LANDING_GEAR_PDF_INDEX")})
 		if err := os.WriteFile(capture, payload, 0o600); err != nil {
 			os.Exit(1)
 		}
@@ -55,10 +55,10 @@ func TestRunGeneratePDFUsesCheckoutWithSelectedDataRoot(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Setenv("PATH", binDir+string(os.PathListSeparator)+os.Getenv("PATH"))
-	t.Setenv("CAREER_OPS_TEST_PDF_CAPTURE", capture)
-	t.Setenv("CAREER_OPS_ROOT", t.TempDir()) // --path must win over an inherited root
-	t.Setenv("CAREER_OPS_TRACKER", "custom/tracker.md")
-	t.Setenv("CAREER_OPS_PDF_INDEX", "custom-index.tsv")
+	t.Setenv("LANDING_GEAR_TEST_PDF_CAPTURE", capture)
+	t.Setenv("LANDING_GEAR_ROOT", t.TempDir()) // --path must win over an inherited root
+	t.Setenv("LANDING_GEAR_TRACKER", "custom/tracker.md")
+	t.Setenv("LANDING_GEAR_PDF_INDEX", "custom-index.tsv")
 	previous := runOpenCommand
 	t.Cleanup(func() { runOpenCommand = previous })
 	var opened string
@@ -67,7 +67,7 @@ func TestRunGeneratePDFUsesCheckoutWithSelectedDataRoot(t *testing.T) {
 		return nil
 	}
 	request := screens.PipelineGeneratePDFMsg{
-		CareerOpsPath: root, HTMLPath: "output/source CV.html", PDFPath: "output/tailored CV.pdf", Format: "a4", ReportNumber: "007",
+		LandingGearPath: root, HTMLPath: "output/source CV.html", PDFPath: "output/tailored CV.pdf", Format: "a4", ReportNumber: "007",
 	}
 	msg := runGeneratePDF(request)().(screens.PipelinePDFGeneratedMsg)
 	if msg.Err != "" {
@@ -108,8 +108,8 @@ func TestRunGeneratePDFRejectsDataOnlyScript(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Chdir(root)
-	msg := runGeneratePDF(screens.PipelineGeneratePDFMsg{CareerOpsPath: root})().(screens.PipelinePDFGeneratedMsg)
-	if !strings.Contains(msg.Err, "need generate-pdf.mjs in the career-ops checkout") {
+	msg := runGeneratePDF(screens.PipelineGeneratePDFMsg{LandingGearPath: root})().(screens.PipelinePDFGeneratedMsg)
+	if !strings.Contains(msg.Err, "need generate-pdf.mjs in the landing-gear checkout") {
 		t.Fatalf("data-only script must not run: %+v", msg)
 	}
 }

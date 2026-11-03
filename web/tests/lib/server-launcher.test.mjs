@@ -35,7 +35,7 @@ const WEB_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
  * @param {boolean} [options.install] false to omit node_modules/next entirely
  */
 function stubbedWebRoot({ body, install = true } = {}) {
-  const root = mkdtempSync(join(tmpdir(), "career-ops-launcher-"));
+  const root = mkdtempSync(join(tmpdir(), "landing-gear-launcher-"));
   cpSync(join(WEB_ROOT, "server.mjs"), join(root, "server.mjs"));
   cpSync(join(WEB_ROOT, "src", "lib"), join(root, "src", "lib"), { recursive: true });
   if (!install) return root;
@@ -94,7 +94,7 @@ test("with no opt-in, next is told to bind loopback", () => {
 test("a blank opt-in is not an opt-in", () => {
   // Given a variable that is set but names nothing
   // When the launcher starts next
-  const run = launch({ args: ["dev"], env: { CAREER_OPS_WEB_ALLOWED_HOSTS: " , " } });
+  const run = launch({ args: ["dev"], env: { LANDING_GEAR_WEB_ALLOWED_HOSTS: " , " } });
   // Then the bind is unchanged
   assert.deepEqual(run.argv, ["dev", "-H", "127.0.0.1"]);
 });
@@ -102,7 +102,7 @@ test("a blank opt-in is not an opt-in", () => {
 test("an opt-in naming only loopback does not widen the bind", () => {
   // Given the value that used to open every interface while granting nothing
   // When the launcher starts next
-  const run = launch({ args: ["dev"], env: { CAREER_OPS_WEB_ALLOWED_HOSTS: "localhost" } });
+  const run = launch({ args: ["dev"], env: { LANDING_GEAR_WEB_ALLOWED_HOSTS: "localhost" } });
   // Then the socket stays on loopback
   assert.deepEqual(run.argv, ["dev", "-H", "127.0.0.1"], "a loopback-only opt-in must not widen");
   assert.ok(!run.stderr.includes("reachable from your network"), "and must not claim exposure");
@@ -111,7 +111,7 @@ test("an opt-in naming only loopback does not widen the bind", () => {
 test("an opt-in naming a real host widens the bind and says so", () => {
   // Given a hostname, which the launcher cannot resolve to one address
   // When the launcher starts next
-  const run = launch({ args: ["start"], env: { CAREER_OPS_WEB_ALLOWED_HOSTS: "nas.local" } });
+  const run = launch({ args: ["start"], env: { LANDING_GEAR_WEB_ALLOWED_HOSTS: "nas.local" } });
   // Then next binds every interface and the user is told, with the reason
   assert.deepEqual(run.argv, ["start", "-H", "0.0.0.0"]);
   assert.ok(run.stderr.includes("binding 0.0.0.0"), `stderr was: ${run.stderr}`);
@@ -122,7 +122,7 @@ test("an opt-in naming a real host widens the bind and says so", () => {
 test("an opt-in naming one address binds that address alone", () => {
   // Given a single LAN address. Binding 0.0.0.0 here would also publish the
   // dashboard on a VPN tunnel or a phone hotspot nobody opted in to.
-  const run = launch({ args: ["dev"], env: { CAREER_OPS_WEB_ALLOWED_HOSTS: "192.168.1.50" } });
+  const run = launch({ args: ["dev"], env: { LANDING_GEAR_WEB_ALLOWED_HOSTS: "192.168.1.50" } });
   // When the launcher starts next
   // Then only that interface is published, and the cost is stated: one socket
   // carries one address, so localhost stops answering
@@ -136,7 +136,7 @@ test("naming a loopback host alongside an address opts back into every interface
   // Given the documented escape hatch for keeping localhost working
   const run = launch({
     args: ["dev"],
-    env: { CAREER_OPS_WEB_ALLOWED_HOSTS: "192.168.1.50, localhost" },
+    env: { LANDING_GEAR_WEB_ALLOWED_HOSTS: "192.168.1.50, localhost" },
   });
   // When the launcher starts next
   // Then the wider bind is taken deliberately, and not reported as costing loopback
@@ -147,7 +147,7 @@ test("naming a loopback host alongside an address opts back into every interface
 test("a value that reads as a switch refuses the run instead of widening", () => {
   // Given someone turning exposure off the way the variable's name suggests.
   // Every such word is a valid hostname, so this used to bind every interface.
-  const run = launch({ args: ["dev"], env: { CAREER_OPS_WEB_ALLOWED_HOSTS: "off" } });
+  const run = launch({ args: ["dev"], env: { LANDING_GEAR_WEB_ALLOWED_HOSTS: "off" } });
   // When the launcher runs
   // Then next never starts, and the message explains what the variable is
   assert.equal(run.status, 1);
@@ -197,7 +197,7 @@ test("a loopback-only allow-list with an override is flagged, not silently passe
   // serve — the state a length check mistook for a meaningful opt-in
   const run = launch({
     args: ["dev", "-H", "0.0.0.0"],
-    env: { CAREER_OPS_WEB_ALLOWED_HOSTS: "localhost" },
+    env: { LANDING_GEAR_WEB_ALLOWED_HOSTS: "localhost" },
   });
   // When the launcher starts next
   // Then the user is told the filter would protect nobody on an open port
@@ -211,7 +211,7 @@ test("an -H alongside an opt-in still hands the bind to next", () => {
   // Given an opt-in that would have widened, plus a caller pulling it back down
   const run = launch({
     args: ["dev", "-H", "127.0.0.1"],
-    env: { CAREER_OPS_WEB_ALLOWED_HOSTS: "nas.local" },
+    env: { LANDING_GEAR_WEB_ALLOWED_HOSTS: "nas.local" },
   });
   // When the launcher starts next
   // Then the resolved 0.0.0.0 is neither injected nor announced: the caller's

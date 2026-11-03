@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 import { isTheme, storedTheme, THEME_COLORS, THEME_STORAGE_KEY } from "../../src/lib/theme.mjs";
 
 test("theme constants keep the persisted contract stable", () => {
-  assert.equal(THEME_STORAGE_KEY, "career-ops:theme");
+  assert.equal(THEME_STORAGE_KEY, "landing-gear:theme");
   assert.deepEqual(THEME_COLORS, { light: "#f5f5f7", dark: "#000000" });
 });
 

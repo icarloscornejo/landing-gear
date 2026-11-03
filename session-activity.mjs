@@ -2,7 +2,7 @@
 
 /**
  * session-activity.mjs - advisory "another session may already be on this"
- * signal for concurrent career-ops sessions (#4532).
+ * signal for concurrent landing-gear sessions (#4532).
  *
  * reserve-report-num.mjs already makes report-number allocation collision-SAFE
  * (two sessions can never claim the same number) via O_CREAT|O_EXCL sentinel
@@ -44,16 +44,16 @@ import {
 } from 'fs';
 import { createHash, randomUUID } from 'crypto';
 import { join, resolve } from 'path';
-import { getCareerOpsRoot } from './path-resolver.mjs';
+import { getLandingGearRoot } from './path-resolver.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
 
-const ROOT = getCareerOpsRoot();
+const ROOT = getLandingGearRoot();
 const DEFAULT_TTL_MS = 30 * 60 * 1000;
 
 function activityDirFor(options = {}) {
   const dir = resolve(options.activityDir
-    || process.env.CAREER_OPS_ACTIVITY_DIR
-    || join(options.rootDir || ROOT, '.career-ops-locks', 'active'));
+    || process.env.LANDING_GEAR_ACTIVITY_DIR
+    || join(options.rootDir || ROOT, '.landing-gear-locks', 'active'));
   mkdirSync(dir, { recursive: true });
   return dir;
 }

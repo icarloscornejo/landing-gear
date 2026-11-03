@@ -331,7 +331,7 @@ function put(dir, path, bytes) {
 
 /** Child git must not inherit GIT_DIR / GIT_INDEX_FILE / the rest of GIT_*. */
 function rollbackChildEnv() {
-  const env = { ...process.env, CAREER_OPS_GIT_TIMEOUT_MS: '10000' };
+  const env = { ...process.env, LANDING_GEAR_GIT_TIMEOUT_MS: '10000' };
   for (const key of Object.keys(env)) {
     if (key.startsWith('GIT_')) delete env[key];
   }
@@ -450,7 +450,7 @@ function readMaybe(path) {
     );
 
     // A withheld update leaves a durable baseline that rollback must clear.
-    g('update-ref', 'refs/career-ops/staged-update', 'HEAD');
+    g('update-ref', 'refs/landing-gear/staged-update', 'HEAD');
 
     const result = runRollback(dir);
     const userCv = readMaybe(join(dir, 'cv.md'));
@@ -461,7 +461,7 @@ function readMaybe(path) {
       `paired rollback failed (status ${result.status}): ${outputOf(result)}`,
     );
     check(
-      g('for-each-ref', '--format=%(refname)', 'refs/career-ops/staged-update') === '',
+      g('for-each-ref', '--format=%(refname)', 'refs/landing-gear/staged-update') === '',
       'successful rollback clears the withheld update baseline',
       'rollback left the withheld update baseline behind',
     );

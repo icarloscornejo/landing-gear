@@ -1,13 +1,13 @@
 /**
- * updater-reexec-bypass.test.mjs — a bare CAREER_OPS_UPDATE_REEXEC=1 must not
+ * updater-reexec-bypass.test.mjs — a bare LANDING_GEAR_UPDATE_REEXEC=1 must not
  * let apply() skip channel resolution.
  *
  * The regression (CodeRabbit review on the release-channel PR): isReexec's
- * third disjunct — `--confirm` in argv plus a bare CAREER_OPS_UPDATE_REEXEC=1
+ * third disjunct — `--confirm` in argv plus a bare LANDING_GEAR_UPDATE_REEXEC=1
  * in env — proves nothing (no lock file, no authenticated marker, no backup
  * branch) and is satisfiable from a clean state. Before the fix, apply()'s
  * targetRef ternary trusted that alone to skip resolveTargetRef() entirely
- * and fall through to CAREER_OPS_UPDATE_TARGET_REF ?? 'main' — silently
+ * and fall through to LANDING_GEAR_UPDATE_TARGET_REF ?? 'main' — silently
  * reverting to the exact unpinned-main behavior this PR exists to close,
  * with nothing but one stray env var and no --channel flag.
  *
@@ -44,7 +44,7 @@
  * pure two-argument boolean function needing no injection seam at all. This
  * file now tests that function directly, plus a cheap source-pattern check
  * that apply() still actually calls it — so the property that mattered
- * (a bare CAREER_OPS_UPDATE_REEXEC=1 cannot skip resolveTargetRef()) is
+ * (a bare LANDING_GEAR_UPDATE_REEXEC=1 cannot skip resolveTargetRef()) is
  * pinned with no OS-specific surface left to get wrong.
  */
 
@@ -57,7 +57,7 @@ import { trustsEnvTargetRef } from '../update-system.mjs';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const UPDATE_SYSTEM_SRC = readFileSync(join(__dirname, '..', 'update-system.mjs'), 'utf-8');
 
-console.log('\n🧪 Testing that CAREER_OPS_UPDATE_REEXEC=1 alone cannot bypass channel resolution...');
+console.log('\n🧪 Testing that LANDING_GEAR_UPDATE_REEXEC=1 alone cannot bypass channel resolution...');
 
 // ── The exact bypass scenario: neither an authenticated marker nor the
 // guarded legacy path — i.e. isReexec's bare third disjunct alone — must

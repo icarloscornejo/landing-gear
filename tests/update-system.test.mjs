@@ -42,7 +42,7 @@ console.log('\n🧪 Testing updater version short SHA formatting (#3883)...');
     }
 
     const statusRes = spawnSync(NODE, [scriptPath, 'status'], { cwd: dir, encoding: 'utf-8' });
-    if (statusRes.stdout.trim() === `career-ops v1.32.0 (${expectedSha})`) {
+    if (statusRes.stdout.trim() === `landing-gear v1.32.0 (${expectedSha})`) {
       pass('update-system.mjs status includes short SHA on git checkout');
     } else {
       fail(`status output wrong: ${statusRes.stdout.trim()}`);
@@ -83,7 +83,7 @@ console.log('\n🧪 Testing updater version short SHA formatting (#3883)...');
     }
 
     const statusRes = spawnSync(NODE, [scriptPath, 'status'], { cwd: dir, encoding: 'utf-8' });
-    if (statusRes.stdout.trim() === 'career-ops v1.32.0' && statusRes.stderr.trim() === '') {
+    if (statusRes.stdout.trim() === 'landing-gear v1.32.0' && statusRes.stderr.trim() === '') {
       pass('update-system.mjs status returns version alone with empty stderr on non-git directory');
     } else {
       fail(`status output wrong: stdout=${statusRes.stdout.trim()} stderr=${statusRes.stderr.trim()}`);

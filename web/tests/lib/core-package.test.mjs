@@ -64,7 +64,7 @@ test("findCorePackage: null when the package is installed nowhere above", (t) =>
   const { install, dir } = tree(t);
   install("main", "other");
 
-  assert.equal(findCorePackage("career-ops-no-such-package-7c1e", dir("main/wt")), null);
+  assert.equal(findCorePackage("landing-gear-no-such-package-7c1e", dir("main/wt")), null);
 });
 
 test("findCorePackage: never looks for node_modules/node_modules", (t) => {
@@ -159,6 +159,6 @@ test("linkCorePackage: says so when the package is not installed, and leaves no 
   const { dir } = tree(t);
   const sandbox = dir("sandbox");
 
-  assert.throws(() => linkCorePackage(sandbox, "career-ops-no-such-package-7c1e", dir("main/wt")), /is not installed/);
+  assert.throws(() => linkCorePackage(sandbox, "landing-gear-no-such-package-7c1e", dir("main/wt")), /is not installed/);
   assert.equal(fs.existsSync(path.join(sandbox, "node_modules")), false);
 });

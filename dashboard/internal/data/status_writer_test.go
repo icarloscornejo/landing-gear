@@ -8,21 +8,21 @@ import (
 	"testing"
 	"time"
 
-	"github.com/santifer/career-ops/dashboard/internal/model"
+	"github.com/icarloscornejo/landing-gear/dashboard/internal/model"
 )
 
 func TestDashboardStatusLifecycleMatchesCLIAndWeb(t *testing.T) {
 	for _, caller := range []string{"dashboard", "cli", "web"} {
 		t.Run(caller, func(t *testing.T) {
-			t.Setenv("CAREER_OPS_TRACKER", "")
-			t.Setenv("CAREER_OPS_TRACKER_LOCK", "")
-			t.Setenv("CAREER_OPS_FOLLOWUPS_LOCK", "")
+			t.Setenv("LANDING_GEAR_TRACKER", "")
+			t.Setenv("LANDING_GEAR_TRACKER_LOCK", "")
+			t.Setenv("LANDING_GEAR_FOLLOWUPS_LOCK", "")
 			before := statusTargetHeader + strings.Replace(statusTargetRow, "| Applied |", "| Evaluated |", 1)
 			root, tracker := writeTracker(t, before)
 			// The explicit dashboard --path must win over inherited data root settings.
 			decoy := t.TempDir()
-			t.Setenv("CAREER_OPS_ROOT", decoy)
-			t.Setenv("CAREER_OPS_DATA_DIR", decoy)
+			t.Setenv("LANDING_GEAR_ROOT", decoy)
+			t.Setenv("LANDING_GEAR_DATA_DIR", decoy)
 			update := func(status, note string) {
 				t.Helper()
 				if caller == "dashboard" {
@@ -39,7 +39,7 @@ func TestDashboardStatusLifecycleMatchesCLIAndWeb(t *testing.T) {
 					args = append(args, "--source", "web")
 				}
 				cmd := exec.Command("node", args...)
-				cmd.Env = append(os.Environ(), "CAREER_OPS_TRACKER="+tracker, "CAREER_OPS_ROOT="+root)
+				cmd.Env = append(os.Environ(), "LANDING_GEAR_TRACKER="+tracker, "LANDING_GEAR_ROOT="+root)
 				if out, err := cmd.CombinedOutput(); err != nil {
 					t.Fatalf("%v: %s", err, out)
 				}
@@ -94,7 +94,7 @@ func TestDashboardStatusLifecycleMatchesCLIAndWeb(t *testing.T) {
 func TestDashboardStatusReportsLifecycleFailure(t *testing.T) {
 	for _, sidecar := range []string{"status-log.tsv", "follow-ups.md"} {
 		t.Run(sidecar, func(t *testing.T) {
-			t.Setenv("CAREER_OPS_TRACKER", "")
+			t.Setenv("LANDING_GEAR_TRACKER", "")
 			before := statusTargetHeader + strings.Replace(statusTargetRow, "| Applied |", "| Evaluated |", 1)
 			root, tracker := writeTracker(t, before)
 			if err := os.Mkdir(filepath.Join(filepath.Dir(tracker), sidecar), 0o755); err != nil {
@@ -113,7 +113,7 @@ func TestDashboardStatusReportsLifecycleFailure(t *testing.T) {
 }
 
 func TestDashboardStatusRepairsMissingAppliedLedger(t *testing.T) {
-	t.Setenv("CAREER_OPS_TRACKER", "")
+	t.Setenv("LANDING_GEAR_TRACKER", "")
 	before := statusTargetHeader + strings.Replace(statusTargetRow, "| Applied |", "| Evaluated |", 1)
 	root, tracker := writeTracker(t, before)
 	logPath := filepath.Join(filepath.Dir(tracker), "status-log.tsv")
@@ -152,7 +152,7 @@ func TestDashboardStatusRepairsMissingAppliedLedger(t *testing.T) {
 }
 
 func TestDashboardStatusPropagatesAppliedLedgerRepairFailure(t *testing.T) {
-	t.Setenv("CAREER_OPS_TRACKER", "")
+	t.Setenv("LANDING_GEAR_TRACKER", "")
 	before := statusTargetHeader + strings.Replace(statusTargetRow, "| Applied |", "| Evaluated |", 1)
 	root, tracker := writeTracker(t, before)
 	logPath := filepath.Join(filepath.Dir(tracker), "status-log.tsv")
@@ -169,7 +169,7 @@ func TestDashboardStatusPropagatesAppliedLedgerRepairFailure(t *testing.T) {
 }
 
 func TestDashboardStatusRepairsMissingAppliedFollowup(t *testing.T) {
-	t.Setenv("CAREER_OPS_TRACKER", "")
+	t.Setenv("LANDING_GEAR_TRACKER", "")
 	before := statusTargetHeader + strings.Replace(statusTargetRow, "| Applied |", "| Evaluated |", 1)
 	root, tracker := writeTracker(t, before)
 	followupsPath := filepath.Join(filepath.Dir(tracker), "follow-ups.md")
@@ -195,10 +195,10 @@ func TestDashboardStatusRepairsMissingAppliedFollowup(t *testing.T) {
 }
 
 func TestDashboardStatusReportsBusyTracker(t *testing.T) {
-	t.Setenv("CAREER_OPS_TRACKER", "")
-	t.Setenv("CAREER_OPS_TRACKER_LOCK", "")
-	t.Setenv("CAREER_OPS_TRACKER_LOCK_TIMEOUT_MS", "30")
-	t.Setenv("CAREER_OPS_TRACKER_LOCK_RETRY_MS", "5")
+	t.Setenv("LANDING_GEAR_TRACKER", "")
+	t.Setenv("LANDING_GEAR_TRACKER_LOCK", "")
+	t.Setenv("LANDING_GEAR_TRACKER_LOCK_TIMEOUT_MS", "30")
+	t.Setenv("LANDING_GEAR_TRACKER_LOCK_RETRY_MS", "5")
 	before := statusTargetHeader + statusTargetRow
 	root, tracker := writeTracker(t, before)
 	lock, err := acquireTrackerLock(tracker, defaultTrackerLockOptions())
@@ -214,7 +214,7 @@ func TestDashboardStatusReportsBusyTracker(t *testing.T) {
 }
 
 func TestDashboardStatusRequiresNode(t *testing.T) {
-	t.Setenv("CAREER_OPS_TRACKER", "")
+	t.Setenv("LANDING_GEAR_TRACKER", "")
 	before := statusTargetHeader + statusTargetRow
 	root, tracker := writeTracker(t, before)
 	t.Setenv("PATH", t.TempDir())
@@ -252,7 +252,7 @@ func TestDashboardStatusRejectsInvalidWriterResults(t *testing.T) {
 func TestDashboardStatusPreservesFlagLikeNotes(t *testing.T) {
 	for _, note := range []string{"--dry-run", "--help", "-- recruiter called"} {
 		t.Run(note, func(t *testing.T) {
-			t.Setenv("CAREER_OPS_TRACKER", "")
+			t.Setenv("LANDING_GEAR_TRACKER", "")
 			root, _ := writeTracker(t, statusTargetHeader+statusTargetRow)
 			if err := UpdateApplicationStatusAndNotes(root, model.CareerApplication{ReportNumber: "7"}, "Interview", note); err != nil {
 				t.Fatal(err)
@@ -286,7 +286,7 @@ func TestDashboardStatusDoesNotExecuteDataOnlyScripts(t *testing.T) {
 				}
 			})
 			err = UpdateApplicationStatus(root, model.CareerApplication{ReportNumber: "7"}, "Interview")
-			if err == nil || !strings.Contains(err.Error(), "need set-status.mjs in the career-ops checkout") {
+			if err == nil || !strings.Contains(err.Error(), "need set-status.mjs in the landing-gear checkout") {
 				t.Fatalf("data-only script must not run: %v", err)
 			}
 		})
@@ -294,7 +294,7 @@ func TestDashboardStatusDoesNotExecuteDataOnlyScripts(t *testing.T) {
 }
 
 func TestDashboardStatusRoutineAppliedSaveDoesNotRepair(t *testing.T) {
-	t.Setenv("CAREER_OPS_TRACKER", "")
+	t.Setenv("LANDING_GEAR_TRACKER", "")
 	root, tracker := writeTracker(t, statusTargetHeader+statusTargetRow)
 	logPath := filepath.Join(filepath.Dir(tracker), "status-log.tsv")
 	if err := os.WriteFile(logPath, []byte("42\t2026-08-01\t-\tEvaluated\timport\t\n"), 0o644); err != nil {

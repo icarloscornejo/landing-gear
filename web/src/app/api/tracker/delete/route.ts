@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { careerOpsRoot, rootScript, trackerCanDelete } from "@/lib/career-ops";
+import { landingGearRoot, rootScript, trackerCanDelete } from "@/lib/landing-gear";
 import { isTrackerWriting } from "@/lib/core/run-registry";
 import { parseOrphanReport } from "@/lib/tracker-delete-output.mjs";
 import { readJsonObject } from "@/lib/json-body";
@@ -54,7 +54,7 @@ export async function POST(req: Request) {
       let err = "";
       let child;
       try {
-        child = spawn(process.execPath, args, { cwd: careerOpsRoot(), env: process.env });
+        child = spawn(process.execPath, args, { cwd: landingGearRoot(), env: process.env });
       } catch (e) {
         resolve({ code: 1, err: e instanceof Error ? e.message : "failed to start tracker.mjs" });
         return;

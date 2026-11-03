@@ -1,4 +1,4 @@
-# career-ops -- Mode tiếng Việt (`modes/vi/`)
+# landing-gear -- Mode tiếng Việt (`modes/vi/`)
 
 Thư mục này chứa bộ mode tiếng Việt dành cho ứng viên nhắm tới thị trường lao động Việt Nam (công ty sản phẩm, outsourcing/offshore, startup, tập đoàn; các cổng như ITviec, TopCV, VietnamWorks, TopDev, CareerViet, LinkedIn).
 

@@ -15,7 +15,7 @@ function write(file, content) {
   writeFileSync(file, content);
 }
 
-function fixture(t, mode = 'CAREER_OPS_ROOT') {
+function fixture(t, mode = 'LANDING_GEAR_ROOT') {
   const root = realpathSync(mkdtempSync(join(tmpdir(), 'reconcile-roots-')));
   t.after(() => rmSync(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 }));
   const code = join(root, 'code'), data = join(root, 'user');
@@ -47,8 +47,8 @@ function fixture(t, mode = 'CAREER_OPS_ROOT') {
   write(pipeline, ORIGINAL); write(state, STATE);
   write(join(data, 'reports', '042-example.md'), '**Score:** 4.2/5\n**PDF:** not generated\n');
   const env = { ...process.env };
-  delete env.CAREER_OPS_ROOT; delete env.CAREER_OPS_DATA_DIR;
-  if (mode === 'marker') write(join(code, '.career-ops-data'), data);
+  delete env.LANDING_GEAR_ROOT; delete env.LANDING_GEAR_DATA_DIR;
+  if (mode === 'marker') write(join(code, '.landing-gear-data'), data);
   else env[mode] = data;
   const run = (...args) => spawnSync(process.execPath, [join(code, 'reconcile-pipeline.mjs'), ...args], {
     env, cwd: root, encoding: 'utf8', timeout: 15_000,
@@ -56,7 +56,7 @@ function fixture(t, mode = 'CAREER_OPS_ROOT') {
   return { root, code, data, pipeline, state, run };
 }
 
-for (const mode of ['CAREER_OPS_ROOT', 'CAREER_OPS_DATA_DIR', 'marker']) {
+for (const mode of ['LANDING_GEAR_ROOT', 'LANDING_GEAR_DATA_DIR', 'marker']) {
   test(`default code-root batch state reconciles the external data root (${mode})`, t => {
     const f = fixture(t, mode);
     if (!f) return;

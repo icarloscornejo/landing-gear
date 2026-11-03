@@ -11,13 +11,13 @@
 ### Browser-only — Claude Code on the web
 
 [Claude Code on the web](https://code.claude.com/docs/en/web-quickstart) can run
-career-ops without a local checkout. It is currently a research preview for
+landing-gear without a local checkout. It is currently a research preview for
 eligible Claude plans. A web session clones a GitHub repository into an
 isolated cloud VM; it does not have your machine's files or local configuration.
 
-1. Put career-ops in a **private GitHub repository** that your account can
+1. Put landing-gear in a **private GitHub repository** that your account can
    access. You can use [GitHub Importer](https://docs.github.com/en/migrations/importing-source-code/using-github-importer/importing-a-repository-with-github-importer)
-   with `https://github.com/career-ops-hq/career-ops.git` as the source. A normal
+   with `https://github.com/icarloscornejo/landing-gear.git` as the source. A normal
    fork of this public repository is public, so do not use one for personal
    career data.
 2. Open [claude.ai/code](https://claude.ai/code), connect GitHub, and select the
@@ -26,11 +26,11 @@ isolated cloud VM; it does not have your machine's files or local configuration.
 3. Submit this first task:
 
    ```text
-   Set up career-ops in this checkout. Run npm install, then start the first-run
+   Set up landing-gear in this checkout. Run npm install, then start the first-run
    onboarding. Keep cv.md, data/, and reports/ out of Git.
    ```
 
-career-ops still uses ordinary workspace files in the cloud checkout, not
+landing-gear still uses ordinary workspace files in the cloud checkout, not
 browser storage:
 
 | Path (from the repository root) | What it holds |
@@ -48,20 +48,22 @@ and move any output you need to secure storage before its environment expires.
 Never force-add these paths. For a durable workspace shared across many
 sessions, use the local quick start below.
 
-### Recommended — one command
+### Recommended: clone and install
 
 ```bash
-npx @santifer/career-ops init
+git clone https://github.com/icarloscornejo/landing-gear.git
+cd landing-gear
+npm install
 ```
 
-`npx` ships with Node.js — it runs the installer once without installing anything globally. This clones the latest release into `./career-ops` and installs dependencies. Then move into the workspace and open your AI CLI:
+Then open your AI CLI in the workspace:
 
 ```bash
-cd career-ops
+cd landing-gear
 claude   # or codex / qwen / opencode / agy / grok
 ```
 
-**On first launch, career-ops walks you through setup by chatting** — it asks for your CV, your details (name, target roles, salary), and sets up the job scanner with pre-configured companies. Nothing to edit by hand: just answer its questions. Then paste a job offer URL or description and it evaluates it, writes a report, generates a tailored PDF, and tracks it.
+**On first launch, landing-gear walks you through setup by chatting** — it asks for your CV, your details (name, target roles, salary), and sets up the job scanner with pre-configured companies. Nothing to edit by hand: just answer its questions. Then paste a job offer URL or description and it evaluates it, writes a report, generates a tailored PDF, and tracks it.
 
 If you are using Codex, start the interactive session with `codex`. Slash commands are not guaranteed in Codex, so use the same mode names in a prompt if `/landing-gear` is unavailable:
 
@@ -91,8 +93,8 @@ codex exec "Run landing-gear tracker mode and summarize the current statuses."
 <summary>Prefer to clone the repo yourself?</summary>
 
 ```bash
-git clone https://github.com/career-ops-hq/career-ops.git
-cd career-ops
+git clone https://github.com/icarloscornejo/landing-gear.git
+cd landing-gear
 npm install
 ```
 
@@ -102,7 +104,7 @@ Then open your AI CLI in the folder — the same first-run onboarding applies. U
 
 ### Contributing for the first time
 
-If you want to contribute to career-ops, start with a small, focused change. Bug fixes, documentation, translations, and new zero-auth scanner providers can go straight to a pull request; new features, modes, commands, or architecture changes should start with an issue first.
+If you want to contribute to landing-gear, start with a small, focused change. Bug fixes, documentation, translations, and new zero-auth scanner providers can go straight to a pull request; new features, modes, commands, or architecture changes should start with an issue first.
 
 The basic workflow is:
 
@@ -110,7 +112,7 @@ The basic workflow is:
 2. Make one focused change and keep personal data such as `cv.md`, `profile.yml`, applications, and reports out of the commit.
 3. Run the relevant checks; for a broad validation, use `node test-all.mjs --quick`.
 4. Commit and push your branch to your fork.
-5. Open a pull request against `career-ops-hq/career-ops` and explain what changed and why.
+5. Open a pull request against `icarloscornejo/landing-gear` and explain what changed and why.
 
 See [CONTRIBUTING.md](../CONTRIBUTING.md) for the full contribution guidelines and examples of good first contributions.
 

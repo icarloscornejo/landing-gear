@@ -55,7 +55,7 @@ function repoSlug(repoUrl) {
 
 /** GET a GitHub API URL. null on 404 (the caller decides what an absence means), throws otherwise. */
 async function ghJson(url, fetchImpl = fetch) {
-  const headers = { Accept: 'application/vnd.github+json', 'User-Agent': 'career-ops-registry-freshness' };
+  const headers = { Accept: 'application/vnd.github+json', 'User-Agent': 'landing-gear-registry-freshness' };
   // A token only raises the rate limit; the check works unauthenticated, which
   // is what a local run gets. The scheduled workflow passes github.token.
   if (process.env.GITHUB_TOKEN) headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;

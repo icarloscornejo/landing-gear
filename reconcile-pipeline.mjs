@@ -25,13 +25,13 @@ import { readFileSync, existsSync, readdirSync, copyFileSync, realpathSync, stat
 import { join, dirname, resolve, relative, isAbsolute } from 'path';
 import { fileURLToPath } from 'url';
 import { normalizeReportLink } from './tracker-links.mjs';
-import { getCareerOpsRoot } from './path-resolver.mjs';
+import { getLandingGearRoot } from './path-resolver.mjs';
 import { flagValue, validateFlags } from './lib/cli-flags.mjs';
 import { withPipelineLock, LockTimeoutError } from './pipeline-lock.mjs';
 import { writeFileAtomic } from './tracker-utils.mjs';
 import { sectionKind, processedHeadingFor } from './lib/pipeline-sections.mjs';
 
-const CAREER_OPS = getCareerOpsRoot();
+const LANDING_GEAR = getLandingGearRoot();
 const CODEBASE_ROOT = dirname(fileURLToPath(import.meta.url));
 
 const KNOWN_FLAGS = ['--dry-run', '--pipeline', '--state', '--help', '-h'];
@@ -51,7 +51,7 @@ const DRY_RUN = args.includes('--dry-run');
 // code checkout, where batch-runner.sh keeps it under batch/.
 // Symlinks are resolved first (realpathSync) so an in-repo symlink cannot
 // smuggle the real target outside the tree past a purely lexical check.
-function resolveInsideRepo(inputPath, fallbackPath, flag, roots = [CAREER_OPS]) {
+function resolveInsideRepo(inputPath, fallbackPath, flag, roots = [LANDING_GEAR]) {
   const abs = resolve(inputPath || fallbackPath);
   let repoRoots, targetReal;
   try {
@@ -79,12 +79,12 @@ function resolveInsideRepo(inputPath, fallbackPath, flag, roots = [CAREER_OPS]) 
   return abs;
 }
 
-const defaultPipeline = existsSync(join(CAREER_OPS, 'data/pipeline.md'))
-  ? join(CAREER_OPS, 'data/pipeline.md')
-  : join(CAREER_OPS, 'pipeline.md');
+const defaultPipeline = existsSync(join(LANDING_GEAR, 'data/pipeline.md'))
+  ? join(LANDING_GEAR, 'data/pipeline.md')
+  : join(LANDING_GEAR, 'pipeline.md');
 const PIPELINE_FILE = resolveInsideRepo(flagValue(args, '--pipeline'), defaultPipeline, '--pipeline');
-const STATE_FILE = resolveInsideRepo(flagValue(args, '--state'), join(CODEBASE_ROOT, 'batch/batch-state.tsv'), '--state', [CODEBASE_ROOT, CAREER_OPS]);
-const REPORTS_DIR = join(CAREER_OPS, 'reports');
+const STATE_FILE = resolveInsideRepo(flagValue(args, '--state'), join(CODEBASE_ROOT, 'batch/batch-state.tsv'), '--state', [CODEBASE_ROOT, LANDING_GEAR]);
+const REPORTS_DIR = join(LANDING_GEAR, 'reports');
 
 // ---- guards ----
 if (!existsSync(STATE_FILE)) {
@@ -273,7 +273,7 @@ function reconcile() {
     const pdf = resolvePdf(reportFile);
     const num = parseInt(done.reportNum, 10);
 
-    const reportLink = normalizeReportLink(`[${num}](reports/${reportFile})`, dirname(PIPELINE_FILE), CAREER_OPS);
+    const reportLink = normalizeReportLink(`[${num}](reports/${reportFile})`, dirname(PIPELINE_FILE), LANDING_GEAR);
     movedProcLines.push(`- [x] ${reportLink} | ${url} | ${company} | ${role} | ${score} | PDF ${pdf}`);
     moved.push({ url, company, role, num, score });
     procUrls.add(url);

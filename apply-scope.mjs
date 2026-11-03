@@ -1,7 +1,7 @@
 import { realpathSync } from 'node:fs';
 import { isAbsolute, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { getCareerOpsRoot } from './path-resolver.mjs';
+import { getLandingGearRoot } from './path-resolver.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
 import { pathIsInsideCanonical } from './tracker-utils.mjs';
 
@@ -30,7 +30,7 @@ export function projectRoot() {
 
 export function allowedRoots() {
   const code = projectRoot();
-  const data = getCareerOpsRoot();
+  const data = getLandingGearRoot();
   if (realOrLexical(data) === realOrLexical(code)) return [code];
   return [code, data];
 }

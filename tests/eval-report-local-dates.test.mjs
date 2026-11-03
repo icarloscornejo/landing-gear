@@ -94,8 +94,8 @@ await processOffer(mockBrowser, '- [ ] https://example.com/job | Acme Corp | Sen
       env: {
         ...process.env,
         TZ: 'America/New_York',
-        CAREER_OPS_REPORTS_DIR: reportsDir,
-        CAREER_OPS_TRACKER: join(work, 'applications.md'),
+        LANDING_GEAR_REPORTS_DIR: reportsDir,
+        LANDING_GEAR_TRACKER: join(work, 'applications.md'),
       },
     });
     assert.equal(r.error, undefined, `spawn failed: ${r.error?.message}`);

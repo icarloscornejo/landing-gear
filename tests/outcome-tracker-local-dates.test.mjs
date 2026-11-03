@@ -76,8 +76,8 @@ function runFrozen(dir, scriptRel, args, dataRoot) {
     env: {
       ...process.env,
       TZ: 'America/New_York',
-      CAREER_OPS_ROOT: dataRoot,
-      CAREER_OPS_DATA_DIR: '',
+      LANDING_GEAR_ROOT: dataRoot,
+      LANDING_GEAR_DATA_DIR: '',
     },
   });
   assert.equal(r.error, undefined, `spawn failed: ${r.error?.message}`);
@@ -85,7 +85,7 @@ function runFrozen(dir, scriptRel, args, dataRoot) {
 }
 
 function sandbox() {
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-localdate-'));
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-localdate-'));
   mkdirSync(join(dir, 'data'), { recursive: true });
   mkdirSync(join(dir, 'reports'), { recursive: true });
   writeFileSync(join(dir, 'data', 'applications.md'), TRACKER);

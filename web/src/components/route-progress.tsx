@@ -5,7 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 
 type ProgressState = "idle" | "loading" | "done";
 
-const START_EVENT = "career-ops:route-progress:start";
+const START_EVENT = "landing-gear:route-progress:start";
 
 /** Start the navigation indicator before a route transition begins. */
 export function startRouteProgress() {

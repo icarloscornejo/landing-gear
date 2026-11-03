@@ -1,12 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
 import * as yaml from "js-yaml";
-import { careerOpsRoot } from "@/lib/career-ops";
+import { landingGearRoot } from "@/lib/landing-gear";
 import { CANONICAL_STATES } from "@/lib/format";
 
 /**
  * ACL for templates/states.yml — the SINGLE SOURCE OF TRUTH for canonical
- * application states (career-ops writer + dashboard reader both read it). Per the
+ * application states (landing-gear writer + dashboard reader both read it). Per the
  * web↔core contract we READ it live and never hardcode the list.
  *
  * The hand-maintained FALLBACK that used to live here is gone. It promised to be
@@ -54,7 +54,7 @@ const FALLBACK: CanonicalState[] = CANONICAL_STATES.map((label) => ({
 const statesCache = new Map<string, { mtimeMs: number; size: number; states: CanonicalState[] }>();
 
 export function readCanonicalStates(): CanonicalState[] {
-  const file = path.join(careerOpsRoot(), "templates", "states.yml");
+  const file = path.join(landingGearRoot(), "templates", "states.yml");
   try {
     const { mtimeMs, size } = fs.statSync(file);
     const cached = statesCache.get(file);

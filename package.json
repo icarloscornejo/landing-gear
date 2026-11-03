@@ -1,7 +1,7 @@
 {
   "name": "landing-gear",
-  "version": "1.0.3",
-  "description": "A local-first AI job search agent for engineers, based on career-ops: scan job boards, pre-triage and evaluate roles, track every hiring phase, tailor your CV",
+  "version": "1.1.0",
+  "description": "A local-first AI job search agent for engineers: scan job boards, pre-triage and evaluate roles, track every hiring phase, tailor your CV",
   "private": true,
   "engines": {
     "node": "^22.13.0 || >=23.4.0"
@@ -76,8 +76,7 @@
     "application:init": "node application-artifacts.mjs --init",
     "build:dashboard": "node build-dashboard.mjs",
     "serve:dashboard": "cd dashboard && go run .",
-    "postinstall": "node -e \"process.exit(['','0','false'].includes((process.env.PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD||'').toLowerCase())?1:0)\" || npx playwright install chromium || npx playwright install chromium || node -e \"console.warn('\\ncareer-ops: could not install Playwright Chromium. Everything else is installed; PDF generation and browser checks need it. Run: npx playwright install chromium')\"",
-    "manifesto": "node manifesto.mjs"
+    "postinstall": "node -e \"process.exit(['','0','false'].includes((process.env.PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD||'').toLowerCase())?1:0)\" || npx playwright install chromium || npx playwright install chromium || node -e \"console.warn('\\nlanding-gear: could not install Playwright Chromium. Everything else is installed; PDF generation and browser checks need it. Run: npx playwright install chromium')\""
   },
   "keywords": [
     "ai",
@@ -85,8 +84,8 @@
     "claude-code",
     "opencode",
     "career",
-    "career-ops",
-    "careerops",
+    "landing-gear",
+    "landinggear",
     "automation",
     "codex",
     "antigravity",
@@ -97,10 +96,10 @@
     "ai-agent-skill"
   ],
   "author": "Santiago Fernández de Valderrama <hi@santifer.io> (https://santifer.io)",
-  "homepage": "https://career-ops.org",
+  "homepage": "https://github.com/icarloscornejo/landing-gear",
   "repository": {
     "type": "git",
-    "url": "https://github.com/career-ops-hq/career-ops"
+    "url": "https://github.com/icarloscornejo/landing-gear"
   },
   "license": "MIT",
   "dependencies": {

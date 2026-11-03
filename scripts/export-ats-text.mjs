@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { loadYaml } from '../lib/yaml-document.mjs';
 import { isMainModule } from '../lib/is-main-module.mjs';
-import { getCareerOpsRoot, getProfilePath, hasProfileOverride } from '../path-resolver.mjs';
+import { getLandingGearRoot, getProfilePath, hasProfileOverride } from '../path-resolver.mjs';
 import { validateFlags } from '../lib/cli-flags.mjs';
 
 /**
@@ -233,7 +233,7 @@ export function loadProfile(customProfilePath = null, customCvPath = null) {
     }
   } else {
     if (!existsSync(profileSource)) {
-      const via = hasProfileOverride() ? ' (named by CAREER_OPS_PROFILE)' : '';
+      const via = hasProfileOverride() ? ' (named by LANDING_GEAR_PROFILE)' : '';
       throw new Error(`Profile not found at ${profileSource}${via}: fill it in first`);
     }
     try {
@@ -248,7 +248,7 @@ export function loadProfile(customProfilePath = null, customCvPath = null) {
   }
 
   let cvData = {};
-  const cvSource = customCvPath || process.env.CAREER_OPS_CV || join(getCareerOpsRoot(), 'cv.md');
+  const cvSource = customCvPath || process.env.LANDING_GEAR_CV || join(getLandingGearRoot(), 'cv.md');
   if (customCvPath) {
     if (!existsSync(customCvPath)) {
       throw new Error(`CV file not found at: ${customCvPath}`);
@@ -379,8 +379,8 @@ Export profile and CV sections as plain text for ATS forms.
 Options:
   --section <name>  Export personal, summary, skills, experience or education only
   --out <path>      Write to a file instead of stdout
-  --profile <path>  Profile YAML (default: CAREER_OPS_PROFILE, else config/profile.yml in the data root)
-  --cv <path>       CV Markdown (default: CAREER_OPS_CV, else cv.md in the data root, when present)
+  --profile <path>  Profile YAML (default: LANDING_GEAR_PROFILE, else config/profile.yml in the data root)
+  --cv <path>       CV Markdown (default: LANDING_GEAR_CV, else cv.md in the data root, when present)
   --help, -h        Show help without reading the profile/CV or writing output
 `, { valueFlags: ['--section', '--out', '--profile', '--cv'], requireOperand: true });
 

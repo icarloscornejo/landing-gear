@@ -33,7 +33,7 @@ globalThis.fetch = async () => { throw new Error('Unexpected network request'); 
         const args = script === 'scan-ats-full.mjs' ? ['--ats', 'greenhouse', '--include-undated', '--json'] : [];
         const result = spawnSync(process.execPath, ['--import', pathToFileURL(preload).href, join(root, script), ...args], {
           cwd: dir, encoding: 'utf8', timeout: 20000,
-          env: { ...process.env, CAREER_OPS_ROOT: dir, CAREER_OPS_DATA_DIR: '', CAREER_OPS_PORTALS: join(dir, 'portals.yml') },
+          env: { ...process.env, LANDING_GEAR_ROOT: dir, LANDING_GEAR_DATA_DIR: '', LANDING_GEAR_PORTALS: join(dir, 'portals.yml') },
         });
         assert.equal(result.status, 0, result.stderr || result.error?.message);
         if (script === 'scan-ats-full.mjs') assert.equal(JSON.parse(result.stdout).unreachableBoards, 0, result.stderr);

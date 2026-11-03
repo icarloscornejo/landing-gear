@@ -144,7 +144,7 @@ if (REEXEC_FALLBACK_FILES.includes('cv-templates.mjs')
 // blob. This verifies the runtime path reaches checkout preservation without
 // relying on source-text regular expressions.
 {
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-configured-variant-'));
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-configured-variant-'));
   const profile = join(dir, 'profile.yml');
   writeFileSync(profile, 'cv:\n  template: BW\ncover_letter:\n  template: Concise\n');
   mkdirSync(join(dir, 'config'), { recursive: true });
@@ -319,11 +319,11 @@ if (REEXEC_FALLBACK_FILES.includes('cv-templates.mjs')
   }
 }
 
-// ── 4. Two profiles in play (#5026): CAREER_OPS_PROFILE names one profile while ──
+// ── 4. Two profiles in play (#5026): LANDING_GEAR_PROFILE names one profile while ──
 // ──    the data root holds another. The templates dir is the data root's, so  ──
 // ──    a variant EITHER profile selects is protected, not only the override's. ──
 {
-  const root = mkdtempSync(join(tmpdir(), 'career-ops-two-lane-'));
+  const root = mkdtempSync(join(tmpdir(), 'landing-gear-two-lane-'));
   try {
     mkdirSync(join(root, 'config'), { recursive: true });
     mkdirSync(join(root, 'templates'), { recursive: true });

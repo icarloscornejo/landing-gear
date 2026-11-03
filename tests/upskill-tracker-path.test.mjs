@@ -39,7 +39,7 @@ function reportsRead(root, tracker = '') {
   const out = execFileSync(NODE, [join(ROOT, 'upskill.mjs'), '--min-reports', '1'], {
     encoding: 'utf-8',
     timeout: 60000,
-    env: { ...process.env, CAREER_OPS_ROOT: root, CAREER_OPS_TRACKER: tracker },
+    env: { ...process.env, LANDING_GEAR_ROOT: root, LANDING_GEAR_TRACKER: tracker },
   });
   // With no report read, upskill answers with its "Not enough data" error
   // instead of metadata; surface that rather than a bare undefined.

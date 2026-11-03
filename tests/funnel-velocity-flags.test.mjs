@@ -12,7 +12,7 @@ import { describeSpawn } from './helpers/describe-spawn.mjs';
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const SCRIPT = join(ROOT, 'funnel-velocity.mjs');
-const SANDBOX = mkdtempSync(join(tmpdir(), 'career-ops-funnel-flags-'));
+const SANDBOX = mkdtempSync(join(tmpdir(), 'landing-gear-funnel-flags-'));
 const NO_TRACKER = join(SANDBOX, 'applications.md');
 const NO_BENCHMARKS = join(SANDBOX, 'benchmarks.yml');
 
@@ -23,7 +23,7 @@ function runFunnel(...args) {
     cwd: ROOT,
     encoding: 'utf-8',
     timeout: 30_000,
-    env: { ...process.env, CAREER_OPS_TRACKER: NO_TRACKER },
+    env: { ...process.env, LANDING_GEAR_TRACKER: NO_TRACKER },
   });
   assert.equal(result.error, undefined, `funnel-velocity.mjs failed to spawn: ${result.error?.message}`);
   assert.equal(result.signal, null, `funnel-velocity.mjs was killed by ${result.signal} (timeout?)`);

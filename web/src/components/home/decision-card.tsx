@@ -4,7 +4,7 @@ import { cn } from "@/lib/cn";
 import { CompanyLogo } from "@/components/company-logo";
 import { scoreNum, scoreTen, scoreTone } from "@/lib/format";
 import { companyPresentation } from "@/lib/company-presentation.mjs";
-import type { Application } from "@/lib/career-ops";
+import type { Application } from "@/lib/landing-gear";
 import type { CardReason } from "@/lib/machine-summary.mjs";
 
 const DECISION_TONE: Record<string, string> = {

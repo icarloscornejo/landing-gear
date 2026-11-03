@@ -9,7 +9,7 @@
 //   - the widened warning used to be read off the env value, so a caller-supplied
 //     -H could open the socket with the startup notice staying silent;
 //   - any string the loopback predicate rejected counted as an opt-in, so
-//     CAREER_OPS_WEB_ALLOWED_HOSTS=off bound every interface;
+//     LANDING_GEAR_WEB_ALLOWED_HOSTS=off bound every interface;
 //   - naming one LAN address bound every interface rather than that address.
 //
 // Run:  node --test tests/lib/bind-host.test.mjs
@@ -303,7 +303,7 @@ test("an unreadable opt-in refuses the run rather than starting a widened server
   // When a run is planned
   // Then there is no argv to spawn — failing fast beats binding every interface
   assert.equal(plan.ok, false);
-  assert.match(plan.error, /CAREER_OPS_WEB_ALLOWED_HOSTS/);
+  assert.match(plan.error, /LANDING_GEAR_WEB_ALLOWED_HOSTS/);
 });
 
 test("each supported command builds argv with the bind ahead of forwarded flags", () => {

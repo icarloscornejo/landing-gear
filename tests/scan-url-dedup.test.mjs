@@ -62,9 +62,9 @@ try {
   else fail(`collapsed distinct hash-route postings onto ${hashJob1}`);
 
   const preExistingInternalParam = normalizeUrlForDedup(
-    'https://jobs.example.com/careers?_career_ops_fragment_job_id=query-id#/jobs/hash-id',
+    'https://jobs.example.com/careers?_landing_gear_fragment_job_id=query-id#/jobs/hash-id',
   );
-  if (preExistingInternalParam === 'https://jobs.example.com/careers?_career_ops_fragment_job_id=query-id&_career_ops_fragment_job_id=hash-id') {
+  if (preExistingInternalParam === 'https://jobs.example.com/careers?_landing_gear_fragment_job_id=query-id&_landing_gear_fragment_job_id=hash-id') {
     pass('pre-existing internal fragment key is preserved beside promoted hash job ID');
   } else {
     fail(`pre-existing fragment query key was overwritten: ${preExistingInternalParam}`);

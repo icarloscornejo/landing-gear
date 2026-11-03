@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * contact-lookup.mjs — Saved-Contact Company Lookup for career-ops (#4691)
+ * contact-lookup.mjs — Saved-Contact Company Lookup for landing-gear (#4691)
  *
  * `contacto` finds ONE fresh outreach target per application via WebSearch —
  * but if the candidate already has a saved contact at the SAME company in
@@ -33,7 +33,7 @@
  *      node contact-lookup.mjs --company "Acme" --summary  (human-readable)
  *      node contact-lookup.mjs --self-test
  *
- * Issue #4691 — github.com/career-ops-hq/career-ops
+ * Issue #4691 (upstream)
  */
 
 import { readFileSync, existsSync } from 'fs';
@@ -43,9 +43,9 @@ import { parseContacts } from './contacts.mjs';
 import { normalizeCompany } from './tracker-utils.mjs';
 import { validateFlags, flagValue } from './lib/cli-flags.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
-import { getCareerOpsRoot } from './path-resolver.mjs';
+import { getLandingGearRoot } from './path-resolver.mjs';
 
-const DATA_ROOT = getCareerOpsRoot();
+const DATA_ROOT = getLandingGearRoot();
 const CONTACTS_PATH = join(DATA_ROOT, 'data/contacts.tsv');
 
 // --- CLI args ---

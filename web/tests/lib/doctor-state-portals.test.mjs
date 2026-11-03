@@ -1,4 +1,4 @@
-// doctorState must look for portals where the scanner does: CAREER_OPS_PORTALS
+// doctorState must look for portals where the scanner does: LANDING_GEAR_PORTALS
 // when set, otherwise <root>/portals.yml. doctor.mjs gained that in #5166; the
 // web onboarding banner still only checked the default path.
 //
@@ -11,8 +11,8 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import "../helpers/web-ts-alias-loader.mjs";
 
-const skipTs = !process.features?.typescript && "this Node cannot import career-ops.ts (no type stripping)";
-const { doctorState } = skipTs ? {} : await import("@/lib/career-ops");
+const skipTs = !process.features?.typescript && "this Node cannot import landing-gear.ts (no type stripping)";
+const { doctorState } = skipTs ? {} : await import("@/lib/landing-gear");
 
 function makeRoot() {
   const root = mkdtempSync(join(tmpdir(), "co-doctor-portals-"));
@@ -30,23 +30,23 @@ function makeRoot() {
 }
 
 function withEnv(root, portals, fn) {
-  const prevRoot = process.env.CAREER_OPS_ROOT;
-  const prevPortals = process.env.CAREER_OPS_PORTALS;
-  process.env.CAREER_OPS_ROOT = root;
-  if (portals === null) delete process.env.CAREER_OPS_PORTALS;
-  else process.env.CAREER_OPS_PORTALS = portals;
+  const prevRoot = process.env.LANDING_GEAR_ROOT;
+  const prevPortals = process.env.LANDING_GEAR_PORTALS;
+  process.env.LANDING_GEAR_ROOT = root;
+  if (portals === null) delete process.env.LANDING_GEAR_PORTALS;
+  else process.env.LANDING_GEAR_PORTALS = portals;
   try {
     return fn();
   } finally {
-    if (prevRoot === undefined) delete process.env.CAREER_OPS_ROOT;
-    else process.env.CAREER_OPS_ROOT = prevRoot;
-    if (prevPortals === undefined) delete process.env.CAREER_OPS_PORTALS;
-    else process.env.CAREER_OPS_PORTALS = prevPortals;
+    if (prevRoot === undefined) delete process.env.LANDING_GEAR_ROOT;
+    else process.env.LANDING_GEAR_ROOT = prevRoot;
+    if (prevPortals === undefined) delete process.env.LANDING_GEAR_PORTALS;
+    else process.env.LANDING_GEAR_PORTALS = prevPortals;
     rmSync(root, { recursive: true, force: true });
   }
 }
 
-test("doctorState treats CAREER_OPS_PORTALS as the portals file", { skip: skipTs }, () => {
+test("doctorState treats LANDING_GEAR_PORTALS as the portals file", { skip: skipTs }, () => {
   const root = makeRoot();
   const alt = join(root, "alt-portals.yml");
   writeFileSync(alt, "tracked_companies: []\n");

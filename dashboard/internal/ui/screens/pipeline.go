@@ -12,10 +12,10 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/santifer/career-ops/dashboard/internal/data"
-	"github.com/santifer/career-ops/dashboard/internal/i18n"
-	"github.com/santifer/career-ops/dashboard/internal/model"
-	"github.com/santifer/career-ops/dashboard/internal/theme"
+	"github.com/icarloscornejo/landing-gear/dashboard/internal/data"
+	"github.com/icarloscornejo/landing-gear/dashboard/internal/i18n"
+	"github.com/icarloscornejo/landing-gear/dashboard/internal/model"
+	"github.com/icarloscornejo/landing-gear/dashboard/internal/theme"
 )
 
 // PipelineClosedMsg is emitted when the pipeline screen is dismissed.
@@ -40,7 +40,7 @@ type PipelineOpenPDFMsg struct {
 	Path string
 }
 
-// PipelineOpenFailedMsg reports that an external open (job URL, manifesto or
+// PipelineOpenFailedMsg reports that an external open (job URL or
 // CV PDF) failed. The dashboard runs under an alt-screen, so the failure has to
 // travel back to the pipeline screen as a flash: anything written to stderr is
 // never seen. Target is the URL or path that could not be opened.
@@ -51,9 +51,9 @@ type PipelineOpenFailedMsg struct {
 
 // PipelineGeneratePDFMsg requests a PDF regeneration via generate-pdf.mjs
 // from the application's recorded source HTML. Paths are relative to
-// CareerOpsPath (as recorded in the manifest).
+// LandingGearPath (as recorded in the manifest).
 type PipelineGeneratePDFMsg struct {
-	CareerOpsPath string
+	LandingGearPath string
 	ReportNumber  string
 	HTMLPath      string
 	PDFPath       string
@@ -69,13 +69,13 @@ type PipelinePDFGeneratedMsg struct {
 
 // PipelineLoadReportMsg requests lazy loading of a report summary.
 type PipelineLoadReportMsg struct {
-	CareerOpsPath string
+	LandingGearPath string
 	ReportPath    string
 }
 
 // PipelineUpdateStatusMsg requests a status update for an application.
 type PipelineUpdateStatusMsg struct {
-	CareerOpsPath string
+	LandingGearPath string
 	App           model.CareerApplication
 	NewStatus     string
 }
@@ -90,7 +90,7 @@ type StatusUpdateFailedMsg struct {
 // Used by the discard reason picker (Issue 1380) to commit both changes in a
 // single tracker write.
 type PipelineUpdateStatusAndNotesMsg struct {
-	CareerOpsPath string
+	LandingGearPath string
 	App           model.CareerApplication
 	NewStatus     string
 	NotesAppend   string // text to append to the Notes cell, e.g. "DISCARD: salary_too_low"
@@ -146,7 +146,7 @@ type reportSummary struct {
 	comp      string
 }
 
-const storyTemplateURL = "https://github.com/career-ops-hq/career-ops/issues/new?template=i-got-hired.yml"
+const storyTemplateURL = "https://github.com/icarloscornejo/landing-gear/issues/new?template=i-got-hired.yml"
 
 // Sort modes
 const (
@@ -306,7 +306,7 @@ type PipelineModel struct {
 	viewMode      string // "grouped" or "flat"
 	width, height int
 	theme         theme.Theme
-	careerOpsPath string
+	landingGearPath string
 	reportCache   map[string]reportSummary
 	// Status picker sub-state
 	statusPicker bool
@@ -350,7 +350,7 @@ func (m PipelineModel) IsTextInputActive() bool {
 }
 
 // NewPipelineModel creates a new pipeline screen.
-func NewPipelineModel(t theme.Theme, apps []model.CareerApplication, metrics model.PipelineMetrics, careerOpsPath string, width, height int) PipelineModel {
+func NewPipelineModel(t theme.Theme, apps []model.CareerApplication, metrics model.PipelineMetrics, landingGearPath string, width, height int) PipelineModel {
 	visible := make(map[ColumnID]bool)
 	for _, col := range getOptionalCols() {
 		visible[col.id] = col.onByDefault
@@ -364,7 +364,7 @@ func NewPipelineModel(t theme.Theme, apps []model.CareerApplication, metrics mod
 		width:         width,
 		height:        height,
 		theme:         t,
-		careerOpsPath: careerOpsPath,
+		landingGearPath: landingGearPath,
 		reportCache:   make(map[string]reportSummary),
 		visibleCols:   visible,
 	}
@@ -418,7 +418,7 @@ func (m PipelineModel) WithReloadedData(apps []model.CareerApplication, metrics 
 		selectedRole = app.Role
 	}
 
-	reloaded := NewPipelineModel(m.theme, apps, metrics, m.careerOpsPath, m.width, m.height)
+	reloaded := NewPipelineModel(m.theme, apps, metrics, m.landingGearPath, m.width, m.height)
 	reloaded.sortMode = m.sortMode
 	reloaded.activeTab = m.activeTab
 	reloaded.viewMode = m.viewMode
@@ -643,7 +643,7 @@ func (m PipelineModel) handleKey(msg tea.KeyMsg) (PipelineModel, tea.Cmd) {
 
 	case "enter":
 		if app, ok := m.CurrentApp(); ok && app.ReportPath != "" {
-			fullPath := filepath.Join(m.careerOpsPath, app.ReportPath)
+			fullPath := filepath.Join(m.landingGearPath, app.ReportPath)
 			title := fmt.Sprintf("%s — %s", app.Company, app.Role)
 			jobURL := app.JobURL
 			return m, func() tea.Msg {
@@ -662,15 +662,10 @@ func (m PipelineModel) handleKey(msg tea.KeyMsg) (PipelineModel, tea.Cmd) {
 			}
 		}
 
-	case "m":
-		return m, func() tea.Msg {
-			return PipelineOpenURLMsg{URL: "https://career-ops.org/manifesto?utm_source=dashboard-shortcut"}
-		}
-
 	case "d":
 		if app, ok := m.CurrentApp(); ok {
-			manifest := data.LoadPDFManifest(m.careerOpsPath)
-			candidates := data.ResolvePDFs(data.PDFWorkspaceRoot(m.careerOpsPath), app, manifest)
+			manifest := data.LoadPDFManifest(m.landingGearPath)
+			candidates := data.ResolvePDFs(data.PDFWorkspaceRoot(m.landingGearPath), app, manifest)
 			if len(candidates) == 0 {
 				m.flash = "No CV PDF found for this application — generate one with /landing-gear pdf"
 			} else {
@@ -680,13 +675,13 @@ func (m PipelineModel) handleKey(msg tea.KeyMsg) (PipelineModel, tea.Cmd) {
 
 	case "D":
 		if app, ok := m.CurrentApp(); ok {
-			workspaceRoot := data.PDFWorkspaceRoot(m.careerOpsPath)
-			manifest := data.LoadPDFManifest(m.careerOpsPath)
+			workspaceRoot := data.PDFWorkspaceRoot(m.landingGearPath)
+			manifest := data.LoadPDFManifest(m.landingGearPath)
 			entry, found := manifest.Lookup(app)
 			// Manifest lookup requires a report number; fall back to PDF-path
 			// index when the manifest was written without --report (common case).
 			if !found || entry.HTMLPath == "" {
-				byPath := data.LoadPDFEntriesByPath(m.careerOpsPath)
+				byPath := data.LoadPDFEntriesByPath(m.landingGearPath)
 				candidates := data.ResolvePDFs(workspaceRoot, app, manifest)
 				for _, c := range candidates {
 					if e, ok := byPath[c]; ok && e.HTMLPath != "" {
@@ -709,7 +704,7 @@ func (m PipelineModel) handleKey(msg tea.KeyMsg) (PipelineModel, tea.Cmd) {
 			html, pdf, format := entry.HTMLPath, entry.PDFPath, entry.Format
 			return m, func() tea.Msg {
 				return PipelineGeneratePDFMsg{
-					CareerOpsPath: path,
+					LandingGearPath: path,
 					ReportNumber:  report,
 					HTMLPath:      html,
 					PDFPath:       pdf,
@@ -870,7 +865,7 @@ func (m PipelineModel) handleStatusPicker(msg tea.KeyMsg) (PipelineModel, tea.Cm
 			}
 			return m, func() tea.Msg {
 				return PipelineUpdateStatusMsg{
-					CareerOpsPath: m.careerOpsPath,
+					LandingGearPath: m.landingGearPath,
 					App:           app,
 					NewStatus:     newStatus,
 				}
@@ -885,7 +880,7 @@ func (m PipelineModel) handleStatusPicker(msg tea.KeyMsg) (PipelineModel, tea.Cm
 // the discard picker overlay. Called synchronously inside a Cmd so it can do
 // file I/O without blocking the Bubble Tea event loop.
 func (m PipelineModel) startDiscardFlow(app model.CareerApplication, newStatus string) tea.Msg {
-	predicted := data.LoadReportDiscardReasons(m.careerOpsPath, app.ReportPath)
+	predicted := data.LoadReportDiscardReasons(m.landingGearPath, app.ReportPath)
 	return pipelineStartDiscardPickerMsg{
 		app:              app,
 		newStatus:        newStatus,
@@ -971,7 +966,7 @@ func (m PipelineModel) handleDiscardPicker(msg tea.KeyMsg) (PipelineModel, tea.C
 		m.discardPicker = false
 		return m, func() tea.Msg {
 			return PipelineUpdateStatusMsg{
-				CareerOpsPath: m.careerOpsPath,
+				LandingGearPath: m.landingGearPath,
 				App:           m.discardPendingApp,
 				NewStatus:     m.discardPendingStatus,
 			}
@@ -1011,7 +1006,7 @@ func (m PipelineModel) StartHiredFlow(app model.CareerApplication) (PipelineMode
 }
 
 func (m PipelineModel) StartDiscardReasonFlow(app model.CareerApplication, status string) (PipelineModel, tea.Cmd) {
-	predicted := data.LoadReportDiscardReasons(m.careerOpsPath, app.ReportPath)
+	predicted := data.LoadReportDiscardReasons(m.landingGearPath, app.ReportPath)
 	seen := make(map[string]bool)
 	var opts []string
 	numPredicted := 0
@@ -1060,7 +1055,7 @@ func (m PipelineModel) handleHiredFlow(msg tea.KeyMsg) (PipelineModel, tea.Cmd) 
 		switch msg.String() {
 		case "y", "Y":
 			weeks := m.calculateWeeksToHire()
-			if err := data.SaveAnonymousStat(m.careerOpsPath, m.hiredApp.Role, weeks); err != nil {
+			if err := data.SaveAnonymousStat(m.landingGearPath, m.hiredApp.Role, weeks); err != nil {
 				m.flash = "Could not record anonymous stat: " + err.Error()
 			}
 			m.hiredStep = 0
@@ -1085,7 +1080,7 @@ func (m PipelineModel) commitDiscardReason(reason string) (PipelineModel, tea.Cm
 	notesTag := fmt.Sprintf("%s: %s", prefix, reason)
 	return m, func() tea.Msg {
 		return PipelineUpdateStatusAndNotesMsg{
-			CareerOpsPath: m.careerOpsPath,
+			LandingGearPath: m.landingGearPath,
 			App:           app,
 			NewStatus:     newStatus,
 			NotesAppend:   notesTag,
@@ -1137,7 +1132,7 @@ func (m PipelineModel) handleColPicker(msg tea.KeyMsg) (PipelineModel, tea.Cmd) 
 
 // openPDFCmd emits a PipelineOpenPDFMsg for a root-relative PDF path.
 func (m PipelineModel) openPDFCmd(relPath string) tea.Cmd {
-	fullPath := filepath.Join(data.PDFWorkspaceRoot(m.careerOpsPath), filepath.FromSlash(relPath))
+	fullPath := filepath.Join(data.PDFWorkspaceRoot(m.landingGearPath), filepath.FromSlash(relPath))
 	return func() tea.Msg {
 		return PipelineOpenPDFMsg{Path: fullPath}
 	}
@@ -1151,10 +1146,10 @@ func (m PipelineModel) loadCurrentReport() tea.Cmd {
 	if _, cached := m.reportCache[app.ReportPath]; cached {
 		return nil
 	}
-	path := m.careerOpsPath
+	path := m.landingGearPath
 	report := app.ReportPath
 	return func() tea.Msg {
-		return PipelineLoadReportMsg{CareerOpsPath: path, ReportPath: report}
+		return PipelineLoadReportMsg{LandingGearPath: path, ReportPath: report}
 	}
 }
 
@@ -2143,12 +2138,8 @@ func (m PipelineModel) renderHelp() string {
 				keyStyle.Render("Esc") + descStyle.Render(i18n.Current.HelpCancel))
 	}
 
-	// The manifesto segment is an OSC 8 hyperlink (utm_source=dashboard);
-	// terminals without support show the same text, just not clickable. The
-	// gap math uses the plain text so the escapes never skew the layout.
-	const brandPlain = "built on the CareerOps Manifesto · career-ops by santifer.io"
-	manifestoLink := "\x1b]8;;https://career-ops.org/manifesto?utm_source=dashboard\x1b\\built on the CareerOps Manifesto\x1b]8;;\x1b\\"
-	brand := lipgloss.NewStyle().Foreground(m.theme.Overlay).Render(manifestoLink + " · career-ops by santifer.io")
+	const brandPlain = "landing-gear"
+	brand := lipgloss.NewStyle().Foreground(m.theme.Overlay).Render(brandPlain)
 
 	keys := keyStyle.Render("↑↓/jk") + descStyle.Render(i18n.Current.HelpNav) +
 		keyStyle.Render("←→/hl") + descStyle.Render(i18n.Current.HelpTabs) +
@@ -2165,7 +2156,6 @@ func (m PipelineModel) renderHelp() string {
 		keyStyle.Render("p") + descStyle.Render(i18n.Current.HelpProgress) +
 		keyStyle.Render("S") + descStyle.Render(i18n.Current.HelpStats) +
 		keyStyle.Render("t") + descStyle.Render(i18n.Current.HelpLanguage) +
-		keyStyle.Render("m") + descStyle.Render(i18n.Current.HelpManifesto) +
 		keyStyle.Render("q") + descStyle.Render(i18n.Current.HelpQuit)
 
 	gap := m.width - lipgloss.Width(keys) - lipgloss.Width(brandPlain) - 2

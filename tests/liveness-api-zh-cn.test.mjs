@@ -156,7 +156,7 @@ test('live postings answer active, each from one request shaped the way the boar
   assert.equal(alibaba.headers.cookie, `XSRF-TOKEN=${alibaba.headers['x-xsrf-token']}`);
   assert.ok(alibaba.headers['x-xsrf-token']);
 
-  for (const call of calls) assert.match(call.headers['user-agent'], /career-ops/);
+  for (const call of calls) assert.match(call.headers['user-agent'], /landing-gear/);
 });
 
 test('closed postings answer expired: Tencent on its HTTP 500, the other two on a 200', async () => {

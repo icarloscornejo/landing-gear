@@ -68,7 +68,7 @@
  * travels in the JSON output as `jdArchiveTriggered`. Same never-fails-the-
  * status-change policy as follow-up seeding. With --detach-jd-archive the
  * archive is started and not waited for (`jdArchiveTriggered.detached`), still
- * bounded by CAREER_OPS_JD_ARCHIVE_TIMEOUT_MS. The web UI and the dashboard
+ * bounded by LANDING_GEAR_JD_ARCHIVE_TIMEOUT_MS. The web UI and the dashboard
  * pass it: they kill this script after 30s, and the archive alone can take
  * longer than that.
  *
@@ -115,23 +115,23 @@ import {
   normalizeCompany, cell, CLI_EXIT, makeCliFailWith, makeCliFailUsage, acquireTrackerLockForCli,
   appendLedgerRows,
 } from './tracker-utils.mjs';
-import { getCareerOpsRoot } from './path-resolver.mjs';
+import { getLandingGearRoot } from './path-resolver.mjs';
 import {
   claimStatusActivity, appendStatusTransition, statusLogPath, seedFollowupOnApplied, archiveJdOnInterview,
 } from './lib/status-hooks.mjs';
 
 // Two roots. CODE_ROOT holds templates/states.yml, which ships with the code;
-// DATA_ROOT is the user's, and getCareerOpsRoot() is the only thing that honours
-// CAREER_OPS_ROOT / CAREER_OPS_DATA_DIR / the .career-ops-data marker.
+// DATA_ROOT is the user's, and getLandingGearRoot() is the only thing that honours
+// LANDING_GEAR_ROOT / LANDING_GEAR_DATA_DIR / the .landing-gear-data marker.
 //
-// One constant named CAREER_OPS did both, so resolveTrackerPath() looked inside
+// One constant named LANDING_GEAR did both, so resolveTrackerPath() looked inside
 // the checkout. AGENTS.md calls this script "the canonical (locked, validated,
 // atomic) write path" and #2901 converged the web layer's /api/status onto it —
 // so on any configured data root the one supported way to change a status
 // answered "No tracker found at <CHECKOUT>/applications.md", naming a file the
 // user never configured. Same defect #3715 fixed in the analysis scripts.
 const CODE_ROOT = dirname(fileURLToPath(import.meta.url));
-const DATA_ROOT = getCareerOpsRoot();
+const DATA_ROOT = getLandingGearRoot();
 const STATES_FILE = join(CODE_ROOT, 'templates/states.yml');
 
 // LOCK_TIMEOUT is not destructured here — that exit path is raised inside
@@ -769,7 +769,7 @@ try {
   // Observation trail only: the tracker stays the source of truth for STATE,
   // the ledger records WHEN transitions happened. A failed append is a warning,
   // never a failure — the status write above already succeeded. Sibling of the
-  // tracker file so CAREER_OPS_TRACKER redirects (tests, custom layouts) keep
+  // tracker file so LANDING_GEAR_TRACKER redirects (tests, custom layouts) keep
   // the ledger next to the tracker it describes. Inside the lock window, so
   // concurrent writers can't interleave lines.
   if (statusChanged && !flags.dryRun) {

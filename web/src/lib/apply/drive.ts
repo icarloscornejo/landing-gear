@@ -1,7 +1,7 @@
 import { spawnHeadlessCli } from "@/lib/spawn-cli.mjs";
 import type { Page, Frame } from "playwright-core";
 import { resolveCli } from "@/lib/clis";
-import { careerOpsRoot } from "@/lib/career-ops";
+import { landingGearRoot } from "@/lib/landing-gear";
 import { dropNewTabs } from "./diagnose";
 import { isSubmitControl, snapshotLabel } from "./submit-guard.mjs";
 import { executeAction, factsOf } from "./drive-action.mjs";
@@ -110,7 +110,7 @@ function plannerTurn(binPath: string, prompt: string, resumeId: string | null): 
     const child = spawnHeadlessCli(
       binPath,
       args,
-      { cwd: careerOpsRoot(), env: process.env },
+      { cwd: landingGearRoot(), env: process.env },
       { cliId: "claude", capabilities: CAPS.localReadOnly },
     );
     let buf = "";

@@ -9,7 +9,7 @@ import { ROOT, pass, fail } from './helpers.mjs';
 
 const initial = '| # | Date | Company | Role | Score | Status | PDF | Report | Notes |\n|---|---|---|---|---|---|---|---|---|\n| 1 | 2026-01-05 | Fictional | Engineer | 4/5 | Applied | — | — | notes |\n';
 function check(label, fn) {
-  const dir = realpathSync(mkdtempSync(join(tmpdir(), 'career-ops-outcome-commit-')));
+  const dir = realpathSync(mkdtempSync(join(tmpdir(), 'landing-gear-outcome-commit-')));
   const root = join(dir, 'workspace');
   const tracker = join(root, 'data', 'applications.md');
   const cwd = join(dir, 'cwd');
@@ -17,7 +17,7 @@ function check(label, fn) {
   mkdirSync(cwd);
   writeFileSync(tracker, initial);
   writeFileSync(join(root, 'cv.md'), '# Fictional master CV\n');
-  const env = { ...process.env, CAREER_OPS_ROOT: root, CAREER_OPS_TRACKER: tracker, CAREER_OPS_TRACKER_LOCK_TIMEOUT_MS: '100', CAREER_OPS_TRACKER_LOCK_RETRY_MS: '10' };
+  const env = { ...process.env, LANDING_GEAR_ROOT: root, LANDING_GEAR_TRACKER: tracker, LANDING_GEAR_TRACKER_LOCK_TIMEOUT_MS: '100', LANDING_GEAR_TRACKER_LOCK_RETRY_MS: '10' };
   const run = (args, preload) => spawnSync(process.execPath, [...(preload ? ['--import', pathToFileURL(preload).href] : []), join(ROOT, 'outcome.mjs'), '1', 'hired', '--json', ...args], { cwd, env, encoding: 'utf8', timeout: 15000 });
   try { fn({ root, tracker, cwd, run }); pass(label); }
   catch (e) { fail(`${label}: ${e.message}`); process.exitCode = 1; }

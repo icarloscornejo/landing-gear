@@ -14,11 +14,11 @@ const CAPTCHA = ['radware captcha page', 'botmanager_support', 'validate.perfdri
 
 // Keep this recipe self-contained: users copy this file to local/, where core
 // module-relative imports would no longer resolve. The local-parser provider
-// launches scripts with the career-ops checkout as cwd.
-function getCareerOpsRoot() {
-  const env = process.env.CAREER_OPS_ROOT?.trim() || process.env.CAREER_OPS_DATA_DIR?.trim();
+// launches scripts with the landing-gear checkout as cwd.
+function getLandingGearRoot() {
+  const env = process.env.LANDING_GEAR_ROOT?.trim() || process.env.LANDING_GEAR_DATA_DIR?.trim();
   if (env) return resolve(process.cwd(), env);
-  const marker = join(process.cwd(), '.career-ops-data');
+  const marker = join(process.cwd(), '.landing-gear-data');
   if (existsSync(marker)) {
     const configured = readFileSync(marker, 'utf8').trim();
     if (configured) return resolve(process.cwd(), configured);
@@ -98,12 +98,12 @@ export function parseSavedHtml(html, source = 'saved HTML') {
 
 function inputFiles(paths) {
   const canonicalize = realpathSync.native ?? realpathSync;
-  const root = canonicalize(getCareerOpsRoot());
+  const root = canonicalize(getLandingGearRoot());
   const insideRoot = (candidate, source) => {
     const canonical = canonicalize(candidate);
     const rel = relative(root, canonical);
     if (rel === '..' || rel.startsWith(`..${sep}`) || isAbsolute(rel)) {
-      throw new Error(`input is outside the career-ops data root: ${source}`);
+      throw new Error(`input is outside the landing-gear data root: ${source}`);
     }
     return canonical;
   };

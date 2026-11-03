@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import "../helpers/web-ts-alias-loader.mjs";
 
-const { findApplication, findReportFile } = await import("../../src/lib/career-ops.ts");
+const { findApplication, findReportFile } = await import("../../src/lib/landing-gear.ts");
 
 function withTracker(fn) {
   const root = mkdtempSync(join(tmpdir(), "find-app-"));
@@ -18,13 +18,13 @@ function withTracker(fn) {
     "| 7 | 2026-07-01 | Acme | Engineer | 4.5/5 | Evaluated | | [007](../reports/007-acme-2026-07-01.md) | |",
     "| 12 | 2026-07-02 | Globex | Analyst | 4.0/5 | Evaluated | | | |",
   ].join("\n"));
-  const prev = process.env.CAREER_OPS_ROOT;
-  process.env.CAREER_OPS_ROOT = root;
+  const prev = process.env.LANDING_GEAR_ROOT;
+  process.env.LANDING_GEAR_ROOT = root;
   try {
     return fn();
   } finally {
-    if (prev === undefined) delete process.env.CAREER_OPS_ROOT;
-    else process.env.CAREER_OPS_ROOT = prev;
+    if (prev === undefined) delete process.env.LANDING_GEAR_ROOT;
+    else process.env.LANDING_GEAR_ROOT = prev;
     rmSync(root, { recursive: true, force: true });
   }
 }

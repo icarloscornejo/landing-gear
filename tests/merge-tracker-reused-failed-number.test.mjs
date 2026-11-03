@@ -47,7 +47,7 @@ function merge(stateRows) {
     // The skip is a console.warn, so it lands on stderr even when the run exits 0.
     const r = spawnSync(NODE, [join(ROOT, 'merge-tracker.mjs')], {
       encoding: 'utf-8', timeout: 30000, stdio: ['ignore', 'pipe', 'pipe'],
-      env: { ...process.env, CAREER_OPS_TRACKER: tracker, CAREER_OPS_ADDITIONS: adds, CAREER_OPS_BATCH_STATE: state },
+      env: { ...process.env, LANDING_GEAR_TRACKER: tracker, LANDING_GEAR_ADDITIONS: adds, LANDING_GEAR_BATCH_STATE: state },
     });
     const out = `${r.stdout ?? ''}${r.stderr ?? ''}`;
     const merged = readFileSync(tracker, 'utf-8').split('\n').some((l) => /^\|\s*404\s*\|/.test(l));

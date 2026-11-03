@@ -7,9 +7,9 @@ set -euo pipefail
 REPO="$(cd "$(dirname "${0}")/.." && pwd)"
 cd "$REPO"
 
-# Same data root as followup-cadence.mjs (CAREER_OPS_ROOT, CAREER_OPS_DATA_DIR,
-# or .career-ops-data), so drafts, logs, and the enabled check stay aligned.
-ROOT="$(node --input-type=module -e "import { getCareerOpsRoot } from './path-resolver.mjs'; process.stdout.write(getCareerOpsRoot())")"
+# Same data root as followup-cadence.mjs (LANDING_GEAR_ROOT, LANDING_GEAR_DATA_DIR,
+# or .landing-gear-data), so drafts, logs, and the enabled check stay aligned.
+ROOT="$(node --input-type=module -e "import { getLandingGearRoot } from './path-resolver.mjs'; process.stdout.write(getLandingGearRoot())")"
 OUT_DIR="$ROOT/output"
 DATE_STR="$(date +%Y-%m-%d)"
 DRAFT_FILE="$OUT_DIR/followup-drafts-$DATE_STR.md"
@@ -48,7 +48,7 @@ case "$enabled_status" in
     ;;
 esac
 
-PROMPT="Run the career-ops 'followup' mode (modes/followup.md) against $ROOT/data/applications.md and $ROOT/data/follow-ups.md. Run node followup-cadence.mjs, and for every overdue/urgent entry generate the follow-up email/LinkedIn draft per the mode's framework (voice-dna.md guardrails apply). Write the full dashboard plus every generated draft to $DRAFT_FILE as markdown. Do NOT send, submit, or record anything as sent -- draft-only, for the user to review later. If there is nothing overdue/urgent, write a one-line note to that file saying so instead."
+PROMPT="Run the landing-gear 'followup' mode (modes/followup.md) against $ROOT/data/applications.md and $ROOT/data/follow-ups.md. Run node followup-cadence.mjs, and for every overdue/urgent entry generate the follow-up email/LinkedIn draft per the mode's framework (voice-dna.md guardrails apply). Write the full dashboard plus every generated draft to $DRAFT_FILE as markdown. Do NOT send, submit, or record anything as sent -- draft-only, for the user to review later. If there is nothing overdue/urgent, write a one-line note to that file saying so instead."
 
 {
   echo "=== $(date '+%Y-%m-%d %H:%M:%S') follow-up sweep starting ==="
@@ -57,5 +57,5 @@ PROMPT="Run the career-ops 'followup' mode (modes/followup.md) against $ROOT/dat
 } >> "$LOG_FILE" 2>&1
 
 if [ -f "$DRAFT_FILE" ]; then
-  osascript -e "display notification \"Follow-up drafts ready: $DRAFT_FILE\" with title \"career-ops\"" >/dev/null 2>&1 || true
+  osascript -e "display notification \"Follow-up drafts ready: $DRAFT_FILE\" with title \"landing-gear\"" >/dev/null 2>&1 || true
 fi

@@ -1,9 +1,9 @@
 // tests/openrouter-runner-data-root.test.mjs — openrouter-runner reserves report
 // numbers in the same directory it writes reports into.
 //
-// The module defines DATA_ROOT = getCareerOpsRoot() with a comment stating the
-// rule ("Anchored to the career-ops data root, not to __dirname") and the reason
-// (with CAREER_OPS_DATA_DIR set it was reading a different data/scan-history.tsv
+// The module defines DATA_ROOT = getLandingGearRoot() with a comment stating the
+// rule ("Anchored to the landing-gear data root, not to __dirname") and the reason
+// (with LANDING_GEAR_DATA_DIR set it was reading a different data/scan-history.tsv
 // than the writers it delegates to). Its report paths did not follow it:
 //
 //     reservedNumbers = await reserveReportNumbers(1, {
@@ -11,7 +11,7 @@
 //       reportsDir: path.join(__dirname, 'reports'),
 //     });
 //
-// reserve-report-num.mjs defaults to getCareerOpsRoot(), so those options
+// reserve-report-num.mjs defaults to getLandingGearRoot(), so those options
 // actively redirect it to the CODE root — while the report is written to
 // {DATA_ROOT}/reports/ by writeFile(). The allocator is asked whether a number is
 // free somewhere the report will never be written, so it says yes for numbers
@@ -50,16 +50,16 @@ function makeDataRoot() {
   return dir;
 }
 
-// CAREER_OPS_TRACKER and CAREER_OPS_REPORTS_DIR are cleared: both outrank the
+// LANDING_GEAR_TRACKER and LANDING_GEAR_REPORTS_DIR are cleared: both outrank the
 // resolved root, so leaving a developer's own exports in place would mask the bug
 // and point the allocator at their real reports directory (#3988).
 function env(dir, extra = {}) {
   return {
     ...process.env,
-    CAREER_OPS_DATA_DIR: dir,
-    CAREER_OPS_ROOT: '',
-    CAREER_OPS_TRACKER: '',
-    CAREER_OPS_REPORTS_DIR: '',
+    LANDING_GEAR_DATA_DIR: dir,
+    LANDING_GEAR_ROOT: '',
+    LANDING_GEAR_TRACKER: '',
+    LANDING_GEAR_REPORTS_DIR: '',
     ...extra,
   };
 }
@@ -106,9 +106,9 @@ function inDataRoot(dir, expr, extraEnv = {}) {
   const dir = makeDataRoot();
   const allocate = (rootExpr) => inDataRoot(dir, `
     import path from 'node:path';
-    import { getCareerOpsRoot } from ${JSON.stringify(new URL('../path-resolver.mjs', import.meta.url).href)};
+    import { getLandingGearRoot } from ${JSON.stringify(new URL('../path-resolver.mjs', import.meta.url).href)};
     import { reserveReportNumbers, releaseReportNumbers } from ${JSON.stringify(new URL('../reserve-report-num.mjs', import.meta.url).href)};
-    const DATA_ROOT = getCareerOpsRoot();
+    const DATA_ROOT = getLandingGearRoot();
     const base = ${rootExpr};
     const got = await reserveReportNumbers(1, { rootDir: base, reportsDir: path.join(base, 'reports') });
     await releaseReportNumbers(got, { reportsDir: path.join(base, 'reports') });
@@ -160,7 +160,7 @@ function inDataRoot(dir, expr, extraEnv = {}) {
 // the fixed line through the real CLI without an API key. Against main the runner
 // cannot see a report sitting in the user's data root and says so:
 //
-//     $ CAREER_OPS_DATA_DIR=$SB node openrouter-runner.mjs apply 1
+//     $ LANDING_GEAR_DATA_DIR=$SB node openrouter-runner.mjs apply 1
 //     Report not found: 1
 //
 // With the fix it gets past the lookup and fails later, on the missing key.
@@ -208,8 +208,8 @@ function inDataRoot(dir, expr, extraEnv = {}) {
   const dir = makeDataRoot();
   const resolved = inDataRoot(dir, `
     import path from 'node:path';
-    import { getCareerOpsRoot } from ${JSON.stringify(new URL('../path-resolver.mjs', import.meta.url).href)};
-    process.stdout.write(path.join(getCareerOpsRoot(), 'data', 'model-blacklist.json'));
+    import { getLandingGearRoot } from ${JSON.stringify(new URL('../path-resolver.mjs', import.meta.url).href)};
+    process.stdout.write(path.join(getLandingGearRoot(), 'data', 'model-blacklist.json'));
   `);
   if (resolved === join(dir, 'data', 'model-blacklist.json')) {
     pass('the blacklist resolves under the data root');
@@ -218,7 +218,7 @@ function inDataRoot(dir, expr, extraEnv = {}) {
   }
 
   // Asserted as an INVARIANT, not as a spelling. The first version of this
-  // check required `getCareerOpsRoot(), 'data', 'model-blacklist.json'` on one
+  // check required `getLandingGearRoot(), 'data', 'model-blacklist.json'` on one
   // line, and failed against an equivalent implementation that split the path
   // across a BLACKLIST_DIR constant — a test that fails on a correct fix is
   // worse than no test. What matters is that no blacklist path is built from
@@ -249,26 +249,26 @@ function inDataRoot(dir, expr, extraEnv = {}) {
 
 // ── the default layout is unchanged ────────────────────────────────────────
 //
-// getCareerOpsRoot() returns the checkout when no env and no marker are set, so a
+// getLandingGearRoot() returns the checkout when no env and no marker are set, so a
 // user who never configured a data root must see identical behaviour. Asserted
 // with the variables cleared rather than by reasoning about it.
 {
   const resolved = execFileSync(NODE, ['--input-type=module', '-e',
-    `import { getCareerOpsRoot } from ${JSON.stringify(new URL('../path-resolver.mjs', import.meta.url).href)};`
-    + 'process.stdout.write(getCareerOpsRoot());',
+    `import { getLandingGearRoot } from ${JSON.stringify(new URL('../path-resolver.mjs', import.meta.url).href)};`
+    + 'process.stdout.write(getLandingGearRoot());',
   ], {
     cwd: ROOT, encoding: 'utf8', timeout: 30_000,
-    env: { ...process.env, CAREER_OPS_ROOT: '', CAREER_OPS_DATA_DIR: '' },
+    env: { ...process.env, LANDING_GEAR_ROOT: '', LANDING_GEAR_DATA_DIR: '' },
   }).trim();
   if (resolved === ROOT) pass('with no env set, the data root is the checkout — default behaviour unchanged');
   else warnOrFail(resolved);
 }
 
 function warnOrFail(resolved) {
-  // A .career-ops-data marker in the developer's checkout legitimately moves the
+  // A .landing-gear-data marker in the developer's checkout legitimately moves the
   // root, so this is not a failure of the code under test.
-  if (existsSync(join(ROOT, '.career-ops-data'))) {
-    pass('a .career-ops-data marker is present, so the root is intentionally not the checkout');
+  if (existsSync(join(ROOT, '.landing-gear-data'))) {
+    pass('a .landing-gear-data marker is present, so the root is intentionally not the checkout');
   } else {
     fail(`with no env set the data root resolved to ${resolved}, expected the checkout ${ROOT}`);
   }

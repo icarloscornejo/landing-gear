@@ -51,7 +51,7 @@ jobs:
               /^opencode\.json$/,
               /^plugins\.lock$/,
               /^plugins\.local\//,
-              /^\.career-ops-web\//,
+              /^\.landing-gear-web\//,
               /^documents\//,
               /^interview-prep\//,
               /^data\//,

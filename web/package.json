@@ -1,8 +1,8 @@
 {
   "name": "@landing-gear/web",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "private": true,
-  "description": "Official web experience for career-ops — local-first.",
+  "description": "Official web experience for landing-gear — local-first.",
   "scripts": {
     "dev": "node server.mjs dev",
     "build": "next build",

@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { ROOT } from './helpers.mjs';
 
-test('CAREER_OPS_CLI picks the ranking CLI when several are installed', {
+test('LANDING_GEAR_CLI picks the ranking CLI when several are installed', {
   skip: process.platform === 'win32' && 'POSIX executable fixture',
 }, () => {
   const root = mkdtempSync(join(tmpdir(), 'rank-active-cli-'));
@@ -23,9 +23,9 @@ test('CAREER_OPS_CLI picks the ranking CLI when several are installed', {
     }
     const env = {
       ...process.env,
-      CAREER_OPS_ROOT: root,
-      CAREER_OPS_CLI: 'opencode',
-      CAREER_OPS_RANK_CLI: '',
+      LANDING_GEAR_ROOT: root,
+      LANDING_GEAR_CLI: 'opencode',
+      LANDING_GEAR_RANK_CLI: '',
       PATH: `${join(root, 'bin')}:${process.env.PATH}`,
       RANK_CALL: join(root, 'call.txt'),
     };

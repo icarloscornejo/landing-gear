@@ -4,12 +4,12 @@ import { trackerRowArg } from "@/lib/status-cli.mjs";
 import { readJsonObject } from "@/lib/json-body";
 import { readRowWithHash, runSetStatus, setStatusFailure } from "@/lib/set-status-run";
 import { cvPickUrl, recordCvOutcome } from "@/lib/cv-pick-run";
-import { findApplication } from "@/lib/career-ops";
+import { findApplication } from "@/lib/landing-gear";
 import { isOpenApplied, nextStatuses } from "@/lib/lifecycle.mjs";
 
 export const runtime = "nodejs";
 
-// "Repeated": this row is a posting the engineer already has elsewhere. career-ops has
+// "Repeated": this row is a posting the engineer already has elsewhere. landing-gear has
 // no Duplicate state, so it closes as Discarded with a "repeated" note (naming
 // the original row only when one is given); allowed whenever Discard is (any
 // open row). --expect-tracker refuses the write if the tracker changed after it

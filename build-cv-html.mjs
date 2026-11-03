@@ -39,7 +39,7 @@ import { fileURLToPath } from 'url';
 import { tmpdir } from 'os';
 import { loadYaml } from './lib/yaml-document.mjs';
 import { stripEmptySections } from './cv-sections-core.mjs';
-import { getCareerOpsRoot, getProfilePath } from './path-resolver.mjs';
+import { getLandingGearRoot, getProfilePath } from './path-resolver.mjs';
 import { validateLockedSections, sectionKey } from './generate-pdf.mjs';
 import { readLockedSections } from './theme-style.mjs';
 import { hasRequiredFields, validatePayload } from './lib/cv-payload-schema.mjs';
@@ -48,7 +48,7 @@ import { PAGE_WIDTHS, resolvePageFormat } from './lib/page-format.mjs';
 import { PARTIAL_SECTIONS, declaredSections, parseMeta } from './lib/template-manifest.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const DATA_ROOT = getCareerOpsRoot();
+const DATA_ROOT = getLandingGearRoot();
 const trackerPath = resolveTrackerPath(DATA_ROOT);
 const workspaceRoot = resolveWorkspaceRoot(trackerPath);
 const TEMPLATE_PATH = resolve(__dirname, 'templates', 'cv-template.html');
@@ -1036,7 +1036,7 @@ async function main() {
     console.error('  When no partial file is found the built-in builder is used —');
     console.error('  unless the template manifest declares the section (#3852):');
     console.error('  `sections: all` or `sections: experience, education` in the');
-    console.error('  <!-- career-ops-template --> block makes a missing or malformed');
+    console.error('  <!-- landing-gear-template --> block makes a missing or malformed');
     console.error('  partial fail the build instead of falling back.');
     process.exit(args.includes('--help') ? 0 : 1);
   }

@@ -76,7 +76,7 @@ test('a failed, unparseable or board-less 200 is not cached', async () => {
 });
 
 test('check-liveness fetches a shared Ashby board once per run', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-liveness-board-cache-'));
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-liveness-board-cache-'));
   try {
     const countFile = join(dir, 'fetches.json');
     const preload = join(dir, 'mock-fetch.mjs');
@@ -101,7 +101,7 @@ test('check-liveness fetches a shared Ashby board once per run', () => {
       `https://jobs.ashbyhq.com/acme/${OTHER}`,
     ], {
       encoding: 'utf-8',
-      env: { ...process.env, CAREER_OPS_ROOT: dir, MOCK_ASHBY_BOARD: JSON.stringify(BOARD), MOCK_FETCH_LOG: countFile },
+      env: { ...process.env, LANDING_GEAR_ROOT: dir, MOCK_ASHBY_BOARD: JSON.stringify(BOARD), MOCK_FETCH_LOG: countFile },
       stdio: ['ignore', 'pipe', 'pipe'],
     }).toString();
     const calls = JSON.parse(readFileSync(countFile, 'utf-8'));

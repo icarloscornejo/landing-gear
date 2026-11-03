@@ -63,10 +63,10 @@ for (const [input, expected] of cases) {
       encoding: 'utf8',
       env: {
         ...process.env,
-        CAREER_OPS_TRACKER: join(work, 'applications.md'),
-        CAREER_OPS_ADDITIONS: join(work, 'adds'),
-        CAREER_OPS_DATA_DIR: work,
-        CAREER_OPS_ROOT: work,
+        LANDING_GEAR_TRACKER: join(work, 'applications.md'),
+        LANDING_GEAR_ADDITIONS: join(work, 'adds'),
+        LANDING_GEAR_DATA_DIR: work,
+        LANDING_GEAR_ROOT: work,
       },
       timeout: 30000,
     });
@@ -93,10 +93,10 @@ for (const [input, expected] of cases) {
       encoding: 'utf8',
       env: {
         ...process.env,
-        CAREER_OPS_TRACKER: join(work, 'applications.md'),
-        CAREER_OPS_ADDITIONS: join(work, 'adds'),
-        CAREER_OPS_DATA_DIR: work,
-        CAREER_OPS_ROOT: work,
+        LANDING_GEAR_TRACKER: join(work, 'applications.md'),
+        LANDING_GEAR_ADDITIONS: join(work, 'adds'),
+        LANDING_GEAR_DATA_DIR: work,
+        LANDING_GEAR_ROOT: work,
       },
       timeout: 30000,
     });
@@ -138,9 +138,9 @@ for (const [input, expected] of cases) {
       encoding: 'utf8',
       env: {
         ...process.env,
-        CAREER_OPS_ROOT: work,
-        CAREER_OPS_DATA_DIR: join(work, 'data'),
-        CAREER_OPS_TRACKER: join(work, 'data/applications.md'),
+        LANDING_GEAR_ROOT: work,
+        LANDING_GEAR_DATA_DIR: join(work, 'data'),
+        LANDING_GEAR_TRACKER: join(work, 'data/applications.md'),
       },
       timeout: 30000,
     });

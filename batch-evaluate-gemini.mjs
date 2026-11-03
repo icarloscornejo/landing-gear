@@ -20,7 +20,7 @@ import { execFileSync, execFile } from 'child_process';
 import { promisify } from 'util';
 import { rejectPrivateOrInvalid, checkUrlLiveness, LIVENESS_CONTEXT_OPTIONS } from './liveness-browser.mjs';
 import { isUnreadableVerdict } from './liveness-core.mjs';
-import { getCareerOpsRoot, getProfilePath } from './path-resolver.mjs';
+import { getLandingGearRoot, getProfilePath } from './path-resolver.mjs';
 import { withPipelineLock } from './pipeline-lock.mjs';
 import { localToday } from './lib/local-today.mjs';
 import { TSV_ADDITION_HEADER } from './tracker-parse.mjs';
@@ -38,7 +38,7 @@ import { isMainModule } from './lib/is-main-module.mjs';
 import { withJdArchiveSection } from './lib/jd-archive-section.mjs';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
-const DATA_ROOT = getCareerOpsRoot();
+const DATA_ROOT = getLandingGearRoot();
 export const PATHS = {
   shared:      join(ROOT, 'modes', '_shared.md'),
   oferta:      join(ROOT, 'modes', 'oferta.md'),
@@ -137,7 +137,7 @@ function loadContext() {
   const profileContent = readFile(PATHS.profile, '_profile.md');
   const profileYml     = readFile(PATHS.profileYml, 'profile.yml');
 
-  systemPromptTemplate = `You are career-ops, an AI-powered job search assistant.
+  systemPromptTemplate = `You are landing-gear, an AI-powered job search assistant.
 You evaluate job offers against the user's CV using a structured A-G scoring system.
 
 ═══════════════════════════════════════════════════════

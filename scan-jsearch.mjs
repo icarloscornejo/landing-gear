@@ -13,7 +13,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { isMainModule } from './lib/is-main-module.mjs';
-import { getCareerOpsRoot } from './path-resolver.mjs';
+import { getLandingGearRoot } from './path-resolver.mjs';
 import { localToday } from './lib/local-today.mjs';
 import { admitAndWrite, loadPortals } from './lib/source-writer.mjs';
 
@@ -28,7 +28,7 @@ const DEFAULTS = {
   work_from_home: true,
 };
 
-const root = getCareerOpsRoot();
+const root = getLandingGearRoot();
 const LAST_RUN_PATH = path.join(root, 'data', 'jsearch-last-run.txt');
 
 /** Hosts no script may read, from data/needs-real-chrome.txt, plus LinkedIn. */

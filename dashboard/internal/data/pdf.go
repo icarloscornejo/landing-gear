@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/santifer/career-ops/dashboard/internal/model"
+	"github.com/icarloscornejo/landing-gear/dashboard/internal/model"
 )
 
 // PDFManifestEntry is one row of data/pdf-index.tsv, written by
@@ -17,8 +17,8 @@ import (
 // matcher via their recorded paths.
 type PDFManifestEntry struct {
 	ReportNumber string
-	PDFPath      string // relative to the career-ops root
-	HTMLPath     string // relative to the career-ops root, "" if unknown
+	PDFPath      string // relative to the landing-gear root
+	HTMLPath     string // relative to the landing-gear root, "" if unknown
 	Format       string // "letter" or "a4"
 	Date         string // YYYY-MM-DD generation date
 }
@@ -77,8 +77,8 @@ func (m PDFManifest) Lookup(app model.CareerApplication) (PDFManifestEntry, bool
 // PDFWorkspaceRoot returns the workspace owning the selected tracker. Manifest
 // artifact paths are relative to this root, even with an external index override.
 // Derive it before resolving symlinks so linking only data/ does not relocate output/.
-func PDFWorkspaceRoot(careerOpsPath string) string {
-	return pdfWorkspaceRootForTracker(resolveTrackerPath(careerOpsPath))
+func PDFWorkspaceRoot(landingGearPath string) string {
+	return pdfWorkspaceRootForTracker(resolveTrackerPath(landingGearPath))
 }
 
 func pdfWorkspaceRootForTracker(tracker string) string {
@@ -91,11 +91,11 @@ func pdfWorkspaceRootForTracker(tracker string) string {
 
 // resolvePDFIndexPath mirrors tracker-utils.mjs: an explicit override wins
 // (relative to cwd), otherwise the index follows the tracker workspace.
-func resolvePDFIndexPath(careerOpsPath string) string {
-	if override := os.Getenv("CAREER_OPS_PDF_INDEX"); override != "" {
+func resolvePDFIndexPath(landingGearPath string) string {
+	if override := os.Getenv("LANDING_GEAR_PDF_INDEX"); override != "" {
 		return override
 	}
-	tracker := resolveTrackerPath(careerOpsPath)
+	tracker := resolveTrackerPath(landingGearPath)
 	if canonical, err := canonicalPath(tracker); err == nil {
 		tracker = canonical
 	}
@@ -105,9 +105,9 @@ func resolvePDFIndexPath(careerOpsPath string) string {
 // LoadPDFEntriesByPath reads the selected PDF index and returns CV entries indexed
 // by their relative PDF path. Unlike LoadPDFManifest, this includes rows that
 // were generated without a --report flag. Later rows in the file win.
-func LoadPDFEntriesByPath(careerOpsPath string) map[string]PDFManifestEntry {
+func LoadPDFEntriesByPath(landingGearPath string) map[string]PDFManifestEntry {
 	byPath := make(map[string]PDFManifestEntry)
-	raw, err := os.ReadFile(resolvePDFIndexPath(careerOpsPath))
+	raw, err := os.ReadFile(resolvePDFIndexPath(landingGearPath))
 	if err != nil {
 		return byPath
 	}
@@ -154,9 +154,9 @@ func LoadPDFEntriesByPath(careerOpsPath string) map[string]PDFManifestEntry {
 // first generate-pdf.mjs run that writes it. Later rows win over earlier
 // CV rows for the same report number, so regenerated PDFs supersede stale
 // entries without any compaction step.
-func LoadPDFManifest(careerOpsPath string) PDFManifest {
+func LoadPDFManifest(landingGearPath string) PDFManifest {
 	manifest := make(PDFManifest)
-	raw, err := os.ReadFile(resolvePDFIndexPath(careerOpsPath))
+	raw, err := os.ReadFile(resolvePDFIndexPath(landingGearPath))
 	if err != nil {
 		return manifest
 	}
@@ -201,7 +201,7 @@ func LoadPDFManifest(careerOpsPath string) PDFManifest {
 // filenames (cv-{candidate}-{slug}-{date}.pdf).
 var rePDFDate = regexp.MustCompile(`(\d{4}-\d{2}-\d{2})\.pdf$`)
 
-// ResolvePDFs returns candidate PDF paths (relative to careerOpsPath) for an
+// ResolvePDFs returns candidate PDF paths (relative to landingGearPath) for an
 // application, best match first.
 //
 // Precedence:
@@ -213,9 +213,9 @@ var rePDFDate = regexp.MustCompile(`(\d{4}-\d{2}-\d{2})\.pdf$`)
 //     Multiple matches are all returned (newest first) so the caller can
 //     offer a picker instead of guessing — one company can have several
 //     role-variant CVs from the same day.
-func ResolvePDFs(careerOpsPath string, app model.CareerApplication, manifest PDFManifest) []string {
+func ResolvePDFs(landingGearPath string, app model.CareerApplication, manifest PDFManifest) []string {
 	if entry, ok := manifest.Lookup(app); ok {
-		if _, err := os.Stat(filepath.Join(careerOpsPath, filepath.FromSlash(entry.PDFPath))); err == nil {
+		if _, err := os.Stat(filepath.Join(landingGearPath, filepath.FromSlash(entry.PDFPath))); err == nil {
 			return []string{entry.PDFPath}
 		}
 	}
@@ -225,7 +225,7 @@ func ResolvePDFs(careerOpsPath string, app model.CareerApplication, manifest PDF
 		return nil
 	}
 
-	globbed, err := filepath.Glob(filepath.Join(careerOpsPath, "output", "cv-*.pdf"))
+	globbed, err := filepath.Glob(filepath.Join(landingGearPath, "output", "cv-*.pdf"))
 	if err != nil {
 		return nil
 	}
@@ -234,13 +234,13 @@ func ResolvePDFs(careerOpsPath string, app model.CareerApplication, manifest PDF
 	for _, p := range globbed {
 		base := strings.ToLower(filepath.Base(p))
 		if matchesCompanySlug(base, slug) {
-			if rel, err := filepath.Rel(careerOpsPath, p); err == nil {
+			if rel, err := filepath.Rel(landingGearPath, p); err == nil {
 				matches = append(matches, filepath.ToSlash(rel))
 			}
 		}
 	}
 
-	sortPDFsNewestFirst(careerOpsPath, matches)
+	sortPDFsNewestFirst(landingGearPath, matches)
 	return matches
 }
 
@@ -256,7 +256,7 @@ func matchesCompanySlug(base, slug string) bool {
 // the filename (descending), falling back to file mtime when the stamp is
 // missing or equal. A regenerated CV from today therefore outranks last
 // week's, and same-day variants get a stable mtime ordering.
-func sortPDFsNewestFirst(careerOpsPath string, paths []string) {
+func sortPDFsNewestFirst(landingGearPath string, paths []string) {
 	dateOf := func(p string) string {
 		if m := rePDFDate.FindStringSubmatch(p); m != nil {
 			return m[1]
@@ -264,7 +264,7 @@ func sortPDFsNewestFirst(careerOpsPath string, paths []string) {
 		return ""
 	}
 	mtimeOf := func(p string) int64 {
-		info, err := os.Stat(filepath.Join(careerOpsPath, filepath.FromSlash(p)))
+		info, err := os.Stat(filepath.Join(landingGearPath, filepath.FromSlash(p)))
 		if err != nil {
 			return 0
 		}
@@ -301,12 +301,12 @@ func kebabCase(s string) string {
 // a companion PDF path derived from it (same base, .pdf extension). Returns
 // ("","") when no matching HTML file is found. Used by the D handler to allow
 // PDF generation for entries that have a tailored CV HTML but no prior PDF.
-func ResolveHTML(careerOpsPath string, app model.CareerApplication) (htmlPath, pdfPath string) {
+func ResolveHTML(landingGearPath string, app model.CareerApplication) (htmlPath, pdfPath string) {
 	slug := kebabCase(app.Company)
 	if slug == "" {
 		return "", ""
 	}
-	globbed, err := filepath.Glob(filepath.Join(careerOpsPath, "output", "cv-*.html"))
+	globbed, err := filepath.Glob(filepath.Join(landingGearPath, "output", "cv-*.html"))
 	if err != nil {
 		return "", ""
 	}
@@ -314,7 +314,7 @@ func ResolveHTML(careerOpsPath string, app model.CareerApplication) (htmlPath, p
 	for _, p := range globbed {
 		base := strings.ToLower(filepath.Base(p))
 		if matchesCompanySlug(base, slug) {
-			if rel, err := filepath.Rel(careerOpsPath, p); err == nil {
+			if rel, err := filepath.Rel(landingGearPath, p); err == nil {
 				matches = append(matches, filepath.ToSlash(rel))
 			}
 		}
@@ -322,7 +322,7 @@ func ResolveHTML(careerOpsPath string, app model.CareerApplication) (htmlPath, p
 	if len(matches) == 0 {
 		return "", ""
 	}
-	sortPDFsNewestFirst(careerOpsPath, matches)
+	sortPDFsNewestFirst(landingGearPath, matches)
 	relHTML := matches[0]
 	relPDF := strings.TrimSuffix(relHTML, ".html") + ".pdf"
 	return relHTML, relPDF

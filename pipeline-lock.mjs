@@ -60,9 +60,9 @@ export async function acquirePipelineLock(pipelinePath, options = {}) {
   // Env overrides let a caller several frames up the stack (a test driving
   // appendToPipeline, say) tune contention timing without threading options
   // through every signature — same escape hatch the tracker lock provides.
-  const timeoutMs = options.timeoutMs ?? (Number(process.env.CAREER_OPS_PIPELINE_LOCK_TIMEOUT_MS) || DEFAULT_TIMEOUT_MS);
-  const retryMs = options.retryMs ?? (Number(process.env.CAREER_OPS_PIPELINE_LOCK_RETRY_MS) || DEFAULT_RETRY_MS);
-  const staleMs = options.staleMs ?? (Number(process.env.CAREER_OPS_PIPELINE_LOCK_STALE_MS) || DEFAULT_STALE_MS);
+  const timeoutMs = options.timeoutMs ?? (Number(process.env.LANDING_GEAR_PIPELINE_LOCK_TIMEOUT_MS) || DEFAULT_TIMEOUT_MS);
+  const retryMs = options.retryMs ?? (Number(process.env.LANDING_GEAR_PIPELINE_LOCK_RETRY_MS) || DEFAULT_RETRY_MS);
+  const staleMs = options.staleMs ?? (Number(process.env.LANDING_GEAR_PIPELINE_LOCK_STALE_MS) || DEFAULT_STALE_MS);
   // A ceiling that is not a number is not a ceiling. NaN compares false against
   // everything, so a bad value would not fail loudly — it would silently remove
   // the only bound on waiting, which is the single thing this option exists to
@@ -78,7 +78,7 @@ export async function acquirePipelineLock(pipelinePath, options = {}) {
   // Infinity is kept as written: an explicit, legible "no ceiling" is a choice,
   // not a mistake. -Infinity and NaN are mistakes, so they take the default
   // rather than being clamped into a silently different behaviour.
-  const envMaxWait = process.env.CAREER_OPS_PIPELINE_LOCK_MAX_WAIT_MS;
+  const envMaxWait = process.env.LANDING_GEAR_PIPELINE_LOCK_MAX_WAIT_MS;
   const requestedMaxWait = options.maxWaitMs
     ?? (envMaxWait === undefined || envMaxWait.trim() === '' ? undefined : envMaxWait);
   const parsedMaxWait = requestedMaxWait === undefined ? undefined : Number(requestedMaxWait);

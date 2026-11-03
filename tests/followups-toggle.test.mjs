@@ -43,11 +43,11 @@ function makeRoot(profileYaml) {
 function run(script, args, dir) {
   const env = {
     ...process.env,
-    CAREER_OPS_ROOT: dir,
-    CAREER_OPS_TRACKER: join(dir, 'data', 'applications.md'),
-    CAREER_OPS_FOLLOWUPS: join(dir, 'data', 'follow-ups.md'),
-    CAREER_OPS_FOLLOWUPS_LOCK: join(dir, 'followups.lock'),
-    CAREER_OPS_PROFILE: join(dir, 'config', 'profile.yml'),
+    LANDING_GEAR_ROOT: dir,
+    LANDING_GEAR_TRACKER: join(dir, 'data', 'applications.md'),
+    LANDING_GEAR_FOLLOWUPS: join(dir, 'data', 'follow-ups.md'),
+    LANDING_GEAR_FOLLOWUPS_LOCK: join(dir, 'followups.lock'),
+    LANDING_GEAR_PROFILE: join(dir, 'config', 'profile.yml'),
   };
   try {
     return { code: 0, stdout: execFileSync(NODE, [join(ROOT, script), ...args], { cwd: ROOT, env, encoding: 'utf-8', timeout: 30000 }) };

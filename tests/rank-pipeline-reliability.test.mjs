@@ -35,7 +35,7 @@ function rank(root, args = [], extra = {}, bin = 'grok') {
     cwd: root,
     encoding: 'utf8',
     timeout: 60_000,
-    env: { ...process.env, CAREER_OPS_ROOT: root, CAREER_OPS_DATA_DIR: '', PATH: `${join(root, 'bin')}:${process.env.PATH}`, ...extra },
+    env: { ...process.env, LANDING_GEAR_ROOT: root, LANDING_GEAR_DATA_DIR: '', PATH: `${join(root, 'bin')}:${process.env.PATH}`, ...extra },
   });
   assert.ifError(result.error);
   return result;
@@ -88,11 +88,11 @@ test('the CLI runs in an empty temp directory, not the data root, and the direct
   assert.equal(existsSync(seen.cwd), false);
 });
 
-test('CAREER_OPS_RANK_TIMEOUT_MS bounds each call', POSIX, (t) => {
+test('LANDING_GEAR_RANK_TIMEOUT_MS bounds each call', POSIX, (t) => {
   const root = sandbox(t, `Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 5000);\n${SCORE_ALL}`);
-  const result = rank(root, ['--dry-run'], { CAREER_OPS_RANK_TIMEOUT_MS: '300' });
+  const result = rank(root, ['--dry-run'], { LANDING_GEAR_RANK_TIMEOUT_MS: '300' });
   assert.match(result.stderr, /grok timed out after 0\.3 s/);
-  assert.match(result.stderr, /CAREER_OPS_RANK_TIMEOUT_MS/);
+  assert.match(result.stderr, /LANDING_GEAR_RANK_TIMEOUT_MS/);
 });
 
 test('the per-call timeout kills a child that ignores SIGTERM', POSIX, (t) => {
@@ -101,7 +101,7 @@ test('the per-call timeout kills a child that ignores SIGTERM', POSIX, (t) => {
   const root = sandbox(t, `process.on('SIGTERM', () => {});
 Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0);`);
   const started = Date.now();
-  const result = rank(root, ['--dry-run'], { CAREER_OPS_RANK_TIMEOUT_MS: '400' });
+  const result = rank(root, ['--dry-run'], { LANDING_GEAR_RANK_TIMEOUT_MS: '400' });
   assert.ok(Date.now() - started < 15_000, 'SIGTERM-ignoring child must not block the run');
   assert.match(result.stderr, /grok timed out after 0\.4 s/);
 });

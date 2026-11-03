@@ -9,8 +9,8 @@
  * templates/states.yml, idempotent note appends, dry-run, JSON output, exit
  * codes, and layout tolerance (9-col and 10-col Location trackers).
  *
- * Tests provision a throwaway tracker via the CAREER_OPS_TRACKER /
- * CAREER_OPS_TRACKER_LOCK env overrides (same sandbox pattern as the CLI cases
+ * Tests provision a throwaway tracker via the LANDING_GEAR_TRACKER /
+ * LANDING_GEAR_TRACKER_LOCK env overrides (same sandbox pattern as the CLI cases
  * in tests/tracker-columns.test.mjs).
  *
  * Exit-code contract under test:
@@ -43,8 +43,8 @@ const NODE = process.execPath;
 function runSetStatus(args, sandbox, extraEnv = {}) {
   const env = {
     ...process.env,
-    CAREER_OPS_TRACKER: sandbox.tracker,
-    CAREER_OPS_TRACKER_LOCK: sandbox.lock,
+    LANDING_GEAR_TRACKER: sandbox.tracker,
+    LANDING_GEAR_TRACKER_LOCK: sandbox.lock,
     ...extraEnv,
   };
   try {
@@ -78,10 +78,10 @@ function makeSandbox(trackerContent) {
   sandboxes.push(dir);
   const tracker = join(dir, 'applications.md');
   writeFileSync(tracker, trackerContent);
-  // The lock env value must live under tmpdir and use the career-ops prefix
+  // The lock env value must live under tmpdir and use the landing-gear prefix
   // (see trackerLockDirFor) or it is ignored — which would still be safe,
   // just contending on the real default lock.
-  const lock = join(dir, 'career-ops-merge-tracker-test.lock');
+  const lock = join(dir, 'landing-gear-merge-tracker-test.lock');
   return { dir, tracker, lock };
 }
 
@@ -716,7 +716,7 @@ const TRACKER_REPORT_MISMATCH = `# Applications Tracker
   // time out and fail through the structured error path instead of throwing.
   mkdirSync(sb.lock, { recursive: true });
   writeFileSync(join(sb.lock, 'owner.json'), JSON.stringify({ pid: process.pid, token: 'test', tracker: sb.tracker }));
-  const r = runSetStatus(['2', 'Applied', '--json'], sb, { CAREER_OPS_TRACKER_LOCK_TIMEOUT_MS: '300' });
+  const r = runSetStatus(['2', 'Applied', '--json'], sb, { LANDING_GEAR_TRACKER_LOCK_TIMEOUT_MS: '300' });
   let parsed = null;
   try { parsed = JSON.parse(r.stdout); } catch {}
   if (r.code === 4 && parsed && parsed.code === 'lock-timeout' && readTracker(sb) === before) {
@@ -735,9 +735,9 @@ const TRACKER_REPORT_MISMATCH = `# Applications Tracker
   // then fails with ENOTDIR/ENOENT — a config error, not a busy lock — and
   // must map to exit 1 / lock-error, keeping exit 4 reserved for retryable
   // timeouts.
-  const blocker = join(sb.dir, 'career-ops-merge-tracker-blocker');
+  const blocker = join(sb.dir, 'landing-gear-merge-tracker-blocker');
   writeFileSync(blocker, 'not a directory');
-  const badLock = join(blocker, 'career-ops-merge-tracker-bad.lock');
+  const badLock = join(blocker, 'landing-gear-merge-tracker-bad.lock');
   const r = runSetStatus(['2', 'Applied', '--json'], { ...sb, lock: badLock });
   let parsed = null;
   try { parsed = JSON.parse(r.stdout); } catch {}
@@ -752,7 +752,7 @@ const TRACKER_REPORT_MISMATCH = `# Applications Tracker
 // ── 15. Orphaned recovery guard does not block stale-lock recovery ─
 {
   const dir = mkdtempSync(join(tmpdir(), 'co-setstatus-guard-'));
-  const lockDir = join(dir, 'career-ops-merge-tracker-guardtest.lock');
+  const lockDir = join(dir, 'landing-gear-merge-tracker-guardtest.lock');
   // Stale lock: dead owner PID → recoverable.
   mkdirSync(lockDir, { recursive: true });
   writeFileSync(join(lockDir, 'owner.json'), JSON.stringify({ pid: 999999999, token: 'dead', tracker: 'x' }));
@@ -794,7 +794,7 @@ const TRACKER_REPORT_MISMATCH = `# Applications Tracker
     mkdirSync(roDir);
     const tracker = join(roDir, 'applications.md');
     writeFileSync(tracker, TRACKER_9);
-    const lock = join(dir, 'career-ops-merge-tracker-wf.lock');
+    const lock = join(dir, 'landing-gear-merge-tracker-wf.lock');
     // Make the tracker's directory readable but unwritable, so the atomic
     // temp-file write fails after a successful read. On Windows, directory
     // read-only bits don't block file creation — deny write-data/append-data

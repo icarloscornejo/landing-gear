@@ -1,11 +1,11 @@
 // node tests/fixtures/pipeline-status.mjs prints a fresh disposable data root.
-// Use it as CAREER_OPS_ROOT / CAREER_OPS_TRACKER for a localhost web server,
+// Use it as LANDING_GEAR_ROOT / LANDING_GEAR_TRACKER for a localhost web server,
 // and PIPELINE_STATUS_TEST_ROOT for pipeline-inline-status.browser.test.mjs.
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const root = fs.mkdtempSync(path.join(os.tmpdir(), "career-ops-inline-status-"));
+const root = fs.mkdtempSync(path.join(os.tmpdir(), "landing-gear-inline-status-"));
 for (const dir of ["data", "reports"]) fs.mkdirSync(path.join(root, dir));
 fs.writeFileSync(path.join(root, ".inline-status-fixture"), "fictional-only\n");
 fs.writeFileSync(path.join(root, "data/applications.md"), `# Fictional browser fixture

@@ -23,7 +23,7 @@ function withProfileRoot(run) {
 function runCli(root, args, input, timeout = 5000) {
   return spawnSync(process.execPath, [CLI, ...args], {
     cwd: ROOT,
-    env: { ...process.env, CAREER_OPS_ROOT: root },
+    env: { ...process.env, LANDING_GEAR_ROOT: root },
     encoding: 'utf8', input, timeout,
   });
 }
@@ -211,7 +211,7 @@ test('a failed save removes its temporary file and reports the original error', 
     ].join('\n'));
     const result = spawnSync(process.execPath, [launcher, 'import', 'cv.md', '--review'], {
       cwd: ROOT,
-      env: { ...process.env, CAREER_OPS_ROOT: root },
+      env: { ...process.env, LANDING_GEAR_ROOT: root },
       encoding: 'utf8', input: 'y\ny\ny\ny\n', timeout: 5000,
     });
     assert.equal(result.status, 1, result.stderr);
@@ -232,7 +232,7 @@ test('profile save waits for a held profile lock before merging and writing', as
   try {
     child = spawn(process.execPath, [CLI, 'import', 'cv.md', '--review'], {
       cwd: ROOT,
-      env: { ...process.env, CAREER_OPS_ROOT: root },
+      env: { ...process.env, LANDING_GEAR_ROOT: root },
       stdio: ['pipe', 'pipe', 'pipe'],
     });
     let stdout = '';

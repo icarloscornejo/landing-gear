@@ -37,7 +37,7 @@ for (const destination of ['new', 'existing', 'source']) {
         { id: slots[0].id, text: 'Short.' },
       ] }));
       const result = spawnSync(process.execPath, ['patch-latex-content.mjs', source, input, output], {
-        cwd: new URL('..', import.meta.url), encoding: 'utf8', env: { ...process.env, CAREER_OPS_ROOT: root },
+        cwd: new URL('..', import.meta.url), encoding: 'utf8', env: { ...process.env, LANDING_GEAR_ROOT: root },
       });
       assert.equal(result.error, undefined);
       assert.notEqual(result.status, 0, result.stdout);

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * cv-sync-check.mjs — Validates that the career-ops setup is consistent.
+ * cv-sync-check.mjs — Validates that the landing-gear setup is consistent.
  *
  * Checks:
  * 1. cv.md exists
@@ -14,12 +14,12 @@ import { readFileSync, existsSync, statSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
-import { getCareerOpsRoot, getProfilePath, hasProfileOverride } from './path-resolver.mjs';
+import { getLandingGearRoot, getProfilePath, hasProfileOverride } from './path-resolver.mjs';
 import { validateFlags } from './lib/cli-flags.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
 
 const CODE_ROOT = dirname(fileURLToPath(import.meta.url));
-const DATA_ROOT = getCareerOpsRoot();
+const DATA_ROOT = getLandingGearRoot();
 
 // ── CLI flags + help ────────────────────────────────────────────────
 //
@@ -79,7 +79,7 @@ function main() {
   const profilePath = getProfilePath();
   if (!existsSync(profilePath)) {
     errors.push(hasProfileOverride()
-      ? `config/profile.yml not found: CAREER_OPS_PROFILE names ${profilePath}. Create that file, or unset the variable.`
+      ? `config/profile.yml not found: LANDING_GEAR_PROFILE names ${profilePath}. Create that file, or unset the variable.`
       : 'config/profile.yml not found. Copy from config/profile.example.yml and fill in your details.');
   } else {
     const profileContent = readFileSync(profilePath, 'utf-8');
@@ -117,7 +117,7 @@ function main() {
   }
 
   // Output results
-  console.log('\n=== career-ops sync check ===\n');
+  console.log('\n=== landing-gear sync check ===\n');
 
   if (errors.length === 0 && warnings.length === 0) {
     console.log('All checks passed.');

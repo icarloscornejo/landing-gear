@@ -67,12 +67,12 @@ const RUNNER_SRC = read('batch/batch-runner.sh');
 
 const WORKER_STUB = [
   '#!/usr/bin/env bash',
-  'printf \'%s\' "${CAREER_OPS_HEADLESS-unset}" > "$CAPTURE_DIR/headless.txt"',
+  'printf \'%s\' "${LANDING_GEAR_HEADLESS-unset}" > "$CAPTURE_DIR/headless.txt"',
   'exit 1',
   '',
 ].join('\n');
 
-test('batch-runner.sh launches every worker with CAREER_OPS_HEADLESS=1', () => {
+test('batch-runner.sh launches every worker with LANDING_GEAR_HEADLESS=1', () => {
   const base = mkdtempSync(join(tmpdir(), 'batch-headless-'));
   try {
     const dir = join(base, 'checkout');
@@ -92,16 +92,16 @@ test('batch-runner.sh launches every worker with CAREER_OPS_HEADLESS=1', () => {
     chmodSync(join(binDir, 'curl'), 0o755);
 
     const env = { ...process.env, PATH: `${binDir}${delimiter}${process.env.PATH}`, CAPTURE_DIR: captureDir };
-    delete env.CAREER_OPS_HEADLESS;
-    delete env.CAREER_OPS_ROOT;
-    delete env.CAREER_OPS_DATA_DIR;
+    delete env.LANDING_GEAR_HEADLESS;
+    delete env.LANDING_GEAR_ROOT;
+    delete env.LANDING_GEAR_DATA_DIR;
     const r = spawnSync(getBash(), [toBashPath(join(dir, 'batch', 'batch-runner.sh')), '--parallel', '1', '--max-retries', '0', '--rate-limit-sleep', '0'], {
       cwd: dir, encoding: 'utf8', timeout: 120_000, stdio: ['ignore', 'pipe', 'pipe'], env,
     });
     assert.equal(r.error, undefined, `spawn failed: ${r.error?.message}`);
     const captured = join(captureDir, 'headless.txt');
     assert.ok(existsSync(captured), describeSpawn(r, 'the worker was never launched'));
-    assert.equal(readFileSync(captured, 'utf8'), '1', 'the worker ran without CAREER_OPS_HEADLESS=1');
+    assert.equal(readFileSync(captured, 'utf8'), '1', 'the worker ran without LANDING_GEAR_HEADLESS=1');
   } finally {
     rmSync(base, { recursive: true, force: true });
   }

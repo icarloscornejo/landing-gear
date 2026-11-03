@@ -19,13 +19,13 @@ import { buildTitleFilter } from './title-keywords.mjs';
 import { loadProviders, resolveProvider } from './providers/_registry.mjs';
 import { mergeProviderPlugins } from './plugins/_engine.mjs';
 import { normalizeCompany } from './tracker-utils.mjs';
-import { getCareerOpsRoot } from './path-resolver.mjs';
+import { getLandingGearRoot } from './path-resolver.mjs';
 import { localToday } from './lib/local-today.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
 import { flagValue, validateFlags } from './lib/cli-flags.mjs';
 
 const CODE_ROOT = path.dirname(fileURLToPath(import.meta.url));
-const DATA_ROOT = getCareerOpsRoot();
+const DATA_ROOT = getLandingGearRoot();
 const DATASET_DIR = path.join(DATA_ROOT, 'data/cache/ats-companies');
 export const MISSES_PATH = path.join(DATA_ROOT, 'data/coverage-misses.tsv');
 const MISSES_HEADER = 'date\turl\tcompany\ttitle\tgap\tfix\tnote';

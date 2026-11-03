@@ -86,7 +86,7 @@ check('a summary without the key yields no rows', parseRequirementImportance(und
     }
     writeFileSync(join(sandbox, 'data', 'applications.md'), ['# Applications Tracker', '', '| # | Date | Company | Role | Score | Status | PDF | Report | Notes |', '|---|---|---|---|---|---|---|---|---|', ...rows].join('\n') + '\n');
     const res = spawnSync(NODE, [join(ROOT, 'upskill.mjs')], {
-      cwd: ROOT, encoding: 'utf-8', timeout: 60000, env: { ...process.env, CAREER_OPS_ROOT: sandbox },
+      cwd: ROOT, encoding: 'utf-8', timeout: 60000, env: { ...process.env, LANDING_GEAR_ROOT: sandbox },
     });
     const out = JSON.parse(res.stdout.slice(res.stdout.indexOf('{')));
     check('upskill.mjs reports the blocker from the tracker\'s skipped rows only', out.skipBlockers, {
@@ -95,7 +95,7 @@ check('a summary without the key yields no rows', parseRequirementImportance(und
       blockers: [{ label: 'Security clearance', kind: 'theme', skips: 4, missing: 4, partial: 0, closeCalls: 3, reports: [4, 3, 2, 1], wordings: ['Active TS/SCI clearance'], nudge: 'learn' }],
     });
     const summary = spawnSync(NODE, [join(ROOT, 'upskill.mjs'), '--summary'], {
-      cwd: ROOT, encoding: 'utf-8', timeout: 60000, env: { ...process.env, CAREER_OPS_ROOT: sandbox },
+      cwd: ROOT, encoding: 'utf-8', timeout: 60000, env: { ...process.env, LANDING_GEAR_ROOT: sandbox },
     }).stdout;
     check('--summary prints the blocker row', summary.split('\n').filter((l) => /BLOCKED|Security clearance/.test(l)), [
       'BLOCKED YOUR LAST 4 SKIPS (critical or high requirement marked missing or partial)',

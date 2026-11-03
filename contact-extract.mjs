@@ -52,7 +52,7 @@
  *
  *   <body text, any number of lines>
  *
- * The contacts path is always data/contacts.tsv under the resolved career-ops
+ * The contacts path is always data/contacts.tsv under the resolved landing-gear
  * data root, matching contacts.mjs.
  */
 
@@ -63,14 +63,14 @@ import { resolveTrackerPath, writeFileAtomic } from './tracker-utils.mjs';
 import { withPipelineLock } from './pipeline-lock.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
 import { validateFlags, hasFlag, flagValue } from './lib/cli-flags.mjs';
-import { getCareerOpsRoot } from './path-resolver.mjs';
+import { getLandingGearRoot } from './path-resolver.mjs';
 import { parseFileInput, collectInteractive } from './paste-reply.mjs';
 import { matchCandidates, classifyReply } from './reply-matcher.mjs';
 import { resolveColumns, parseTrackerRow } from './tracker-parse.mjs';
 import { parseFollowups } from './followup-cadence.mjs';
 import { escapeFormulaCell, unescapeFormulaCell } from './lib/tsv-formula-escape.mjs';
 
-const DATA_ROOT = getCareerOpsRoot();
+const DATA_ROOT = getLandingGearRoot();
 const CONTACTS_PATH = path.join(DATA_ROOT, 'data', 'contacts.tsv');
 const APPS_FILE = resolveTrackerPath(DATA_ROOT);
 const FOLLOWUPS_FILE = path.join(DATA_ROOT, 'data', 'follow-ups.md');

@@ -15,7 +15,7 @@
 // Driven for real rather than asserted from the source: the handler is
 // importable under the @/ loader, so the two cases can be distinguished by
 // their actual status codes. Each runs in its own child because the loader
-// registers process-wide and CAREER_OPS_ROOT is read at module load.
+// registers process-wide and LANDING_GEAR_ROOT is read at module load.
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -62,11 +62,11 @@ function callRoute(root) {
       timeout: 60_000,
       env: {
         ...process.env,
-        CAREER_OPS_ROOT: root,
+        LANDING_GEAR_ROOT: root,
         // Would each pull a read back out of the sandbox and make the result
         // depend on the developer's own files.
-        CAREER_OPS_DATA_DIR: "",
-        CAREER_OPS_TRACKER: "",
+        LANDING_GEAR_DATA_DIR: "",
+        LANDING_GEAR_TRACKER: "",
       },
     },
   );

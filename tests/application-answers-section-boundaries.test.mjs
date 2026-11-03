@@ -32,7 +32,7 @@ for (const heading of ['##\tInterview Notes', '  ## Interview Notes', '##', '# I
       writeFileSync(input, JSON.stringify({ ...snapshot, freeText: [{ question: 'Why?', answer: 'Updated.' }] }));
       const run = spawnSync(process.execPath, ['application-answers.mjs', '--report', report, '--input', input], {
         cwd: new URL('..', import.meta.url), encoding: 'utf8',
-        env: { ...process.env, CAREER_OPS_ROOT: root, CAREER_OPS_DATA_DIR: '', CAREER_OPS_TRACKER: '' },
+        env: { ...process.env, LANDING_GEAR_ROOT: root, LANDING_GEAR_DATA_DIR: '', LANDING_GEAR_TRACKER: '' },
       });
       assert.equal(run.status, 0, run.stderr);
       const updated = readFileSync(report, 'utf8');

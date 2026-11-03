@@ -3,7 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { cliSubstitutionNotice, cliUnavailableError, resolveCliOrFallback } from "@/lib/clis";
-import { careerOpsRoot, readMemory } from "@/lib/career-ops";
+import { landingGearRoot, readMemory } from "@/lib/landing-gear";
 import { assembleDedupContext } from "@/lib/core/discover";
 import { CAPS } from "@/lib/worker-capabilities.mjs";
 import { scopeFrom } from "@/lib/claude-invocation.mjs";
@@ -32,7 +32,7 @@ export const maxDuration = 600;
 
 const OUTPUT_CONTRACT = `
 
---- OUTPUT CONTRACT (the career-ops WEB is parsing your stream) ---
+--- OUTPUT CONTRACT (the landing-gear WEB is parsing your stream) ---
 Follow modes/discover.md exactly. You are running headless for the web:
 - You are a PROPOSER — never write a file (Write/Edit/Bash are disabled).
 - Emit each candidate as ONE line, never inside a code fence:
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
   // homegrown prompt. Missing (older core) → graceful 400 so the Scan tab stays usable.
   let mode: string;
   try {
-    mode = fs.readFileSync(path.join(careerOpsRoot(), "modes", "discover.md"), "utf8");
+    mode = fs.readFileSync(path.join(landingGearRoot(), "modes", "discover.md"), "utf8");
   } catch {
     return Response.json({ code: "MODE_MISSING", error: "AI search needs a newer landing-gear core. Update to enable it." }, { status: 400 });
   }
@@ -97,7 +97,7 @@ export async function POST(req: Request) {
   if (isCodex) {
     try {
       childCwd = fs.mkdtempSync(
-        path.join(os.tmpdir(), "career-ops-codex-"),
+        path.join(os.tmpdir(), "landing-gear-codex-"),
       );
     } catch {
       return Response.json(
@@ -109,7 +109,7 @@ export async function POST(req: Request) {
       );
     }
   } else {
-    childCwd = careerOpsRoot();
+    childCwd = landingGearRoot();
   }
 
   const codexResultFile = isCodex

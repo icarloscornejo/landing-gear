@@ -1,5 +1,5 @@
 ---
-name: career-ops-plugin-{{NAME}}
+name: landing-gear-plugin-{{NAME}}
 description: How to use the {{NAME}} plugin and the data it produces.
 license: MIT
 ---

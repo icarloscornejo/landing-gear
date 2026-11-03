@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * invite-match.mjs — Interview-Invite / Rejection → Tracker Matcher for career-ops
+ * invite-match.mjs — Interview-Invite / Rejection → Tracker Matcher for landing-gear
  *
  * Recruiter calendar/ATS invite emails frequently name only the company
  * (generic subject lines like "Schedule Your Phone Screen") with no job
@@ -30,7 +30,7 @@
  *      node invite-match.mjs --apply [--id N]      (rejection-classified matches only; advances status to Rejected)
  *      node invite-match.mjs --self-test
  *
- * Issue #1495, #2098 — github.com/career-ops-hq/career-ops
+ * Issue #1495, #2098 (upstream)
  */
 
 import { readFileSync, existsSync } from 'fs';
@@ -38,19 +38,19 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { execFileSync } from 'child_process';
 import { resolveColumns, parseTrackerRow, extractReqNumber } from './tracker-parse.mjs';
-import { getCareerOpsRoot, resolveTrackerPath } from './path-resolver.mjs';
+import { getLandingGearRoot, resolveTrackerPath } from './path-resolver.mjs';
 import { validateFlags } from './lib/cli-flags.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
 import { LEGAL_SUFFIXES, GENERIC_DESCRIPTORS } from './tracker-utils.mjs';
 
-const CAREER_OPS = getCareerOpsRoot();
+const LANDING_GEAR = getLandingGearRoot();
 // Sibling scripts live next to this file in the *code* checkout, which is a
-// different directory from CAREER_OPS whenever the data root is external
-// (CAREER_OPS_ROOT / a .career-ops-data marker). Resolving them off the data
+// different directory from LANDING_GEAR whenever the data root is external
+// (LANDING_GEAR_ROOT / a .landing-gear-data marker). Resolving them off the data
 // root made --apply die with `Cannot find module <data-root>/set-status.mjs`.
 // Same split, and the same constant name, as merge-tracker.mjs (#3761).
-const CAREER_OPS_CODE_ROOT = dirname(fileURLToPath(import.meta.url));
-const APPS_FILE = resolveTrackerPath(CAREER_OPS);
+const LANDING_GEAR_CODE_ROOT = dirname(fileURLToPath(import.meta.url));
+const APPS_FILE = resolveTrackerPath(LANDING_GEAR);
 
 // --- CLI args ---
 const args = process.argv.slice(2);
@@ -771,12 +771,12 @@ export function analyzeInvite(text, trackerRows = null) {
  * reaching this function.
  *
  * @param {number} appNumber - Tracker # to update (must be unambiguous).
- * @param {{appsFile?: string}} [options] - appsFile overrides CAREER_OPS_TRACKER for the child process (tests only).
+ * @param {{appsFile?: string}} [options] - appsFile overrides LANDING_GEAR_TRACKER for the child process (tests only).
  * @returns {object} set-status.mjs's own --json result (or its structured error).
  */
 export function applyRejectionStatus(appNumber, options = {}) {
-  const scriptPath = join(CAREER_OPS_CODE_ROOT, 'set-status.mjs');
-  const env = options.appsFile ? { ...process.env, CAREER_OPS_TRACKER: options.appsFile } : process.env;
+  const scriptPath = join(LANDING_GEAR_CODE_ROOT, 'set-status.mjs');
+  const env = options.appsFile ? { ...process.env, LANDING_GEAR_TRACKER: options.appsFile } : process.env;
   try {
     const out = execFileSync(process.execPath, [scriptPath, String(appNumber), 'Rejected', '--json'], {
       encoding: 'utf-8', env,
@@ -873,7 +873,7 @@ export function selectApplyTarget(result, idArg) {
 // --- Summary mode ---
 function printSummary(result) {
   console.log(`\n${'='.repeat(70)}`);
-  console.log('  Interview Invite / Rejection Matcher — career-ops');
+  console.log('  Interview Invite / Rejection Matcher — landing-gear');
   console.log(`${'='.repeat(70)}\n`);
 
   console.log(`  Classification:     ${result.classification}`);

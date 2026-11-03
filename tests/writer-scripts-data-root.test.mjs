@@ -5,13 +5,13 @@
 // Those covered readers. These two write, and each had its own spelling of the
 // bug:
 //
-//   set-status.mjs    `const CAREER_OPS = dirname(fileURLToPath(...))` then
-//                     `resolveTrackerPath(CAREER_OPS)` — the exact constant the
+//   set-status.mjs    `const LANDING_GEAR = dirname(fileURLToPath(...))` then
+//                     `resolveTrackerPath(LANDING_GEAR)` — the exact constant the
 //                     sibling suite's header calls out, still present in a writer.
 //                     Failed with "No tracker found at <CHECKOUT>/applications.md".
 //
 //   generate-pdf.mjs  disagreed with ITSELF: line 49 derived the tracker from
-//                     getCareerOpsRoot(), while refreshRootCache() derived the
+//                     getLandingGearRoot(), while refreshRootCache() derived the
 //                     containment boundary from __dirname. Every path under the
 //                     real data root then read as an escape and the PDF was
 //                     refused outright.
@@ -40,8 +40,8 @@ function fixture() {
   // symlink (/tmp -> /private/tmp), so a lexical fixture path would be reported
   // as outside its own workspace and the test would fail for a reason that has
   // nothing to do with which root was used.
-  const dataRoot = realpathSync(mkdtempSync(join(tmpdir(), 'career-ops-writerroot-')));
-  const decoyCwd = realpathSync(mkdtempSync(join(tmpdir(), 'career-ops-writercwd-')));
+  const dataRoot = realpathSync(mkdtempSync(join(tmpdir(), 'landing-gear-writerroot-')));
+  const decoyCwd = realpathSync(mkdtempSync(join(tmpdir(), 'landing-gear-writercwd-')));
   mkdirSync(join(dataRoot, 'data'), { recursive: true });
   mkdirSync(join(dataRoot, 'output'), { recursive: true });
   writeFileSync(join(dataRoot, 'data', 'applications.md'), [
@@ -67,7 +67,7 @@ function run(script, args, { dataRoot, decoyCwd }) {
     cwd: decoyCwd,
     encoding: 'utf-8',
     timeout: 120_000,
-    env: { ...process.env, CAREER_OPS_ROOT: dataRoot, CAREER_OPS_DATA_DIR: '', CAREER_OPS_TRACKER: '' },
+    env: { ...process.env, LANDING_GEAR_ROOT: dataRoot, LANDING_GEAR_DATA_DIR: '', LANDING_GEAR_TRACKER: '' },
   });
   assert.equal(r.error, undefined, `spawn failed: ${r.error?.message}`);
   return { ...r, all: `${r.stdout ?? ''}${r.stderr ?? ''}` };
@@ -135,15 +135,15 @@ test('generate-pdf does not treat the data root as outside its workspace', () =>
   } finally { cleanup(f); }
 });
 
-// ── the .career-ops-data marker ─────────────────────────────────────────────
+// ── the .landing-gear-data marker ─────────────────────────────────────────────
 //
-// The cases above drive CAREER_OPS_ROOT, which is precedence rule 1. #4389 was
+// The cases above drive LANDING_GEAR_ROOT, which is precedence rule 1. #4389 was
 // reported against the MARKER, which is rule 3, and no existing suite exercises
-// it for either of these scripts. Both rules end at the same getCareerOpsRoot()
+// it for either of these scripts. Both rules end at the same getLandingGearRoot()
 // call, but only a marker case proves that path end to end.
 //
 // The marker has to live beside the script, so the script is run from a COPIED
-// code root rather than the checkout -- writing .career-ops-data into the repo
+// code root rather than the checkout -- writing .landing-gear-data into the repo
 // would leak into other tests and survive a crash. Same shape as
 // tests/story-provenance-data-root.test.mjs.
 
@@ -176,7 +176,7 @@ const CLOSURE = {
 };
 
 function markerFixture(script) {
-  const dir = realpathSync(mkdtempSync(join(tmpdir(), 'career-ops-marker-')));
+  const dir = realpathSync(mkdtempSync(join(tmpdir(), 'landing-gear-marker-')));
   const codeRoot = join(dir, 'code');
   const dataRoot = join(dir, 'data');
   for (const sub of ['lib', 'templates']) mkdirSync(join(codeRoot, sub), { recursive: true });
@@ -194,8 +194,8 @@ function markerFixture(script) {
   // failed link.
   const depsReason = linkNodeModules(codeRoot, ROOT);
 
-  // The marker: rule 3. No CAREER_OPS_* variable is set when this is used.
-  writeFileSync(join(codeRoot, '.career-ops-data'), `${dataRoot}\n`);
+  // The marker: rule 3. No LANDING_GEAR_* variable is set when this is used.
+  writeFileSync(join(codeRoot, '.landing-gear-data'), `${dataRoot}\n`);
 
   writeFileSync(join(dataRoot, 'data', 'applications.md'), [
     '# Applications Tracker',
@@ -221,7 +221,7 @@ function runFromCodeRoot(f, script, args) {
     encoding: 'utf-8',
     timeout: 120_000,
     // Every override blank on purpose: the marker must be what is doing the work.
-    env: { ...process.env, CAREER_OPS_ROOT: '', CAREER_OPS_DATA_DIR: '', CAREER_OPS_TRACKER: '' },
+    env: { ...process.env, LANDING_GEAR_ROOT: '', LANDING_GEAR_DATA_DIR: '', LANDING_GEAR_TRACKER: '' },
   });
   assert.equal(r.error, undefined, `spawn failed: ${r.error?.message}`);
   return { ...r, all: `${r.stdout ?? ''}${r.stderr ?? ''}` };
@@ -229,7 +229,7 @@ function runFromCodeRoot(f, script, args) {
 
 const markerCleanup = (f) => rmSync(f.dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
 
-test('set-status honours a .career-ops-data marker, not just CAREER_OPS_ROOT', (t) => {
+test('set-status honours a .landing-gear-data marker, not just LANDING_GEAR_ROOT', (t) => {
   const f = markerFixture('set-status.mjs');
   // set-status reaches js-yaml through tracker-utils.mjs, so with no linked tree
   // the child dies at module load and every assertion below passes vacuously.
@@ -247,7 +247,7 @@ test('set-status honours a .career-ops-data marker, not just CAREER_OPS_ROOT', (
   } finally { markerCleanup(f); }
 });
 
-test('generate-pdf honours a .career-ops-data marker for its workspace boundary', (t) => {
+test('generate-pdf honours a .landing-gear-data marker for its workspace boundary', (t) => {
   const f = markerFixture('generate-pdf.mjs');
   // generate-pdf imports playwright at module scope, same vacuity.
   if (f.depsReason) { markerCleanup(f); return t.skip(f.depsReason); }
@@ -263,9 +263,9 @@ test('generate-pdf honours a .career-ops-data marker for its workspace boundary'
 
 // refreshRootCache() keys on the RESOLVED workspace root (#4314), not on the
 // environment: the marker is a file on disk and can change while every
-// CAREER_OPS_* variable stays the same. An env-only key kept serving the first
+// LANDING_GEAR_* variable stays the same. An env-only key kept serving the first
 // data root to every later call in the same process.
-test('generate-pdf follows a .career-ops-data marker that changes mid-process', (t) => {
+test('generate-pdf follows a .landing-gear-data marker that changes mid-process', (t) => {
   const f = markerFixture('generate-pdf.mjs');
   // Same vacuity as the two above, one step further in: the probe imports
   // generate-pdf.mjs from the copied code root, so playwright at module scope
@@ -282,7 +282,7 @@ test('generate-pdf follows a .career-ops-data marker that changes mid-process', 
       const [codeRoot, first, moved] = process.argv.slice(1);
       const { isWorkspaceOutputPath } = await import(pathToFileURL(join(codeRoot, 'generate-pdf.mjs')).href);
       const before = isWorkspaceOutputPath(join(first, 'output', 'cv.pdf'));
-      writeFileSync(join(codeRoot, '.career-ops-data'), moved + '\\n');
+      writeFileSync(join(codeRoot, '.landing-gear-data'), moved + '\\n');
       const after = isWorkspaceOutputPath(join(moved, 'output', 'cv.pdf'));
       const stale = isWorkspaceOutputPath(join(first, 'output', 'cv.pdf'));
       console.log('RESULT ' + JSON.stringify({ before, after, stale }));
@@ -292,7 +292,7 @@ test('generate-pdf follows a .career-ops-data marker that changes mid-process', 
       encoding: 'utf-8',
       timeout: 120_000,
       // Every override blank on purpose: only the marker moves.
-      env: { ...process.env, CAREER_OPS_ROOT: '', CAREER_OPS_DATA_DIR: '', CAREER_OPS_TRACKER: '' },
+      env: { ...process.env, LANDING_GEAR_ROOT: '', LANDING_GEAR_DATA_DIR: '', LANDING_GEAR_TRACKER: '' },
     });
     assert.equal(r.error, undefined, `spawn failed: ${r.error?.message}`);
     const all = `${r.stdout ?? ''}${r.stderr ?? ''}`;

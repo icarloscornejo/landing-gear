@@ -1,6 +1,6 @@
 # Contributors
 
-career-ops exists because of the people who build with it. thank you.
+landing-gear exists because of the people who build with it. thank you.
 
 ## Core Contributors
 
@@ -21,7 +21,7 @@ Contributors with sustained technical ownership over specific areas. Full author
 
 ## Community Voices
 
-Members who landed roles using career-ops and opted in to share their journey publicly. Their tips and patterns shape how we explain the project.
+Members who landed roles using landing-gear and opted in to share their journey publicly. Their tips and patterns shape how we explain the project.
 
 - **[@logumani2112](https://github.com/logumani2112)** — Landed Backend Developer (.NET) at an IT services company. 50 listings evaluated, 1 month from first scan to offer. Most useful feature: A–F evaluation scoring. Their tip: *"Focus on quality over quantity. Use the evaluation scoring to prioritize the right opportunities and tailor your resume for each role."* ([#440](https://github.com/santifer/career-ops/issues/440))
 - **[@chinna63055](https://github.com/chinna63055)** — 200 listings evaluated, 2 weeks from first scan to offer. Most useful feature: A–F evaluation scoring. ([#388](https://github.com/santifer/career-ops/issues/388))
@@ -38,7 +38,7 @@ Members helping newcomers in Discord day-to-day.
 
 ## Everyone who has shipped code, docs, translations or tests
 
-Everyone below has had work merged into career-ops. This list is **not a ranking
+Everyone below has had work merged into landing-gear. This list is **not a ranking
 and not a hierarchy** — it is alphabetical, and the icons say what kind of work
 someone did, not how much. Roles with actual repository access live in
 [MAINTAINERS.md](MAINTAINERS.md).

@@ -21,16 +21,16 @@ import { matchCandidates, classifyReply } from './reply-matcher.mjs';
 import { resolveColumns, parseTrackerRow, trackerRowIdentity } from './tracker-parse.mjs';
 import { resolveTrackerPath, loadCanonicalStates } from './tracker-utils.mjs';
 import { readReplyProposals, hasProposalReceipt } from './lib/reply-proposals.mjs';
-import { getCareerOpsRoot } from './path-resolver.mjs';
+import { getLandingGearRoot } from './path-resolver.mjs';
 import { validateFlags } from './lib/cli-flags.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
 import { parseFollowups } from './followup-cadence.mjs';
 
 // Every file here is user layer, so it resolves against the data root
-// (CAREER_OPS_ROOT / CAREER_OPS_DATA_DIR / .career-ops-data marker), never the
+// (LANDING_GEAR_ROOT / LANDING_GEAR_DATA_DIR / .landing-gear-data marker), never the
 // script's own directory — which is only the default when none is configured.
-const DATA_ROOT = getCareerOpsRoot();
-export const DEFAULT_CANDIDATES_PATH = process.env.CAREER_OPS_REPLY_CANDIDATES
+const DATA_ROOT = getLandingGearRoot();
+export const DEFAULT_CANDIDATES_PATH = process.env.LANDING_GEAR_REPLY_CANDIDATES
   || path.join(DATA_ROOT, 'data', 'reply-candidates.json');
 export const APPS_FILE = resolveTrackerPath(DATA_ROOT);
 export const FOLLOWUPS_FILE = path.join(DATA_ROOT, 'data', 'follow-ups.md');
@@ -172,7 +172,7 @@ function runSetStatus(args) {
   try {
     const output = execFileSync(process.execPath, [path.join(CODE_ROOT, 'set-status.mjs'), ...args, '--json'], {
       encoding: 'utf8',
-      env: { ...process.env, CAREER_OPS_ROOT: DATA_ROOT, CAREER_OPS_TRACKER: APPS_FILE },
+      env: { ...process.env, LANDING_GEAR_ROOT: DATA_ROOT, LANDING_GEAR_TRACKER: APPS_FILE },
       // stdout is the JSON result. stderr is passed through: it carries what
       // the hooks have to tell the user directly, such as another session
       // already working this row, or a failed JD archive.
@@ -416,7 +416,7 @@ async function main() {
       try {
         execFileSync(process.execPath, [path.join(CODE_ROOT, 'tracker.mjs'), 'sync'], {
           stdio: 'ignore',
-          env: { ...process.env, CAREER_OPS_ROOT: DATA_ROOT, CAREER_OPS_TRACKER: APPS_FILE },
+          env: { ...process.env, LANDING_GEAR_ROOT: DATA_ROOT, LANDING_GEAR_TRACKER: APPS_FILE },
         });
         console.log('Synced database index (applications.db).');
       } catch (e) {

@@ -13,9 +13,9 @@ import {
 // two-layer rationale (F1 drive-by CSRF, F2 LAN reachability).
 //
 // Opt in to extra hosts (e.g. a trusted LAN box) with a comma/space separated
-// CAREER_OPS_WEB_ALLOWED_HOSTS; unset means loopback only.
+// LANDING_GEAR_WEB_ALLOWED_HOSTS; unset means loopback only.
 //
-// Opt in to extra *origins* the same way with CAREER_OPS_ALLOWED_ORIGINS;
+// Opt in to extra *origins* the same way with LANDING_GEAR_ALLOWED_ORIGINS;
 // unset means none, which is the default and leaves the guard as strict as it
 // was. It is what a local companion client needs: a browser extension calls
 // from a chrome-extension:// origin, which Fetch Metadata always reports as
@@ -25,8 +25,8 @@ export function proxy(req: NextRequest) {
     secFetchSite: req.headers.get("sec-fetch-site"),
     origin: req.headers.get("origin"),
     host: req.headers.get("host"),
-    allowedHosts: parseAllowedHosts(process.env.CAREER_OPS_WEB_ALLOWED_HOSTS),
-    allowedOrigins: parseAllowedOrigins(process.env.CAREER_OPS_ALLOWED_ORIGINS),
+    allowedHosts: parseAllowedHosts(process.env.LANDING_GEAR_WEB_ALLOWED_HOSTS),
+    allowedOrigins: parseAllowedOrigins(process.env.LANDING_GEAR_ALLOWED_ORIGINS),
   });
   if (!decision.ok) {
     return NextResponse.json({ error: decision.reason }, { status: decision.status });

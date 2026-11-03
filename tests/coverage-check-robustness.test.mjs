@@ -31,7 +31,7 @@ try {
   mkdirSync(join(tmp, 'data'), { recursive: true });
   const run = spawnSync(NODE, [join(ROOT, 'coverage-check.mjs'), 'https://jobs.lever.co/acme/1', '--company', 'Acme', '--title', 'Engineer'], {
     cwd: ROOT, encoding: 'utf8', timeout: 60000,
-    env: { ...process.env, CAREER_OPS_ROOT: tmp, CAREER_OPS_PORTALS: '' },
+    env: { ...process.env, LANDING_GEAR_ROOT: tmp, LANDING_GEAR_PORTALS: '' },
   });
   if (run.status === 1 && /portals\.yml not found/.test(run.stderr) && !/at readFileSync|ENOENT/.test(run.stderr)) {
     pass('a data root without portals.yml exits 1 with a plain message, not a stack trace');

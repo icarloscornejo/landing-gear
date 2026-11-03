@@ -44,7 +44,7 @@ const CODEX_WORKSPACE_WRITE = "workspace-write";
  * and it covers Hermes alone: every other runtime passes, including the ones
  * absent from FENCERS, which still run write-capable workers with their default
  * access (fencingReport reports them as unfenced). Hermes is limited to workers
- * whose capability record has `writes: false` because career-ops has no verified
+ * whose capability record has `writes: false` because landing-gear has no verified
  * way to translate that record into Hermes's own approval/sandbox controls.
  *
  * @param {string} cliId
@@ -115,7 +115,7 @@ function codexGlobalFencingFlags({ network }) {
  * sandbox_mode=…` overrides a config.toml setting `sandbox_mode =
  * "danger-full-access"` (codex doctor then reports the filesystem and network
  * sandboxes as restricted). `-s`'s precedence over user config could not be
- * verified the same way, and most of career-ops' Codex call sites do not pass
+ * verified the same way, and most of landing-gear' Codex call sites do not pass
  * --ignore-user-config (AI search is the one that does), so an unproven override
  * would leave the fence defeatable by any user who had set that key for other
  * work. Using `-c` for the mode also matches the network key, so the fencing

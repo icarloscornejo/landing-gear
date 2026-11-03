@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search, ChevronsUpDown, X, ExternalLink, Plus, Minus } from "lucide-react";
-import type { Application, InboxJob } from "@/lib/career-ops";
+import type { Application, InboxJob } from "@/lib/landing-gear";
 import { Badge } from "@/components/ui/badge";
 import { isApproved } from "@/lib/home/awaiting.mjs";
 import { CompanyLogo } from "@/components/company-logo";

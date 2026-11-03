@@ -9,7 +9,7 @@
 //
 // There is no public API; the search pages are server-rendered HTML. Card shape
 // (measured on https://www.magneto365.com/co/trabajos/buscar/tecnologia,
-// 2026-10-23: HTTP 200 with career-ops' default User-Agent, 20 cards):
+// 2026-10-23: HTTP 200 with landing-gear' default User-Agent, 20 cards):
 //   <article class="mg_job_card_desktop_magneto-ui-card-jobs_...">
 //     <h2 ...><a href="https://www.magneto365.com/co/empleos/{slug}-{ID}" title="TITLE">TITLE</a></h2>
 //     <h3 ...>COMPANY | CONTRACT TYPE</h3>

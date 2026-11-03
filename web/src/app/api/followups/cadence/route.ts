@@ -2,7 +2,7 @@ import { execFile } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import * as yaml from "js-yaml";
-import { careerOpsRoot, rootScript } from "@/lib/career-ops";
+import { landingGearRoot, rootScript } from "@/lib/landing-gear";
 import { atomicWriteWithBackup } from "@/lib/core/safe-write";
 import { isMapping } from "@/lib/portals-config.mjs";
 import { PROFILE_CADENCE_KEYS, type ProfileCadenceKey } from "@/lib/followups";
@@ -44,7 +44,7 @@ async function readCoreDefaults(): Promise<Partial<Record<ProfileCadenceKey, num
   const stdout = await new Promise<string>((resolve) => {
     // process.execPath + windowsHide: see api/doctor/route.ts — a stale inherited
     // console kills every child with 0xC0000142 on Windows; never inherit one.
-    execFile(process.execPath, [script, "--json"], { cwd: careerOpsRoot(), timeout: 12_000, windowsHide: true }, (_e, out) =>
+    execFile(process.execPath, [script, "--json"], { cwd: landingGearRoot(), timeout: 12_000, windowsHide: true }, (_e, out) =>
       resolve(out || ""),
     );
   });
@@ -74,7 +74,7 @@ async function readCoreDefaults(): Promise<Partial<Record<ProfileCadenceKey, num
 }
 
 export async function GET() {
-  const file = path.join(careerOpsRoot(), "config", "profile.yml");
+  const file = path.join(landingGearRoot(), "config", "profile.yml");
   const overrides: Partial<Record<ProfileCadenceKey, number>> = {};
   let enabled = true;
   if (fs.existsSync(file)) {
@@ -120,7 +120,7 @@ export async function POST(req: Request) {
     return Response.json({ error: "nothing to write" }, { status: 400 });
   }
 
-  const root = careerOpsRoot();
+  const root = landingGearRoot();
   const file = path.join(root, "config", "profile.yml");
   let base: Record<string, unknown> = {};
   if (!fs.existsSync(file)) {

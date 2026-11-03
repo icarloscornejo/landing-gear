@@ -1,6 +1,6 @@
-# career-ops -- Danske modes (`modes/da/`)
+# landing-gear -- Danske modes (`modes/da/`)
 
-Denne mappe indeholder de danske oversættelser af de vigtigste career-ops-modes for kandidater, der søger på det danske marked.
+Denne mappe indeholder de danske oversættelser af de vigtigste landing-gear-modes for kandidater, der søger på det danske marked.
 
 ## Hvornår skal du bruge disse modes?
 

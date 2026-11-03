@@ -38,7 +38,7 @@ const REPO = 'msampath/h1b-sponsor-data';
 // file it names always come from the same tag.
 const DEFAULT_TAG = 'index-latest';
 const POINTER = 'index-latest.json';
-const USER_AGENT = 'career-ops-plugin-h1b-sponsor/1.0';
+const USER_AGENT = 'landing-gear-plugin-h1b-sponsor/1.0';
 const USAGE = 'Usage: node plugins/h1b-sponsor/install-h1b-index.mjs [--tag <release>] [--force]';
 
 // A release download starts on github.com and is answered by whichever asset

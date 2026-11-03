@@ -32,7 +32,7 @@ const launchBrowser = async () => ({
 });
 
 test('re-rendering replaces the previous PDF instead of rewriting it in place', async () => {
-  const workspace = realpathSync(mkdtempSync(join(tmpdir(), 'career-ops-pdf-atomic-')));
+  const workspace = realpathSync(mkdtempSync(join(tmpdir(), 'landing-gear-pdf-atomic-')));
   try {
     const outDir = join(workspace, 'output');
     mkdirSync(outDir);
@@ -54,7 +54,7 @@ test('re-rendering replaces the previous PDF instead of rewriting it in place', 
 });
 
 test('a write that fails partway leaves the previous PDF in place', async () => {
-  const workspace = realpathSync(mkdtempSync(join(tmpdir(), 'career-ops-pdf-atomic-')));
+  const workspace = realpathSync(mkdtempSync(join(tmpdir(), 'landing-gear-pdf-atomic-')));
   try {
     const outDir = join(workspace, 'output');
     mkdirSync(outDir);

@@ -1,7 +1,7 @@
-// tests/suite-ignores-inherited-tracker.test.mjs — a CAREER_OPS_TRACKER set in
+// tests/suite-ignores-inherited-tracker.test.mjs — a LANDING_GEAR_TRACKER set in
 // the developer's shell must not reach the suite.
 //
-// The override outranks CAREER_OPS_ROOT, and fixtures pin only the root. With
+// The override outranks LANDING_GEAR_ROOT, and fixtures pin only the root. With
 // the variable inherited, `node test-all.mjs` ran normalize-statuses.mjs against
 // the developer's own tracker: a `**Applied**` cell there came back as
 // `Applied`, with an applications.md.bak left next to it.
@@ -17,7 +17,7 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 
-console.log('\ntest suite — an inherited CAREER_OPS_TRACKER does not reach it');
+console.log('\ntest suite — an inherited LANDING_GEAR_TRACKER does not reach it');
 
 const HEADER = '# Applications Tracker\n\n| # | Date | Company | Role | Score | Status | PDF | Report | Notes |\n|---|------|---------|------|-------|--------|-----|--------|-------|\n';
 const ROW = '| 1 | 2026-01-01 | Acme Widgets | Coordinator | 4.0/5 | **Applied** | ❌ | — | note |\n';
@@ -40,9 +40,9 @@ try {
   // override, loads the helpers the way a suite does, then does what the
   // path-resolution section of test-all.mjs does: pin a fixture root and run the
   // writer through run().
-  const env = { ...process.env, CAREER_OPS_TRACKER: inherited };
-  delete env.CAREER_OPS_ROOT;
-  delete env.CAREER_OPS_DATA_DIR;
+  const env = { ...process.env, LANDING_GEAR_TRACKER: inherited };
+  delete env.LANDING_GEAR_ROOT;
+  delete env.LANDING_GEAR_DATA_DIR;
   const out = execFileSync(NODE, [join(ROOT, 'tests', 'fixtures', 'writer-under-fixture-root.mjs'), fixtureRoot], {
     cwd: ROOT,
     env,

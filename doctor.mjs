@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * doctor.mjs — Setup validation for career-ops
+ * doctor.mjs — Setup validation for landing-gear
  * Checks all prerequisites and prints a pass/fail checklist.
  */
 
@@ -13,11 +13,11 @@ import { fileURLToPath } from 'url';
 import { findTitleFilterConflicts } from './lib/title-filter-conflicts.mjs';
 import { sectionState, scanHeadings, SECTIONS } from './lib/personalization.mjs';
 import { discoverPlugins, pluginRoots, pluginStatus } from './plugins/_engine.mjs';
-import { getCareerOpsRoot, getProfilePath, hasProfileOverride } from './path-resolver.mjs';
+import { getLandingGearRoot, getProfilePath, hasProfileOverride } from './path-resolver.mjs';
 import { parseConfigByExtension } from './jsonc-parse.mjs';
 import { validateFlags, flagValue } from './lib/cli-flags.mjs';
 import { geminiNodeFloor } from './lib/gemini-node-floor.mjs';
-import { SKILL_ENTRYPOINTS } from './scaffolder/bin/skill-entrypoints.mjs';
+import { SKILL_ENTRYPOINTS } from './lib/skill-entrypoints.mjs';
 import { nodeFloor } from './lib/node-floor.mjs';
 import { classifyChromiumLaunchError } from './lib/chromium-launch-error.mjs';
 import { findExperienceSections, parseCompanyHeading, EXPERIENCE_HEADING_NAMES } from './lib/cv-markdown.mjs';
@@ -51,7 +51,7 @@ try {
   let missing = [];
   try { missing = findMissingDependencies(__dirname); } catch { /* no readable package.json: rethrow below */ }
   if (err?.code !== 'ERR_MODULE_NOT_FOUND' || missing.length === 0) throw err;
-  console.error(`career-ops dependencies are not installed in ${__dirname} (missing: ${missing.join(', ')}), so doctor cannot run its checks.\nFix: run \`npm install\` in ${__dirname}, then run doctor again.`);
+  console.error(`landing-gear dependencies are not installed in ${__dirname} (missing: ${missing.join(', ')}), so doctor cannot run its checks.\nFix: run \`npm install\` in ${__dirname}, then run doctor again.`);
   process.exit(1);
 }
 
@@ -74,7 +74,7 @@ const USAGE = `Usage:
   node doctor.mjs --json             # read-only machine-readable onboarding state
   node doctor.mjs --json --init-templates # create missing personalization files for onboarding
   node doctor.mjs --strict           # also probe portals.yml entries (network)
-  node doctor.mjs --target <path>    # diagnose another career-ops checkout
+  node doctor.mjs --target <path>    # diagnose another landing-gear checkout
   node doctor.mjs --cli <name>       # check a specific CLI's integration
   node doctor.mjs --help             # show this message
 
@@ -89,11 +89,11 @@ CLIs: ${AGENT_CLIS.join(', ')}`;
 validateFlags(argv, KNOWN_FLAGS, USAGE, { valueFlags: VALUE_FLAGS, requireOperand: true });
 
 const explicitTarget = flagValue(argv, '--target') || null;
-const projectRoot = explicitTarget || getCareerOpsRoot();
+const projectRoot = explicitTarget || getLandingGearRoot();
 // --target diagnoses a whole other checkout, so that checkout's profile is the
-// one that counts; otherwise CAREER_OPS_PROFILE applies as it does everywhere.
+// one that counts; otherwise LANDING_GEAR_PROFILE applies as it does everywhere.
 // With no override the path is the root the doctor started from: the human run
-// loads the root's whole .env later, and a CAREER_OPS_ROOT in it must not move
+// loads the root's whole .env later, and a LANDING_GEAR_ROOT in it must not move
 // this one check to another root.
 const profilePathFor = (root) => (explicitTarget || !hasProfileOverride() ? getProfilePath(root) : getProfilePath());
 // Only scan.mjs, the evaluators, openai-tailor.mjs and openrouter-runner load a .env; most readers
@@ -102,16 +102,16 @@ const profilePathFor = (root) => (explicitTarget || !hasProfileOverride() ? getP
 // but never counted as a found profile.
 const profileFromEnvFile = (root) => {
   try {
-    const value = dotenv.parse(readFileSync(join(root, '.env'))).CAREER_OPS_PROFILE;
+    const value = dotenv.parse(readFileSync(join(root, '.env'))).LANDING_GEAR_PROFILE;
     return value?.trim() ? value.trim() : null;
   } catch {
     return null; // no .env, or unreadable
   }
 };
 // node_modules and .git belong to the CODE checkout, not the resolved data
-// root — under a split checkout (CAREER_OPS_ROOT/CAREER_OPS_DATA_DIR or the
-// .career-ops-data marker) those are two different directories, and neither
-// ever holds the other's artifacts (career-ops#3867 finding 6). --target is
+// root — under a split checkout (LANDING_GEAR_ROOT/LANDING_GEAR_DATA_DIR or the
+// .landing-gear-data marker) those are two different directories, and neither
+// ever holds the other's artifacts (landing-gear#3867 finding 6). --target is
 // the one case that means "diagnose this whole other checkout" — code layer
 // included — so it keeps pointing both roots at the same place, matching how
 // tests/doctor-tracked-bak-files.test.mjs already exercises it.
@@ -218,7 +218,7 @@ function checkDependencies() {
     return {
       pass: false,
       label: `Dependencies could not be checked: package.json unreadable (${err.message})`,
-      fix: 'Run doctor from a career-ops checkout, or pass --target <checkout>',
+      fix: 'Run doctor from a landing-gear checkout, or pass --target <checkout>',
     };
   }
   if (missing.length === 0) {
@@ -254,7 +254,7 @@ function checkWebDependencies() {
 // when a checkout write failed. #2857 stops that for NEW installs, but an
 // install that already `git add`ed one is stuck: nothing in the update path
 // untracks a path git already has, so the .bak files persist forever and the
-// next update looks like it silently did nothing (career-ops#2881) — nothing
+// next update looks like it silently did nothing (landing-gear#2881) — nothing
 // points at .bak unless something checks for it. Kept to a single cheap
 // `git ls-files` call so it costs nothing on the common case of zero matches.
 function checkTrackedBakFiles(root) {
@@ -310,7 +310,7 @@ function checkTrackedBakFiles(root) {
 // A checkout made without symlink support (Windows without Developer Mode,
 // core.symlinks=false) writes each per-CLI skill entrypoint as a regular file
 // holding only the symlink target text, so that CLI loads a ~43-byte skill with
-// no router in it (career-ops#4589). update-system.mjs apply repairs these via
+// no router in it (landing-gear#4589). update-system.mjs apply repairs these via
 // ensureSkillEntrypoints, but apply returns early on an install that is already
 // up to date, so a fresh clone never reaches it and nothing else says why
 // /landing-gear does nothing. Read-only on purpose (doctor must not write): it
@@ -336,7 +336,7 @@ const quotePowerShell = (v) => `'${v.replace(/['\u2018\u2019\u201A\u201B]/g, (c)
 const quoteCmd = (v) => `"${v}"`;
 
 function repairCommands(root) {
-  const mod = join(root, 'scaffolder', 'bin', 'skill-entrypoints.mjs');
+  const mod = join(root, 'lib', 'skill-entrypoints.mjs');
   const updater = join(root, 'update-system.mjs');
   const forms = (quote) => ({
     materialize: `node -e ${quote(MATERIALIZE_SCRIPT)} ${quote(mod)} ${quote(root)}`,
@@ -402,7 +402,7 @@ function checkSkillEntrypoints(root) {
 // instead, and is the only fix that works there.
 function playwrightInstallFix() {
   if (existsSync('/etc/NIXOS')) {
-    return 'On NixOS, run career-ops inside the flake dev shell (`nix develop`, or `direnv allow`) and re-enter it after `npm install`. Do not run `npx playwright install`: NixOS cannot run the browsers it downloads. See docs/NIXOS.md.';
+    return 'On NixOS, run landing-gear inside the flake dev shell (`nix develop`, or `direnv allow`) and re-enter it after `npm install`. Do not run `npx playwright install`: NixOS cannot run the browsers it downloads. See docs/NIXOS.md.';
   }
   return 'Run: npx playwright install chromium';
 }
@@ -696,7 +696,7 @@ function isPlaywrightMcpConfigured(root, activeCli) {
     && (isPlaywrightMcpFromClaudeJson(root) || isPlaywrightMcpFromPlugin(root));
 }
 
-// CLI resolution: --cli flag > $CAREER_OPS_CLI > .env (CAREER_OPS_CLI=...) >
+// CLI resolution: --cli flag > $LANDING_GEAR_CLI > .env (LANDING_GEAR_CLI=...) >
 // runtime marker (OPENCODE=1 → opencode) > checkout hint (an opencode.json
 // with no Claude MCP config beside it) > default ('claude'). An unknown value
 // at ANY level returns the sentinel 'unknown' and produces no output —
@@ -709,23 +709,23 @@ function resolveActiveCli() {
     }
     return { cli: cliFlag, source: 'flag' };
   }
-  if (process.env.CAREER_OPS_CLI) {
-    if (!AGENT_CLIS.includes(process.env.CAREER_OPS_CLI)) {
-      return { cli: 'unknown', source: 'env', warning: `CAREER_OPS_CLI="${process.env.CAREER_OPS_CLI}" is not a recognized CLI. Valid: ${AGENT_CLIS.join(', ')}.` };
+  if (process.env.LANDING_GEAR_CLI) {
+    if (!AGENT_CLIS.includes(process.env.LANDING_GEAR_CLI)) {
+      return { cli: 'unknown', source: 'env', warning: `LANDING_GEAR_CLI="${process.env.LANDING_GEAR_CLI}" is not a recognized CLI. Valid: ${AGENT_CLIS.join(', ')}.` };
     }
-    return { cli: process.env.CAREER_OPS_CLI, source: 'env' };
+    return { cli: process.env.LANDING_GEAR_CLI, source: 'env' };
   }
   // .env is best-effort: missing file → fall through to default. dotenv does
   // not throw on a missing path when `quiet: true`, so no try/catch is needed.
-  // The load must not make a .env-only CAREER_OPS_PROFILE look like a shell one.
+  // The load must not make a .env-only LANDING_GEAR_PROFILE look like a shell one.
   const hadProfileOverride = hasProfileOverride();
   dotenv.config({ path: join(projectRoot, '.env'), quiet: true });
-  if (!hadProfileOverride) delete process.env.CAREER_OPS_PROFILE;
-  if (process.env.CAREER_OPS_CLI) {
-    if (!AGENT_CLIS.includes(process.env.CAREER_OPS_CLI)) {
-      return { cli: 'unknown', source: '.env', warning: `CAREER_OPS_CLI in .env is not a recognized CLI. Valid: ${AGENT_CLIS.join(', ')}.` };
+  if (!hadProfileOverride) delete process.env.LANDING_GEAR_PROFILE;
+  if (process.env.LANDING_GEAR_CLI) {
+    if (!AGENT_CLIS.includes(process.env.LANDING_GEAR_CLI)) {
+      return { cli: 'unknown', source: '.env', warning: `LANDING_GEAR_CLI in .env is not a recognized CLI. Valid: ${AGENT_CLIS.join(', ')}.` };
     }
-    return { cli: process.env.CAREER_OPS_CLI, source: '.env' };
+    return { cli: process.env.LANDING_GEAR_CLI, source: '.env' };
   }
   // Runtime marker: OpenCode stamps OPENCODE=1 on every process it runs.
   // Without this, doctor started from inside OpenCode falls through to the
@@ -832,7 +832,7 @@ const USER_LAYER_PREREQS = [
   },
   {
     path: 'portals.yml',
-    env: 'CAREER_OPS_PORTALS',
+    env: 'LANDING_GEAR_PORTALS',
     emptyImpact: 'scans have no companies or filters',
     fix: [
       'Run: cp templates/portals.example.yml portals.yml',
@@ -843,7 +843,7 @@ const USER_LAYER_PREREQS = [
 
 const CLI_NAMES = 'claude, codex, gemini, opencode, qwen, agy or grok';
 
-// The lane variables (CAREER_OPS_PORTALS, CAREER_OPS_PIPELINE) move one file
+// The lane variables (LANDING_GEAR_PORTALS, LANDING_GEAR_PIPELINE) move one file
 // out of the data root, and the scanner reads them (path-resolver.mjs), so
 // doctor has to look where a scan would.
 const PORTALS_PREREQ = USER_LAYER_PREREQS.find(({ path }) => path === 'portals.yml');
@@ -871,7 +871,7 @@ function emptyYamlPrereqs(root) {
 }
 
 // The root's .env names a profile. scan.mjs, the evaluators, openai-tailor.mjs and
-// openrouter-runner.mjs load a .env, and all four follow CAREER_OPS_PROFILE once
+// openrouter-runner.mjs load a .env, and all four follow LANDING_GEAR_PROFILE once
 // it is loaded (scan.mjs from the data root, the evaluators and openai-tailor.mjs
 // from a working-directory config(), openrouter-runner.mjs from the code root).
 // The other readers load none. That is a split whether or not a data-root profile exists, so it is
@@ -881,8 +881,8 @@ function checkEnvFileProfile(root) {
   if (!fromEnvFile) return null;
   return {
     warn: true,
-    label: `.env sets CAREER_OPS_PROFILE=${fromEnvFile}, but of the profile readers, only scan.mjs, the evaluators, openai-tailor.mjs and openrouter-runner.mjs load .env; cv-sync-check, generate-pdf, upskill and the other readers use ${profilePathFor(root)}`,
-    fix: [`Export CAREER_OPS_PROFILE=${fromEnvFile} in your shell so every command reads the same file, or remove it from .env`],
+    label: `.env sets LANDING_GEAR_PROFILE=${fromEnvFile}, but of the profile readers, only scan.mjs, the evaluators, openai-tailor.mjs and openrouter-runner.mjs load .env; cv-sync-check, generate-pdf, upskill and the other readers use ${profilePathFor(root)}`,
+    fix: [`Export LANDING_GEAR_PROFILE=${fromEnvFile} in your shell so every command reads the same file, or remove it from .env`],
   };
 }
 
@@ -898,16 +898,16 @@ function checkPrereq(prereq) {
     const named = profilePathFor(projectRoot);
     return {
       warn: true,
-      label: `${path} not found (CAREER_OPS_PROFILE names ${named})`,
-      fix: [`Create ${named}, or unset CAREER_OPS_PROFILE to use the profile in the data root`],
+      label: `${path} not found (LANDING_GEAR_PROFILE names ${named})`,
+      fix: [`Create ${named}, or unset LANDING_GEAR_PROFILE to use the profile in the data root`],
     };
   }
   const fromEnvFile = path === 'config/profile.yml' && !explicitTarget ? profileFromEnvFile(projectRoot) : null;
   if (fromEnvFile) {
     return {
       warn: true,
-      label: `${path} not found (.env sets CAREER_OPS_PROFILE=${fromEnvFile}, but most commands never load .env)`,
-      fix: [`Export CAREER_OPS_PROFILE=${fromEnvFile} in your shell so every command sees it, or remove it from .env and put the profile at ${profilePathFor(projectRoot)}`],
+      label: `${path} not found (.env sets LANDING_GEAR_PROFILE=${fromEnvFile}, but most commands never load .env)`,
+      fix: [`Export LANDING_GEAR_PROFILE=${fromEnvFile} in your shell so every command sees it, or remove it from .env and put the profile at ${profilePathFor(projectRoot)}`],
     };
   }
   return { warn: true, label: `${path} not found (user setup required)`, fix };
@@ -1023,8 +1023,8 @@ Paste job URLs below as \`- [ ] {url}\` then run \`/landing-gear pipeline\`.
 `;
 
 function checkPipelineFile() {
-  const filePath = process.env.CAREER_OPS_PIPELINE || join(projectRoot, 'data', 'pipeline.md');
-  const shown = process.env.CAREER_OPS_PIPELINE ? filePath : 'data/pipeline.md';
+  const filePath = process.env.LANDING_GEAR_PIPELINE || join(projectRoot, 'data', 'pipeline.md');
+  const shown = process.env.LANDING_GEAR_PIPELINE ? filePath : 'data/pipeline.md';
   if (existsSync(filePath)) {
     return { pass: true, label: `${shown} ready` };
   }
@@ -1036,8 +1036,8 @@ function checkPipelineFile() {
     return {
       pass: false,
       label: `${shown} could not be created`,
-      fix: process.env.CAREER_OPS_PIPELINE
-        ? `Run: mkdir -p "$(dirname "$CAREER_OPS_PIPELINE")" && touch "$CAREER_OPS_PIPELINE"`
+      fix: process.env.LANDING_GEAR_PIPELINE
+        ? `Run: mkdir -p "$(dirname "$LANDING_GEAR_PIPELINE")" && touch "$LANDING_GEAR_PIPELINE"`
         : 'Run: mkdir -p data && touch data/pipeline.md',
     };
   }
@@ -1104,7 +1104,7 @@ function checkPlugins(root) {
 // whose Experience section they cannot find makes both run against nothing.
 // They do say so per run, but only once a tailored CV is already being built;
 // this says it at setup time. A warning, never a failure: cv.md is the user's
-// file and career-ops still works with it.
+// file and landing-gear still works with it.
 function checkCvShape(root) {
   const cvPath = join(root, 'cv.md');
   if (!existsSync(cvPath)) return null;   // the prereq check owns "absent"
@@ -1153,7 +1153,7 @@ function checkProfileShape(root) {
 }
 
 async function main() {
-  console.log('\ncareer-ops doctor');
+  console.log('\nlanding-gear doctor');
   console.log('================\n');
 
   const { cli: activeCli, source: cliSource, warning: cliWarning } = resolveActiveCli();
@@ -1241,7 +1241,6 @@ async function main() {
     }
     console.log('');
     console.log('Join the community: https://discord.gg/8pRpHETxa4');
-    console.log('Read the manifesto: `npm run manifesto` — a new way of job searching is taking shape, and you are now part of it.');
     process.exit(0);
   }
 }
@@ -1481,7 +1480,7 @@ function onboardingState(root) {
   return {
     onboardingNeeded: missing.length > 0,
     missing,
-    // Non-blocking by design: career-ops is meant to work out of the box, so an
+    // Non-blocking by design: landing-gear is meant to work out of the box, so an
     // unedited personalization file must not gate the whole system. It DOES have
     // to be visible — surfaced as its own field the agent can branch on rather
     // than a string it has to pattern-match out of `warnings`.

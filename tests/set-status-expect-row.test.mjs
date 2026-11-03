@@ -29,7 +29,7 @@ const ROW_2 = '| 2 | 2026-09-01 | Sample Systems | Data Engineer | 4/5 | Applied
 const tracker = rows => [...HEADER, ...rows, ''].join('\n');
 
 function fixture(t) {
-  const root = mkdtempSync(join(tmpdir(), 'career-ops-expect-row-'));
+  const root = mkdtempSync(join(tmpdir(), 'landing-gear-expect-row-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   const data = join(root, 'data');
   mkdirSync(data);
@@ -37,7 +37,7 @@ function fixture(t) {
   writeFileSync(file, tracker([ROW_1, ROW_2]));
   return {
     root, data, file,
-    env: { ...process.env, CAREER_OPS_ROOT: root, CAREER_OPS_DATA_DIR: '', CAREER_OPS_TRACKER: file },
+    env: { ...process.env, LANDING_GEAR_ROOT: root, LANDING_GEAR_DATA_DIR: '', LANDING_GEAR_TRACKER: file },
   };
 }
 

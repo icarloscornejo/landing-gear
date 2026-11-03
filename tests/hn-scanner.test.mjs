@@ -103,8 +103,8 @@ function writeFetchFixture(dir, { serveHn = true, children = null, geminiAnswers
 }
 
 function runScanHn(dir, preload, args, envOverrides = {}) {
-  const env = { ...process.env, CAREER_OPS_ROOT: dir, CAREER_OPS_DATA_DIR: '', ...envOverrides };
-  delete env.CAREER_OPS_PORTALS;
+  const env = { ...process.env, LANDING_GEAR_ROOT: dir, LANDING_GEAR_DATA_DIR: '', ...envOverrides };
+  delete env.LANDING_GEAR_PORTALS;
   delete env.GEMINI_MODEL;
   return spawnSync(process.execPath, [
     '--require', preload,
@@ -118,7 +118,7 @@ function runScanHn(dir, preload, args, envOverrides = {}) {
 // too. Every Gemini call fails the way an invalid key does; HN is served from a
 // fixture, and any other request is refused.
 test('scan-hn reports AI errors and exits non-zero when every Gemini call fails', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-scanhn-'));
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-scanhn-'));
   try {
     mkdirSync(join(dir, 'data'), { recursive: true });
     const { preload, unexpected } = writeFetchFixture(dir);
@@ -142,7 +142,7 @@ test('scan-hn reports AI errors and exits non-zero when every Gemini call fails'
 // (#4598). Both must stop before the first fetch: nothing served, nothing
 // written.
 test('scan-hn --help prints usage and an unknown flag is refused, neither runs the scan', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-scanhn-'));
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-scanhn-'));
   try {
     mkdirSync(join(dir, 'data'), { recursive: true });
     const { preload, unexpected } = writeFetchFixture(dir, { serveHn: false });
@@ -170,7 +170,7 @@ test('scan-hn --help prints usage and an unknown flag is refused, neither runs t
 // postings, so the valid file is the control: its keywords are read and match
 // nothing. The broken one must stop before the first fetch, as scan.mjs does.
 test('scan-hn refuses a portals.yml that does not parse instead of scanning with the default keyword', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-scanhn-'));
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-scanhn-'));
   try {
     mkdirSync(join(dir, 'data'), { recursive: true });
     const portals = join(dir, 'portals.yml');
@@ -203,7 +203,7 @@ test('scan-hn refuses a portals.yml that does not parse instead of scanning with
 // slash, a capital in its path or a utm parameter was therefore new again on
 // every run, and landed in pipeline.md and scan-history a second time.
 test('scan-hn does not add a posting again when its URL is not already in normalized form', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-scanhn-'));
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-scanhn-'));
   try {
     mkdirSync(join(dir, 'data'), { recursive: true });
     const { preload, unexpected } = writeFetchFixture(dir, { children: [
@@ -233,7 +233,7 @@ test('scan-hn does not add a posting again when its URL is not already in normal
 // blacklist, the title_filter negatives or location_filter (#5478). Gemini here
 // extracts whatever it is sent, so only the scanner's own gate can drop a post.
 test('scan-hn AI mode admits only keyword matches that pass the blacklist and filters', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-scanhn-'));
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-scanhn-'));
   try {
     mkdirSync(join(dir, 'data'), { recursive: true });
     writeFileSync(join(dir, 'portals.yml'), [

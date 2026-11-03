@@ -1,4 +1,4 @@
-# Custom Instructions -- career-ops
+# Custom Instructions -- landing-gear
 
 <!-- ============================================================
      THIS FILE IS YOURS. It will NEVER be auto-updated.

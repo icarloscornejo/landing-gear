@@ -6,14 +6,14 @@ import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
 import { run, finish, exitOnInterrupt, NODE, ROOT, REAL_DATA_ROOT, SANDBOX_DATA_ROOT } from '../helpers.mjs';
-import { getCareerOpsRoot } from '../../path-resolver.mjs';
+import { getLandingGearRoot } from '../../path-resolver.mjs';
 
 const [mode, arg] = process.argv.slice(2);
 
 const report = () => {
   console.log(`REAL=${REAL_DATA_ROOT ?? ''}`);
   console.log(`SANDBOX=${SANDBOX_DATA_ROOT}`);
-  console.log(`RESOLVED=${getCareerOpsRoot()}`);
+  console.log(`RESOLVED=${getLandingGearRoot()}`);
 };
 
 // What the offending suites did: write a user-layer file in the real root.

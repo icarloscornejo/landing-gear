@@ -20,7 +20,7 @@ import { describeSpawn } from './helpers/describe-spawn.mjs';
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 
-// `env` overrides entries of the inherited environment; pass CAREER_OPS_ROOT
+// `env` overrides entries of the inherited environment; pass LANDING_GEAR_ROOT
 // here for any script that reads the tracker, so the child never touches the
 // checkout's data/ (or whatever root the developer's env already points at).
 function runScriptWithEnv(env, script, ...args) {
@@ -139,7 +139,7 @@ test('clean-markers.mjs still exits 2 with usage when given no files', () => {
 });
 
 test('clean-markers.mjs still accepts --ascii as a known flag', () => {
-  const r = runScript('clean-markers.mjs', 'clean', '--ascii', join(tmpdir(), 'career-ops-no-such-file.md'));
+  const r = runScript('clean-markers.mjs', 'clean', '--ascii', join(tmpdir(), 'landing-gear-no-such-file.md'));
   assert.doesNotMatch(r.all, /unrecognized flag/i, '--ascii must not be rejected as unrecognized');
 });
 
@@ -147,7 +147,7 @@ test('clean-markers.mjs still accepts --ascii as a known flag', () => {
 // runs inside the fixture dir and gets the bare relative name. An absolute path
 // would begin with a slash and never reach the flag check.
 test('clean-markers.mjs audits a dash-leading path after --', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-clean-markers-'));
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-clean-markers-'));
   try {
     writeFileSync(join(dir, '-draft.md'), 'plain text\n');
     const r = spawnSync(process.execPath, [join(ROOT, 'clean-markers.mjs'), 'audit', '--', '-draft.md'], {
@@ -176,7 +176,7 @@ test('fix-slugs rejects unknown flags before checking or reading portals file', 
 });
 
 test('fix-slugs honours both --file <path> and --file=<path> syntax', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-fixslugs-flag-'));
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-fixslugs-flag-'));
   try {
     const customPortals = join(dir, 'custom.yml');
     const r1 = runScript('fix-slugs.mjs', '--file', customPortals);
@@ -442,11 +442,11 @@ test('normalize-statuses.mjs --help --bogus still errors', () => {
 });
 
 // --dry-run still READS and parses the tracker, and the module creates
-// {root}/data/ on load, so the child gets its own CAREER_OPS_ROOT rather than
-// whatever tracker the checkout (or an inherited CAREER_OPS_ROOT) points at.
+// {root}/data/ on load, so the child gets its own LANDING_GEAR_ROOT rather than
+// whatever tracker the checkout (or an inherited LANDING_GEAR_ROOT) points at.
 // The fixture row carries a non-canonical status so the run has real work to do.
 test('normalize-statuses.mjs still accepts --dry-run as a known flag', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-normalize-'));
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-normalize-'));
   try {
     mkdirSync(join(dir, 'data'), { recursive: true });
     writeFileSync(join(dir, 'data', 'applications.md'), [
@@ -459,7 +459,7 @@ test('normalize-statuses.mjs still accepts --dry-run as a known flag', () => {
     ].join('\n'));
 
     const r = runScriptWithEnv(
-      { CAREER_OPS_ROOT: dir, CAREER_OPS_DATA_DIR: '', CAREER_OPS_TRACKER: '' },
+      { LANDING_GEAR_ROOT: dir, LANDING_GEAR_DATA_DIR: '', LANDING_GEAR_TRACKER: '' },
       'normalize-statuses.mjs', '--dry-run',
     );
     assert.equal(r.status, 0, describeSpawn(r, `normalize-statuses.mjs --dry-run exited ${r.status}, want 0`));
@@ -475,15 +475,15 @@ test('normalize-statuses.mjs still accepts --dry-run as a known flag', () => {
 // data/pipeline.md, the one outcome --dry-run exists to prevent (#4600). These
 // cases are not SCRIPTS rows: runScript inherits the real environment and
 // checkout, and a regression here would re-rank the real pipeline through
-// whatever agent CLI is installed. Each case gets a throwaway CAREER_OPS_ROOT,
-// and CAREER_OPS_RANK_CLI names a binary that does not exist, so even a
+// whatever agent CLI is installed. Each case gets a throwaway LANDING_GEAR_ROOT,
+// and LANDING_GEAR_RANK_CLI names a binary that does not exist, so even a
 // regressed run reaches no user data, no model and no network.
 function runRankPipeline(root, ...args) {
   const r = spawnSync(process.execPath, [join(ROOT, 'rank-pipeline.mjs'), ...args], {
     cwd: root,
     encoding: 'utf-8',
     timeout: 30_000,
-    env: { ...process.env, CAREER_OPS_ROOT: root, CAREER_OPS_RANK_CLI: 'career-ops-no-such-cli' },
+    env: { ...process.env, LANDING_GEAR_ROOT: root, LANDING_GEAR_RANK_CLI: 'landing-gear-no-such-cli' },
   });
   assert.equal(r.error, undefined, `rank-pipeline.mjs failed to spawn: ${r.error?.message}`);
   assert.equal(r.signal, null, `rank-pipeline.mjs was killed by ${r.signal} (timeout?)`);
@@ -491,7 +491,7 @@ function runRankPipeline(root, ...args) {
 }
 
 test('rank-pipeline.mjs rejects --dryrun instead of writing data/pipeline.md', () => {
-  const root = mkdtempSync(join(tmpdir(), 'career-ops-rank-pipeline-'));
+  const root = mkdtempSync(join(tmpdir(), 'landing-gear-rank-pipeline-'));
   try {
     mkdirSync(join(root, 'data'));
     const pipeline = join(root, 'data', 'pipeline.md');
@@ -508,7 +508,7 @@ test('rank-pipeline.mjs rejects --dryrun instead of writing data/pipeline.md', (
 
 // Its usage block has no `Usage:` header, so the synopsis line identifies it.
 test('rank-pipeline.mjs --help exits 0 and prints usage', () => {
-  const root = mkdtempSync(join(tmpdir(), 'career-ops-rank-pipeline-'));
+  const root = mkdtempSync(join(tmpdir(), 'landing-gear-rank-pipeline-'));
   try {
     const r = runRankPipeline(root, '--help');
     assert.equal(r.status, 0, describeSpawn(r, `rank-pipeline.mjs --help exited ${r.status}, want 0`));
@@ -531,12 +531,12 @@ function runMergeTracker(root, ...args) {
     timeout: 30_000,
     env: {
       ...process.env,
-      CAREER_OPS_ROOT: root,
-      CAREER_OPS_TRACKER: join(root, 'applications.md'),
-      CAREER_OPS_ADDITIONS: join(root, 'tracker-additions'),
-      CAREER_OPS_TRACKER_LOCK: join(root, 'lock'),
-      CAREER_OPS_TRACKER_DB: join(root, 'applications.db'),
-      CAREER_OPS_REPORTS: join(root, 'reports'),
+      LANDING_GEAR_ROOT: root,
+      LANDING_GEAR_TRACKER: join(root, 'applications.md'),
+      LANDING_GEAR_ADDITIONS: join(root, 'tracker-additions'),
+      LANDING_GEAR_TRACKER_LOCK: join(root, 'lock'),
+      LANDING_GEAR_TRACKER_DB: join(root, 'applications.db'),
+      LANDING_GEAR_REPORTS: join(root, 'reports'),
     },
   });
   assert.equal(r.error, undefined, `merge-tracker.mjs failed to spawn: ${r.error?.message}`);
@@ -545,7 +545,7 @@ function runMergeTracker(root, ...args) {
 }
 
 test('merge-tracker.mjs rejects --dryrun instead of merging into the tracker', () => {
-  const root = mkdtempSync(join(tmpdir(), 'career-ops-merge-tracker-'));
+  const root = mkdtempSync(join(tmpdir(), 'landing-gear-merge-tracker-'));
   try {
     mkdirSync(join(root, 'tracker-additions'));
     mkdirSync(join(root, 'reports'));
@@ -568,7 +568,7 @@ test('merge-tracker.mjs rejects --dryrun instead of merging into the tracker', (
 });
 
 test('merge-tracker.mjs --help exits 0 and prints usage', () => {
-  const root = mkdtempSync(join(tmpdir(), 'career-ops-merge-tracker-'));
+  const root = mkdtempSync(join(tmpdir(), 'landing-gear-merge-tracker-'));
   try {
     const r = runMergeTracker(root, '--help');
     assert.equal(r.status, 0, describeSpawn(r, `merge-tracker.mjs --help exited ${r.status}, want 0`));

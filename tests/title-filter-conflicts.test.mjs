@@ -216,7 +216,7 @@ function doctorOn(dir, { json = true, env = {} } = {}) {
     cwd: dir,
     encoding: 'utf8',
     timeout: 30_000,
-    env: { ...process.env, CAREER_OPS_ROOT: dir, CAREER_OPS_DATA_DIR: '', CAREER_OPS_CLI: 'claude', ...env },
+    env: { ...process.env, LANDING_GEAR_ROOT: dir, LANDING_GEAR_DATA_DIR: '', LANDING_GEAR_CLI: 'claude', ...env },
   });
   if (res.error) return { error: res.error };
   return { status: res.status, stdout: res.stdout, stderr: res.stderr };
@@ -322,20 +322,20 @@ try {
     pass('plain doctor surfaces the conflict as a non-blocking warning');
   }
 
-  // CAREER_OPS_PORTALS picks the file the scanner reads, so the diagnosis has to
+  // LANDING_GEAR_PORTALS picks the file the scanner reads, so the diagnosis has to
   // follow it rather than always reading root/portals.yml.
   writeFileSync(join(scratch, 'alt.yml'), CONFLICTING);
   writeFileSync(join(scratch, 'portals.yml'), COHERENT);
-  const overridden = doctorOn(scratch, { env: { CAREER_OPS_PORTALS: join(scratch, 'alt.yml') } });
+  const overridden = doctorOn(scratch, { env: { LANDING_GEAR_PORTALS: join(scratch, 'alt.yml') } });
   if (spawnBlocked(overridden.error)) {
-    warn(`doctor could not be spawned in this environment (${overridden.error.code}); CAREER_OPS_PORTALS override not exercised here`);
+    warn(`doctor could not be spawned in this environment (${overridden.error.code}); LANDING_GEAR_PORTALS override not exercised here`);
   } else if (overridden.error || overridden.status !== 0) {
-    fail(`doctor under CAREER_OPS_PORTALS failed: ${overridden.error?.message ?? overridden.stderr}`);
+    fail(`doctor under LANDING_GEAR_PORTALS failed: ${overridden.error?.message ?? overridden.stderr}`);
   } else {
     const payload = JSON.parse(overridden.stdout);
     const reported = payload.titleFilterConflicts;
     if (Array.isArray(reported) && reported.length === 1) {
-      pass('doctor reads the portals file CAREER_OPS_PORTALS selects');
+      pass('doctor reads the portals file LANDING_GEAR_PORTALS selects');
     } else {
       fail(`override was ignored; titleFilterConflicts was ${JSON.stringify(reported)}`);
     }
@@ -346,7 +346,7 @@ try {
   // scan never opens.
   writeFileSync(join(scratch, 'clean-alt.yml'), COHERENT);
   writeFileSync(join(scratch, 'portals.yml'), CONFLICTING);
-  const shadowed = doctorOn(scratch, { env: { CAREER_OPS_PORTALS: join(scratch, 'clean-alt.yml') } });
+  const shadowed = doctorOn(scratch, { env: { LANDING_GEAR_PORTALS: join(scratch, 'clean-alt.yml') } });
   if (spawnBlocked(shadowed.error)) {
     warn(`doctor could not be spawned in this environment (${shadowed.error.code}); override shadowing not exercised here`);
   } else if (shadowed.error || shadowed.status !== 0) {

@@ -16,7 +16,7 @@ const row = (cells, trailingPipe) => `| ${cells.join(' | ')}${trailingPipe ? ' |
 for (const extra of [null, ['URL', 'https://careers.acme.example/jobs/7'], ['Contact', 'recruiter@example.test']]) {
   for (const trailingPipe of [false, true]) {
     const label = `Via migration preserves ${extra?.[0] ?? 'Notes'} (${trailingPipe ? 'closing pipe' : 'no closing pipe'})`;
-    const dir = mkdtempSync(join(tmpdir(), 'career-ops-via-last-cell-'));
+    const dir = mkdtempSync(join(tmpdir(), 'landing-gear-via-last-cell-'));
     try {
       const appsFile = join(dir, 'applications.md');
       const labels = [...columns, ...(extra ? [extra[0]] : [])];

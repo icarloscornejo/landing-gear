@@ -37,9 +37,9 @@ export function withQueries(script, queries) {
   return script.replace(QUERIES_LINE, () => `  const QUERIES = ${JSON.stringify(queries)}; // QUERIES`);
 }
 
-/** portals.yml -> linkedin_post_queries.queries, capped at max_queries_per_run; [] when absent. */
-export function portalQueries(portalsText) {
-  const config = (yaml.load(portalsText) ?? {}).linkedin_post_queries ?? {};
+/** portals.yml -> <key>.queries (linkedin_post_queries by default), capped at max_queries_per_run; [] when absent. */
+export function portalQueries(portalsText, key = "linkedin_post_queries") {
+  const config = (yaml.load(portalsText) ?? {})[key] ?? {};
   const queries = (config.queries ?? []).filter((query) => typeof query === "string" && query.trim());
   return config.max_queries_per_run > 0 ? queries.slice(0, config.max_queries_per_run) : queries;
 }
@@ -87,14 +87,24 @@ return { ${Object.values(EXPORTS).flat().join(", ")} };
  *   keeps the US eligibility check off
  */
 export function buildLinkedinScript(root, usAuthorized) {
+  return buildConsoleScript(root, usAuthorized, { file: "linkedin-posts-scan.js", queriesKey: "linkedin_post_queries" });
+}
+
+/**
+ * Any console scan built the same way: the X scan (x-script.mjs) shares the post filter and these steps.
+ * @param {string} root
+ * @param {boolean | undefined} usAuthorized
+ * @param {{file: string, queriesKey: string}} scan the script in web/src/lib and its portals.yml key
+ */
+export function buildConsoleScript(root, usAuthorized, { file, queriesKey }) {
   const read = (...parts) => fs.readFileSync(path.join(root, ...parts), "utf8");
   let queries = [];
   try {
-    queries = portalQueries(read("portals.yml"));
+    queries = portalQueries(read("portals.yml"), queriesKey);
   } catch (error) {
     if (error.code !== "ENOENT") throw error;
   }
-  const template = withProfile(withQueries(read("web", "src", "lib", "linkedin-posts-scan.js"), queries), usAuthorized);
+  const template = withProfile(withQueries(read("web", "src", "lib", file), queries), usAuthorized);
   const script = withModules(template, {
     preTriage: read("web", "src", "lib", "pre-triage.mjs"),
     linkedinPost: read("web", "src", "lib", "linkedin-post.mjs"),

@@ -33,7 +33,7 @@ import { assertScheduledJobBody } from "../../src/lib/scheduled-job-input.mjs";
 const WEB_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
 test("scheduled-jobs store starts empty and never seeds candidate-specific targeting", () => {
-  const temp = fs.mkdtempSync(path.join(os.tmpdir(), "career-ops-scheduled-store-"));
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), "landing-gear-scheduled-store-"));
   try {
     const store = readScheduledStore(path.join(temp, "scheduled-jobs.json"));
     assert.deepEqual(store, emptyScheduledStore());
@@ -43,7 +43,7 @@ test("scheduled-jobs store starts empty and never seeds candidate-specific targe
 });
 
 test("scheduled-jobs store serializes concurrent writers without losing jobs", async () => {
-  const temp = fs.mkdtempSync(path.join(os.tmpdir(), "career-ops-scheduled-lock-"));
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), "landing-gear-scheduled-lock-"));
   const storePath = path.join(temp, "scheduled-jobs.json");
   try {
     await Promise.all(
@@ -63,7 +63,7 @@ test("scheduled-jobs store serializes concurrent writers without losing jobs", a
 });
 
 test("invalid scheduled-jobs JSON is reported instead of overwritten", () => {
-  const temp = fs.mkdtempSync(path.join(os.tmpdir(), "career-ops-scheduled-invalid-"));
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), "landing-gear-scheduled-invalid-"));
   const storePath = path.join(temp, "scheduled-jobs.json");
   try {
     fs.writeFileSync(storePath, "{not-json", "utf8");
@@ -113,7 +113,7 @@ test("scan command honors the selected engine and bounded filters", () => {
 });
 
 test("scheduled overlay falls back to portal title keywords and preserves hard location blocks", () => {
-  const temp = fs.mkdtempSync(path.join(os.tmpdir(), "career-ops-scheduled-filters-"));
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), "landing-gear-scheduled-filters-"));
   fs.writeFileSync(path.join(temp, "portals.yml"), "title_filter:\n  positive: [engineer]\ntitle_filter_full:\n  positive: [architect]\nlocation_filter: {}\n", "utf8");
   const job = {
     id: "11111111-1111-4111-8111-111111111111",
@@ -124,9 +124,9 @@ test("scheduled overlay falls back to portal title keywords and preserves hard l
     let overlay;
     const result = executeJob(temp, job, {
       spawnFn: (_node, _args, options) => {
-        assert.equal(options.env.CAREER_OPS_ROOT, temp);
+        assert.equal(options.env.LANDING_GEAR_ROOT, temp);
         assert.ok(fs.existsSync(path.join(options.cwd, "scan.mjs")));
-        overlay = yaml.load(fs.readFileSync(options.env.CAREER_OPS_PORTALS, "utf8"));
+        overlay = yaml.load(fs.readFileSync(options.env.LANDING_GEAR_PORTALS, "utf8"));
         return { status: 0, stdout: JSON.stringify({ postingsKept: 0 }), stderr: "" };
       },
     });
@@ -137,7 +137,7 @@ test("scheduled overlay falls back to portal title keywords and preserves hard l
     assert.deepEqual(overlay.location_filter.always_allow, ["Porto"]);
     const explicit = executeJob(temp, { ...job, filters: { ...job.filters, positive: ["designer"] } }, {
       spawnFn: (_node, _args, options) => {
-        overlay = yaml.load(fs.readFileSync(options.env.CAREER_OPS_PORTALS, "utf8"));
+        overlay = yaml.load(fs.readFileSync(options.env.LANDING_GEAR_PORTALS, "utf8"));
         return { status: 0, stdout: JSON.stringify({ postingsKept: 0 }), stderr: "" };
       },
     });
@@ -150,7 +150,7 @@ test("scheduled overlay falls back to portal title keywords and preserves hard l
 });
 
 test("scheduled scan never starts without title keywords", () => {
-  const temp = fs.mkdtempSync(path.join(os.tmpdir(), "career-ops-scheduled-no-titles-"));
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), "landing-gear-scheduled-no-titles-"));
   fs.writeFileSync(path.join(temp, "portals.yml"), "title_filter: {}\n", "utf8");
   try {
     let spawned = false;
@@ -180,7 +180,7 @@ test("runner resource is derived from the exact scheduled store path", () => {
 });
 
 test("manual claims persist a running record and reject duplicate runs", async () => {
-  const temp = fs.mkdtempSync(path.join(os.tmpdir(), "career-ops-scheduled-manual-"));
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), "landing-gear-scheduled-manual-"));
   const storePath = path.join(temp, "scheduled-jobs.json");
   const jobId = "11111111-1111-4111-8111-111111111111";
   const now = Date.parse("2026-08-08T12:00:00.000Z");
@@ -216,7 +216,7 @@ test("manual claims allow paused jobs but exclude deleted and unknown jobs", () 
 });
 
 test("lock creation cleans directories when owner metadata writes fail", async () => {
-  const temp = fs.mkdtempSync(path.join(os.tmpdir(), "career-ops-scheduled-lock-write-failure-"));
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), "landing-gear-scheduled-lock-write-failure-"));
   const resource = path.join(temp, "resource");
   const originalWrite = fs.writeFileSync;
   try {
@@ -262,7 +262,7 @@ function injectMkdirFailures(target, code, failures = Number.POSITIVE_INFINITY) 
 for (const [label, suffix] of [["recovery guard", ".recovery.lock"], ["resource lock", ".lock"]]) {
   for (const code of ["EPERM", "EACCES"]) {
     test(`${label} mkdir retries a Windows ${code} as contention instead of crashing`, async () => {
-      const temp = fs.mkdtempSync(path.join(os.tmpdir(), "career-ops-scheduled-mkdir-retry-"));
+      const temp = fs.mkdtempSync(path.join(os.tmpdir(), "landing-gear-scheduled-mkdir-retry-"));
       const resource = path.join(temp, "resource");
       const injected = injectMkdirFailures(`${resource}${suffix}`, code, 3);
       try {
@@ -280,7 +280,7 @@ for (const [label, suffix] of [["recovery guard", ".recovery.lock"], ["resource 
   }
 
   test(`${label} mkdir still throws a persistent Windows EPERM once the deadline passes`, async () => {
-    const temp = fs.mkdtempSync(path.join(os.tmpdir(), "career-ops-scheduled-mkdir-deadline-"));
+    const temp = fs.mkdtempSync(path.join(os.tmpdir(), "landing-gear-scheduled-mkdir-deadline-"));
     const resource = path.join(temp, "resource");
     const injected = injectMkdirFailures(`${resource}${suffix}`, "EPERM");
     try {
@@ -298,7 +298,7 @@ for (const [label, suffix] of [["recovery guard", ".recovery.lock"], ["resource 
   });
 
   test(`${label} mkdir EPERM stays an immediate failure off Windows`, async () => {
-    const temp = fs.mkdtempSync(path.join(os.tmpdir(), "career-ops-scheduled-mkdir-posix-"));
+    const temp = fs.mkdtempSync(path.join(os.tmpdir(), "landing-gear-scheduled-mkdir-posix-"));
     const resource = path.join(temp, "resource");
     const injected = injectMkdirFailures(`${resource}${suffix}`, "EPERM");
     try {
@@ -359,7 +359,7 @@ test("scheduled IDs are UUIDs and lock status distinguishes stale owners", () =>
 });
 
 test("persisted malformed identifiers fail closed without touching the file", () => {
-  const temp = fs.mkdtempSync(path.join(os.tmpdir(), "career-ops-scheduled-id-"));
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), "landing-gear-scheduled-id-"));
   const storePath = path.join(temp, "scheduled-jobs.json");
   try {
     fs.writeFileSync(storePath, JSON.stringify({ jobs: [{ id: "../escape" }], runs: [], queue: [] }), "utf8");
@@ -371,7 +371,7 @@ test("persisted malformed identifiers fail closed without touching the file", ()
 });
 
 test("a crashed lock owner is recoverable by a real second process", async () => {
-  const temp = fs.mkdtempSync(path.join(os.tmpdir(), "career-ops-scheduled-crash-lock-"));
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), "landing-gear-scheduled-crash-lock-"));
   const resource = path.join(temp, "resource");
   try {
     // Use dynamic exit access so the real crash remains covered without tripping
@@ -388,7 +388,7 @@ test("a crashed lock owner is recoverable by a real second process", async () =>
 });
 
 test("concurrent real contenders never overlap while taking over or releasing a lock", async () => {
-  const temp = fs.mkdtempSync(path.join(os.tmpdir(), "career-ops-scheduled-race-"));
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), "landing-gear-scheduled-race-"));
   const resource = path.join(temp, "resource");
   const moduleUrl = pathToFileURL(path.join(WEB_ROOT, "src/lib/scheduled-jobs-store.mjs")).href;
   const runChild = (index) => new Promise((resolve, reject) => {
@@ -418,7 +418,7 @@ test("concurrent real contenders never overlap while taking over or releasing a 
 // Windows answers for a directory that is mid-removal.
 for (const statCode of ["ENOENT", "EPERM"]) {
   test(`a guard whose stat fails with ${statCode} is not taken from the contender who re-creates it`, async () => {
-    const temp = fs.mkdtempSync(path.join(os.tmpdir(), "career-ops-scheduled-vanish-"));
+    const temp = fs.mkdtempSync(path.join(os.tmpdir(), "landing-gear-scheduled-vanish-"));
     const resource = path.join(temp, "resource");
     const guardDir = `${resource}.recovery.lock`;
     const guardOwner = path.join(guardDir, "owner.json");
@@ -472,7 +472,7 @@ for (const statCode of ["ENOENT", "EPERM"]) {
 }
 
 test("a worker crash after a persisted claim leaves the queue recoverable", async () => {
-  const temp = fs.mkdtempSync(path.join(os.tmpdir(), "career-ops-scheduled-claim-crash-"));
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), "landing-gear-scheduled-claim-crash-"));
   const storePath = path.join(temp, "scheduled-jobs.json");
   const storeModule = pathToFileURL(path.join(WEB_ROOT, "src/lib/scheduled-jobs-store.mjs")).href;
   const runnerModule = pathToFileURL(path.join(WEB_ROOT, "scripts/scheduled-jobs-runner.mjs")).href;
@@ -496,7 +496,7 @@ test("a worker crash after a persisted claim leaves the queue recoverable", asyn
 });
 
 test("executeJob retries exactly three times and converts scanner timeouts to a final failure", () => {
-  const temp = fs.mkdtempSync(path.join(os.tmpdir(), "career-ops-scheduled-retry-"));
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), "landing-gear-scheduled-retry-"));
   const job = { id: "11111111-1111-4111-8111-111111111111", engine: "full", filters: {}, timezone: "UTC" };
   fs.writeFileSync(path.join(temp, "portals.yml"), "title_filter:\n  positive: [engineer]\nlocation_filter: {}\n", "utf8");
   try {
@@ -524,7 +524,7 @@ test("executeJob retries exactly three times and converts scanner timeouts to a 
 });
 
 test("executeJob retries thrown setup and spawn failures before succeeding", () => {
-  const temp = fs.mkdtempSync(path.join(os.tmpdir(), "career-ops-scheduled-thrown-retry-"));
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), "landing-gear-scheduled-thrown-retry-"));
   const job = { id: "11111111-1111-4111-8111-111111111111", engine: "full", filters: {}, timezone: "UTC" };
   fs.writeFileSync(path.join(temp, "portals.yml"), "title_filter:\n  positive: [engineer]\nlocation_filter: {}\n", "utf8");
   try {

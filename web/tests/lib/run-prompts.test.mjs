@@ -98,7 +98,7 @@ test("buildPrompt: an unknown kind falls through to the evaluate prompt", () => 
   // When building its prompt
   // Then it is the evaluation prompt (the documented default), not an empty string
   const prompt = buildPrompt({ kind: "some-future-kind", ...ARGS });
-  assert.match(prompt, /OFFICIAL career-ops job evaluation/);
+  assert.match(prompt, /OFFICIAL landing-gear job evaluation/);
 });
 
 test("buildPrompt: memory is injected only when non-empty", () => {
@@ -252,7 +252,7 @@ test("buildPrompt: the default configuration adds no market note", () => {
 // A candidate can be running parallel campaigns in more than one market at
 // once (e.g. an immigrant applying in both Canada and China simultaneously).
 // language.modes_dir may declare multiple candidate markets as an array;
-// readLanguageConfig() (web/src/lib/career-ops.ts) normalizes both the single
+// readLanguageConfig() (web/src/lib/landing-gear.ts) normalizes both the single
 // string and the array shape into `modesDirs`, primary market first.
 
 const DE_ZH = {

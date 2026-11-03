@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * detect-reposts.mjs — Repost Detector for career-ops
+ * detect-reposts.mjs — Repost Detector for landing-gear
  *
  * Reads data/scan-history.tsv, groups rows by company, groups role titles by
  * title identity (see titleIdentityKey), and flags any company+role that
@@ -53,7 +53,7 @@
  *      node detect-reposts.mjs --self-test
  *      node detect-reposts.mjs --help
  *
- * Issue #1205 — github.com/career-ops-hq/career-ops
+ * Issue #1205 (upstream)
  */
 
 import { readFileSync, existsSync, writeFileSync, mkdtempSync, rmSync } from 'fs';
@@ -65,17 +65,17 @@ import { fileURLToPath } from 'url';
 import { loadYaml } from './lib/yaml-document.mjs';
 
 import { roleFuzzyMatch } from './role-matcher.mjs';
-import { getCareerOpsRoot } from './path-resolver.mjs';
+import { getLandingGearRoot } from './path-resolver.mjs';
 import { normalizeCompanyName } from './invite-match.mjs';
 import { flagValue, validateFlags, safeIntFlag } from './lib/cli-flags.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
 import { parseDate } from './lib/parse-date.mjs';
 import { parseScanHistoryLine, scanHistoryLineHasColumn } from './lib/scan-history-columns.mjs';
 
-const CAREER_OPS = getCareerOpsRoot();
-const SCAN_HISTORY_PATH = join(CAREER_OPS, 'data/scan-history.tsv');
+const LANDING_GEAR = getLandingGearRoot();
+const SCAN_HISTORY_PATH = join(LANDING_GEAR, 'data/scan-history.tsv');
 // Same resolution scan.mjs uses, so a sandboxed run overrides both together.
-const PORTALS_PATH = process.env.CAREER_OPS_PORTALS || join(CAREER_OPS, 'portals.yml');
+const PORTALS_PATH = process.env.LANDING_GEAR_PORTALS || join(LANDING_GEAR, 'portals.yml');
 const DEFAULT_WINDOW_DAYS = 90;
 
 // Smallest first_seen span a cluster may have and still count as a repost.
@@ -474,7 +474,7 @@ function buildRepostCluster(clusterRows, windowDays, minSpan = MIN_REPOST_SPAN_D
 // --- Summary mode ---
 function printSummary(clusters, aggregatorCount = 0) {
   console.log(`\n${'='.repeat(78)}`);
-  console.log('  Repost Detector — career-ops');
+  console.log('  Repost Detector — landing-gear');
   console.log(`  window: ${windowDays} days | min span: ${minSpanDays} day(s) | aggregators skipped: ${aggregatorCount} | clusters: ${clusters.length}`);
   console.log(`${'='.repeat(78)}\n`);
 

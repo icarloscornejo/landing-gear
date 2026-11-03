@@ -10,7 +10,7 @@
  * the hero). One writer for all four surfaces so they cannot drift apart.
  *
  *   node hired-wall-build.mjs --rebuild
- *   node hired-wall-build.mjs --add --handle santifer --level handle \
+ *   node hired-wall-build.mjs --add --handle someone --level handle \
  *        --role "Head of Applied AI" --geo "Spain" --weeks 8 \
  *        --story "..." --link "https://github.com/.../issues/N"
  *
@@ -241,10 +241,10 @@ async function main() {
       geo: clean(flagValue(args, '--geo'), 40),
       weeks: Number(flagValue(args, '--weeks')) || null,
       story: clean(flagValue(args, '--story'), 200),
-      link: /^https:\/\/github\.com\/[\w./-]+$/.test(link) || /^https:\/\/santifer\.io\/[\w./-]*$/.test(link) ? link : '',
+      link: /^https:\/\/github\.com\/[\w./-]+$/.test(link) ? link : '',
       withdrawn: false,
     };
-    if (!e.link) { console.error('--link must be a github.com or santifer.io https URL.'); process.exitCode = 1; return; }
+    if (!e.link) { console.error('--link must be a github.com https URL.'); process.exitCode = 1; return; }
     if (level === 'handle' && !e.handle) { console.error('--level handle needs --handle.'); process.exitCode = 1; return; }
     const at = text.indexOf('<!-- ENTRIES -->') + '<!-- ENTRIES -->'.length;
     text = `${text.slice(0, at)}\n\n${ledgerLine(e)}\n> ${e.story}\n${text.slice(at)}`;

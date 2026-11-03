@@ -1,7 +1,7 @@
 {
-  "name": "career-ops-plugin-markdown",
+  "name": "landing-gear-plugin-markdown",
   "id": "markdown",
-  "repo": "https://github.com/rubicon/career-ops-plugin-markdown",
+  "repo": "https://github.com/rubicon/landing-gear-plugin-markdown",
   "author": "rubicon",
   "hooks": [
     "export"

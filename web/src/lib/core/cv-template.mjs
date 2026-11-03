@@ -22,11 +22,11 @@ import { BASE_CV_TEMPLATE } from "../run-prompts.mjs";
  * data-root.mjs spells out at length: `process.cwd()` is `<core>/web` here and
  * `<core>` on the CLI, so anything resolved against the cwd points one directory
  * too deep on exactly one of the two. Passing the root in also makes this testable
- * against a real checkout — `careerOpsRoot()` lives in a `@/`-aliased TS module
+ * against a real checkout — `landingGearRoot()` lives in a `@/`-aliased TS module
  * that `node --test` cannot resolve (#3879).
  *
- * CAREER_OPS_PROFILE is the case that made it matter. cv-templates.mjs resolves a
- * RELATIVE value against the cwd, so `CAREER_OPS_PROFILE=config/profile.yml` means
+ * LANDING_GEAR_PROFILE is the case that made it matter. cv-templates.mjs resolves a
+ * RELATIVE value against the cwd, so `LANDING_GEAR_PROFILE=config/profile.yml` means
  * `<core>/config/profile.yml` to the CLI and `<core>/web/config/profile.yml` here
  * — the dashboard finds no profile, falls back to the base template, and the two
  * disagree with nothing reporting it. Resolving it against `root` first is the same
@@ -38,7 +38,7 @@ import { BASE_CV_TEMPLATE } from "../run-prompts.mjs";
  * not exist; the catch is for a checkout too old to export resolveTemplate, and
  * for a template whose placeholders fail validation.
  *
- * @param {string} root Absolute path to the career-ops checkout (careerOpsRoot()).
+ * @param {string} root Absolute path to the landing-gear checkout (landingGearRoot()).
  * @returns {Promise<string>} Repo-relative template path, forward-slashed.
  */
 export async function resolveCvTemplate(root) {
@@ -46,7 +46,7 @@ export async function resolveCvTemplate(root) {
   try {
     const mod = await import(/* webpackIgnore: true */ pathToFileURL(file).href);
     if (typeof mod?.resolveTemplate !== "function") return BASE_CV_TEMPLATE;
-    const profile = process.env.CAREER_OPS_PROFILE?.trim();
+    const profile = process.env.LANDING_GEAR_PROFILE?.trim();
     const abs = mod.resolveTemplate("cv", null, {
       fallback: true,
       // undefined keeps cv-templates.mjs's own default, rather than restating it

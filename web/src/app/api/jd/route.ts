@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { careerOpsRoot, isRegularContainedFile } from "@/lib/career-ops";
+import { landingGearRoot, isRegularContainedFile } from "@/lib/landing-gear";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,7 +12,7 @@ const JD_NAME = /^(?!.*\.\.)[A-Za-z0-9._-]+\.md$/;
 export async function GET(req: Request) {
   const file = new URL(req.url).searchParams.get("file") ?? "";
   if (!JD_NAME.test(file)) return new Response("bad file name", { status: 400 });
-  const jdDir = path.join(careerOpsRoot(), "jds");
+  const jdDir = path.join(landingGearRoot(), "jds");
   const full = path.join(jdDir, file);
   if (!isRegularContainedFile(full, jdDir)) return new Response("not found", { status: 404 });
   // Posting text is untrusted: served as plain text, never rendered as HTML.

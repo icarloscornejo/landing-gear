@@ -6,13 +6,13 @@
 //
 //   match-star.mjs:22               'interview-prep/story-bank.md'          -> cwd
 //   story-provenance-check.mjs:162  'interview-prep/story-bank.md'          -> cwd
-//   negotiation-roi.mjs:70          join(CAREER_OPS, 'interview-prep', ...) -> CODE root
+//   negotiation-roi.mjs:70          join(LANDING_GEAR, 'interview-prep', ...) -> CODE root
 //
 // The negotiation-roi case is the sharp one. Both roots were already defined in
 // that file, and its v1 SAFETY GATE compares the two files — a claim survives
 // only if its number also appears verbatim in cv.md:
 //
-//   const STORY_BANK_PATH = join(CAREER_OPS, ...)   // CODE root
+//   const STORY_BANK_PATH = join(LANDING_GEAR, ...)   // CODE root
 //   const CV_PATH         = join(DATA_ROOT, 'cv.md') // DATA root
 //
 // Two halves of one comparison, pointed at two different installs. For any
@@ -53,8 +53,8 @@ const STORY_BANK = [
 const CV = '# CV\n\n- Cut deploy time by 40 minutes per release.\n';
 
 function fixture() {
-  const dataRoot = mkdtempSync(join(tmpdir(), 'career-ops-storybank-'));
-  const decoyCwd = mkdtempSync(join(tmpdir(), 'career-ops-storydecoy-'));
+  const dataRoot = mkdtempSync(join(tmpdir(), 'landing-gear-storybank-'));
+  const decoyCwd = mkdtempSync(join(tmpdir(), 'landing-gear-storydecoy-'));
   mkdirSync(join(dataRoot, 'interview-prep'), { recursive: true });
   writeFileSync(join(dataRoot, 'interview-prep', 'story-bank.md'), STORY_BANK);
   writeFileSync(join(dataRoot, 'cv.md'), CV);
@@ -68,7 +68,7 @@ const cleanup = (f) => {
 function run(script, args, f) {
   const r = spawnSync(process.execPath, [join(ROOT, script), ...args], {
     cwd: f.decoyCwd, encoding: 'utf-8', timeout: 60_000,
-    env: { ...process.env, CAREER_OPS_ROOT: f.dataRoot, CAREER_OPS_DATA_DIR: '' },
+    env: { ...process.env, LANDING_GEAR_ROOT: f.dataRoot, LANDING_GEAR_DATA_DIR: '' },
   });
   assert.equal(r.error, undefined, `spawn failed: ${r.error?.message}`);
   return { ...r, all: `${r.stdout ?? ''}${r.stderr ?? ''}` };
@@ -134,7 +134,7 @@ test('--story-bank and --cv still override', () => {
   // story-provenance-check documents both flags; anchoring the DEFAULT must not
   // take the explicit path away.
   const f = fixture();
-  const other = mkdtempSync(join(tmpdir(), 'career-ops-storyalt-'));
+  const other = mkdtempSync(join(tmpdir(), 'landing-gear-storyalt-'));
   try {
     writeFileSync(join(other, 'sb.md'), STORY_BANK);
     writeFileSync(join(other, 'cv.md'), CV);
@@ -143,7 +143,7 @@ test('--story-bank and --cv still override', () => {
       '--story-bank', join(other, 'sb.md'), '--cv', join(other, 'cv.md'),
     ], {
       cwd: f.decoyCwd, encoding: 'utf-8', timeout: 60_000,
-      env: { ...process.env, CAREER_OPS_ROOT: f.dataRoot, CAREER_OPS_DATA_DIR: '' },
+      env: { ...process.env, LANDING_GEAR_ROOT: f.dataRoot, LANDING_GEAR_DATA_DIR: '' },
     });
     assert.equal(r.status, 0, describeSpawn(r, `explicit paths were not honoured`));
   } finally {
@@ -163,7 +163,7 @@ test('no reader of story-bank.md resolves it from the code root or the cwd', () 
       if (!/story-bank\.md|'cv\.md'/.test(line)) continue;
       if (/^\s*(\/\/|\*)/.test(line)) continue;                       // comment
       if (/=\s*'(interview-prep|cv\.md)/.test(line)) offenders.push(`${file}: ${line.trim().slice(0, 76)}`);
-      if (/join\(\s*(CAREER_OPS|CODE_ROOT)\s*,/.test(line)) offenders.push(`${file}: ${line.trim().slice(0, 76)}`);
+      if (/join\(\s*(LANDING_GEAR|CODE_ROOT)\s*,/.test(line)) offenders.push(`${file}: ${line.trim().slice(0, 76)}`);
     }
   }
   assert.deepEqual(offenders, [], `story-bank/cv.md resolved off the data root:\n${offenders.join('\n')}`);

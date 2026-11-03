@@ -22,7 +22,7 @@ test("prepareCliLaunch leaves native Windows executables unchanged", () => {
 });
 
 test("prepareCliLaunch resolves an npm Windows shim to its real Node entrypoint", () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "career-ops-cli-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "landing-gear-cli-"));
   try {
     const bare = path.join(dir, "gemini");
     const ps1 = `${bare}.ps1`;
@@ -41,7 +41,7 @@ test("prepareCliLaunch resolves an npm Windows shim to its real Node entrypoint"
 });
 
 test("prepareCliLaunch handles a discovered .cmd shim when an adjacent .ps1 exists", () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "career-ops-cli-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "landing-gear-cli-"));
   try {
     const cmd = path.join(dir, "gemini.cmd");
     const ps1 = path.join(dir, "gemini.ps1");
@@ -58,7 +58,7 @@ test("prepareCliLaunch handles a discovered .cmd shim when an adjacent .ps1 exis
 });
 
 test("prepareCliLaunch resolves an npm shim that targets a native executable", () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "career-ops-cli-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "landing-gear-cli-"));
   try {
     const bare = path.join(dir, "opencode");
     const ps1 = `${bare}.ps1`;
@@ -74,7 +74,7 @@ test("prepareCliLaunch resolves an npm shim that targets a native executable", (
 });
 
 test("prepareCliLaunch preserves the original command when no PowerShell shim exists", () => {
-  const missing = path.join(os.tmpdir(), `career-ops-missing-${Date.now()}`, "gemini");
+  const missing = path.join(os.tmpdir(), `landing-gear-missing-${Date.now()}`, "gemini");
   assert.deepEqual(prepareCliLaunch(missing, ["-p", "hello"], "win32"), {
     command: missing,
     args: ["-p", "hello"],
@@ -82,7 +82,7 @@ test("prepareCliLaunch preserves the original command when no PowerShell shim ex
 });
 
 test("prepareCliLaunch refuses a .cmd/.bat wrapper it cannot resolve instead of spawning it without a shell", () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "career-ops-cli-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "landing-gear-cli-"));
   try {
     // No adjacent .ps1 at all.
     assert.throws(() => prepareCliLaunch(path.join(dir, "claude.cmd"), ["-p", "hello"], "win32"), /without a shell/);

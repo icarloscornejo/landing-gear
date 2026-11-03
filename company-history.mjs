@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * company-history.mjs — Per-Company Evidence-Card Aggregator for career-ops
+ * company-history.mjs — Per-Company Evidence-Card Aggregator for landing-gear
  *
  * READ-ONLY. Never writes a file. Joins the tracker (data/applications.md),
  * follow-ups (data/follow-ups.md), and scan-history (data/scan-history.tsv)
@@ -68,12 +68,12 @@ import {
   normalizeStatus,
 } from './followup-cadence.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
-import { getCareerOpsRoot, getProfilePath } from './path-resolver.mjs';
+import { getLandingGearRoot, getProfilePath } from './path-resolver.mjs';
 
-const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
-const DATA_ROOT = getCareerOpsRoot();
+const LANDING_GEAR = dirname(fileURLToPath(import.meta.url));
+const DATA_ROOT = getLandingGearRoot();
 const PROFILE_FILE = getProfilePath();
-const PACKAGE_JSON = join(CAREER_OPS, 'package.json');
+const PACKAGE_JSON = join(LANDING_GEAR, 'package.json');
 
 const DEFAULT_STALE_AFTER_DAYS = 365;
 const DEFAULT_SILENCE_WINDOW_DAYS = 28;
@@ -192,7 +192,7 @@ function parseArgs(argv) {
 // (days_first_response.range_days[1] * 2). Try it, fall back to the hardcoded
 // default. A missing file or any parse failure degrades silently to the default
 // — this is a nice-to-have default source, never a hard dependency.
-export function resolveDefaultSilenceWindow(rootDir = CAREER_OPS) {
+export function resolveDefaultSilenceWindow(rootDir = LANDING_GEAR) {
   try {
     const path = join(rootDir, 'templates/benchmarks.yml');
     if (!existsSync(path)) return DEFAULT_SILENCE_WINDOW_DAYS;
@@ -253,7 +253,7 @@ export function loadRepostClusters(rootDir = DATA_ROOT, overridePath, portalsPat
   // Same override scan.mjs and detect-reposts.mjs honour, so a sandboxed run
   // points all three at one config instead of silently reading the real one.
   const aggregators = loadAggregatorCompanies(
-    portalsPath || process.env.CAREER_OPS_PORTALS || join(rootDir, 'portals.yml'),
+    portalsPath || process.env.LANDING_GEAR_PORTALS || join(rootDir, 'portals.yml'),
   );
   if (!existsSync(path)) return { clusters: [], aggregators, loaded: false };
   const rows = parseScanHistory(readFileSync(path, 'utf-8'));
@@ -638,7 +638,7 @@ export function getCompanyCard(result, companyName, aggregators) {
 //   { schemaVersion: 1, companyKey, region, signalType: 'no-response-friction',
 //     detail: null, severity: 'single'|'pattern'|null,
 //     sourceDetector: 'company-history', sourceHash: 'sha256:...',
-//     observedAt: 'YYYY-MM', emittedBy: 'career-ops vX.Y.Z' }
+//     observedAt: 'YYYY-MM', emittedBy: 'landing-gear vX.Y.Z' }
 //
 // `sourceDetector` enum so far: 'interview-redflag' | 'process-friction'
 // (named in the RFC thread) | 'company-history' (this script — the third,
@@ -767,18 +767,18 @@ export function resolvePostingChannel(via) {
   return trimmed === '—' ? 'direct-employer' : 'staffing-agency';
 }
 
-// package.json version -> "career-ops vX.Y.Z". Missing/unparsable package.json
+// package.json version -> "landing-gear vX.Y.Z". Missing/unparsable package.json
 // degrades to a version-less emittedBy rather than crashing.
 export function resolveEmittedBy(packagePath = PACKAGE_JSON) {
   try {
     const pkg = JSON.parse(readFileSync(packagePath, 'utf-8'));
     if (pkg && typeof pkg.version === 'string' && pkg.version) {
-      return `career-ops v${pkg.version}`;
+      return `landing-gear v${pkg.version}`;
     }
   } catch {
     // fall through
   }
-  return 'career-ops';
+  return 'landing-gear';
 }
 
 // Deterministic (not random) so repeated runs against the same underlying
@@ -939,7 +939,7 @@ export function renderSummary(result) {
   const lines = [];
   lines.push('');
   lines.push('='.repeat(78));
-  lines.push('  Company History — career-ops');
+  lines.push('  Company History — landing-gear');
   lines.push(`  companies: ${result.companies.length} | silence window: ${result.metadata.silenceWindowDays}d`);
   lines.push('='.repeat(78));
   lines.push('');
@@ -1144,7 +1144,7 @@ async function runSelfTest() {
 
   // --- absent-file degradation: each source absent -> false, no crash, other axes still work ---
   {
-    const bogusRoot = join(CAREER_OPS, '__does-not-exist__');
+    const bogusRoot = join(LANDING_GEAR, '__does-not-exist__');
     const tracker = loadTrackerRows(bogusRoot);
     check(tracker.loaded === false && tracker.rows.length === 0, 'loadTrackerRows against a nonexistent root degrades gracefully');
 
@@ -1356,7 +1356,7 @@ async function runSelfTest() {
 
   // --- no-response-friction signal emission (RFC #1506 schema v1, #2787) ---
   {
-    const fixedOpts = { region: 'north-america/canada', emittedBy: 'career-ops vTEST' };
+    const fixedOpts = { region: 'north-america/canada', emittedBy: 'landing-gear vTEST' };
 
     // single: exactly one silent fact on the card.
     const singleResult = buildCompanyCards(
@@ -1370,7 +1370,7 @@ async function runSelfTest() {
     check(singleSignals[0]?.signalType === 'no-response-friction', 'emitted record carries signalType no-response-friction');
     check(singleSignals[0]?.companyKey === singleResult.companies[0].key, 'emitted companyKey reuses company-history.mjs\'s own normalized key, not a new format');
     check(singleSignals[0]?.region === 'north-america/canada', 'emitted region matches the resolved region');
-    check(singleSignals[0]?.emittedBy === 'career-ops vTEST', 'emitted emittedBy matches the resolved version string');
+    check(singleSignals[0]?.emittedBy === 'landing-gear vTEST', 'emitted emittedBy matches the resolved version string');
     check(/^\d{4}-\d{2}$/.test(singleSignals[0]?.observedAt || ''), 'observedAt is strictly month-only (YYYY-MM, no day)');
     check(typeof singleSignals[0]?.sourceHash === 'string' && singleSignals[0].sourceHash.startsWith('sha256:'), 'sourceHash is present and sha256-prefixed');
     check(singleSignals[0]?.schemaVersion === 1, 'emitted record carries schemaVersion 1 (ratified RFC #1506 shape)');
@@ -1615,8 +1615,8 @@ async function runSelfTest() {
     // `unknown/` shared-layer directory) — it returns null instead, and the
     // caller (buildNoResponseFrictionSignals, tested below) is responsible
     // for turning that into "skip emission + warn", not a placeholder value.
-    check(resolveRegion(join(CAREER_OPS, '__does-not-exist__.yml')) === null, 'resolveRegion degrades to null (not the string "unknown") when profile.yml is absent');
-    check(resolveEmittedBy(join(CAREER_OPS, '__does-not-exist__.json')) === 'career-ops', 'resolveEmittedBy degrades to a version-less string when package.json is unreadable');
+    check(resolveRegion(join(LANDING_GEAR, '__does-not-exist__.yml')) === null, 'resolveRegion degrades to null (not the string "unknown") when profile.yml is absent');
+    check(resolveEmittedBy(join(LANDING_GEAR, '__does-not-exist__.json')) === 'landing-gear', 'resolveEmittedBy degrades to a version-less string when package.json is unreadable');
 
     // resolveRegion: a mapped country goes through COUNTRY_REGION_MAP, and an
     // unmapped country degrades to a slugified `unmapped/<slug>` rather than
@@ -1646,7 +1646,7 @@ async function runSelfTest() {
       );
       const { records: noRegionSignals, warnings: noRegionWarnings } = buildNoResponseFrictionSignals(
         noRegionResult,
-        { profilePath: noRegionProfilePath, emittedBy: 'career-ops vTEST' },
+        { profilePath: noRegionProfilePath, emittedBy: 'landing-gear vTEST' },
       );
       check(noRegionSignals.length === 0, 'unresolvable region: no no-response-friction record emitted, no crash');
       check(noRegionWarnings.length === 1 && noRegionWarnings[0].includes(noRegionResult.companies[0].key), 'unresolvable region: exactly one warning naming the skipped companyKey');
@@ -1663,7 +1663,7 @@ async function runSelfTest() {
       { now: NOW, silenceWindowDays: 28 },
     );
     check(agencyResult.companies[0].responsiveness.facts[0].via === 'Hays', 'row.via survives onto the silent fact');
-    const { records: agencySignals } = buildNoResponseFrictionSignals(agencyResult, { region: 'north-america/canada', emittedBy: 'career-ops vTEST' });
+    const { records: agencySignals } = buildNoResponseFrictionSignals(agencyResult, { region: 'north-america/canada', emittedBy: 'landing-gear vTEST' });
     check(agencySignals[0]?.postingChannel === 'staffing-agency', 'a tagged agency via value emits postingChannel: staffing-agency');
 
     // em-dash via (tracker's own "confirmed direct" convention) -> direct-employer.
@@ -1671,7 +1671,7 @@ async function runSelfTest() {
       { trackerRows: [{ ...row(261, 'DirectConfirmedCo', 'Applied', '2026-05-01'), via: '—' }], followupRows: [], repostClusters: [], sourcesLoaded: { tracker: true, followups: false, scanHistory: false, statusLog: false } },
       { now: NOW, silenceWindowDays: 28 },
     );
-    const { records: directSignals } = buildNoResponseFrictionSignals(directResult, { region: 'north-america/canada', emittedBy: 'career-ops vTEST' });
+    const { records: directSignals } = buildNoResponseFrictionSignals(directResult, { region: 'north-america/canada', emittedBy: 'landing-gear vTEST' });
     check(directSignals[0]?.postingChannel === 'direct-employer', 'an em-dash via value (confirmed direct, no agency) emits postingChannel: direct-employer');
 
     // absent/blank via -> unknown (never guessed as direct-employer).
@@ -1679,7 +1679,7 @@ async function runSelfTest() {
       { trackerRows: [row(262, 'NoViaDataCo', 'Applied', '2026-05-01')], followupRows: [], repostClusters: [], sourcesLoaded: { tracker: true, followups: false, scanHistory: false, statusLog: false } },
       { now: NOW, silenceWindowDays: 28 },
     );
-    const { records: noDataSignals } = buildNoResponseFrictionSignals(noDataResult, { region: 'north-america/canada', emittedBy: 'career-ops vTEST' });
+    const { records: noDataSignals } = buildNoResponseFrictionSignals(noDataResult, { region: 'north-america/canada', emittedBy: 'landing-gear vTEST' });
     check(noDataSignals[0]?.postingChannel === 'unknown', 'a row with no recorded via emits postingChannel: unknown, never a guessed direct-employer');
 
     check(resolvePostingChannel('  ') === 'unknown', 'resolvePostingChannel: whitespace-only via is unknown, not staffing-agency');
@@ -1705,10 +1705,10 @@ if (isMainModule(import.meta.url)) {
     });
   } else {
     const run = async () => {
-      // DATA_ROOT, not CAREER_OPS: these three read data/applications.md,
+      // DATA_ROOT, not LANDING_GEAR: these three read data/applications.md,
       // data/follow-ups.md and data/scan-history.tsv, which are USER layer and
-      // move with CAREER_OPS_ROOT / CAREER_OPS_DATA_DIR / .career-ops-data.
-      // resolveDefaultSilenceWindow() below stays on CAREER_OPS on purpose —
+      // move with LANDING_GEAR_ROOT / LANDING_GEAR_DATA_DIR / .landing-gear-data.
+      // resolveDefaultSilenceWindow() below stays on LANDING_GEAR on purpose —
       // templates/benchmarks.yml is SYSTEM layer and ships with the code.
       const tracker = loadTrackerRows(DATA_ROOT);
       const followups = loadFollowupRows(DATA_ROOT, followupsOverride);
@@ -1718,7 +1718,7 @@ if (isMainModule(import.meta.url)) {
       // parseArgs already validated the flag as a positive integer.
       const silenceWindowDays = silenceWindowArg !== undefined
         ? parseInt(silenceWindowArg, 10)
-        : resolveDefaultSilenceWindow(CAREER_OPS);
+        : resolveDefaultSilenceWindow(LANDING_GEAR);
 
       const result = buildCompanyCards(
         {

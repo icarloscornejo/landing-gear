@@ -73,7 +73,7 @@ Follow the Scope section in `modes/apply.md`. Run `node apply-scope.mjs root` an
 2. **이전 블록 G**: 기존 초안이 있으면 base로 가져와 다듬기
 3. **"제가 귀사를 선택합니다" 톤**: auto-pipeline과 같은 framework 사용 -- 자신감 있게, 애원하지 않게
 4. **구체성**: 화면에 보이는 공고 내용 중 구체적인 요소 언급
-5. **career-ops proof point**: "추가 정보" 같은 필드가 있으면 포함
+5. **landing-gear proof point**: "추가 정보" 같은 필드가 있으면 포함
 
 **한국 지원서 폼에서 자주 나오는 필드:**
 - **희망 연봉 / 처우** -> `profile.yml`의 range를 사용. 세전 연봉 기준인지 명확히 쓰고, "전체 보상 패키지에 따라 협의 가능"이라고 덧붙임

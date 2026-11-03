@@ -19,7 +19,7 @@ Eine Zusammenstellung wiederverwendbarer Fähigkeiten für die gesamte Interview
 
 ## Dateikonventionen
 
-Diese Fähigkeiten setzen voraus, dass die folgenden Dateien vorhanden sind (career-ops Standardeinstellungen):
+Diese Fähigkeiten setzen voraus, dass die folgenden Dateien vorhanden sind (landing-gear Standardeinstellungen):
 
 | Datei | Zweck |
 |---|---|

@@ -12,7 +12,7 @@ console.log('\nTool claims hidden by a dot, a second trigger, or a connector');
 // suite those passed, because the second name was never extracted at all. The
 // rest guard what the change must keep: names the gate already checked, and
 // prose it must not read as a tool.
-const tmp = mkdtempSync(join(tmpdir(), 'career-ops-hidden-tools-'));
+const tmp = mkdtempSync(join(tmpdir(), 'landing-gear-hidden-tools-'));
 try {
   const source = join(tmp, 'cv.md');
   const config = join(tmp, 'cv-facts.json');

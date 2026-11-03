@@ -42,7 +42,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import path from 'path';
 import { isMainModule } from './lib/is-main-module.mjs';
-import { getCareerOpsRoot } from './path-resolver.mjs';
+import { getLandingGearRoot } from './path-resolver.mjs';
 import { SCAN_RUNS_HEADER, atomicWriteFile } from './scan.mjs';
 import { withPipelineLock } from './pipeline-lock.mjs';
 import { flagValue, validateFlags } from './lib/cli-flags.mjs';
@@ -194,13 +194,13 @@ Options:
 
   const apply = argv.includes('--apply');
   const asJson = argv.includes('--json');
-  // getCareerOpsRoot, not CAREER_OPS_ROOT directly: the data root also honours
-  // CAREER_OPS_DATA_DIR and a .career-ops-data marker file, and falls back to
+  // getLandingGearRoot, not LANDING_GEAR_ROOT directly: the data root also honours
+  // LANDING_GEAR_DATA_DIR and a .landing-gear-data marker file, and falls back to
   // the REPO root rather than the cwd. Resolving it by hand here would miss the
   // marker and would target the wrong file when run from a subdirectory.
   const target = fileArg
     ? path.resolve(fileArg)
-    : path.join(getCareerOpsRoot(), 'data/scan-runs.tsv');
+    : path.join(getLandingGearRoot(), 'data/scan-runs.tsv');
 
   if (!existsSync(target)) {
     console.error(`No scan-runs file at ${target} — nothing to migrate.`);

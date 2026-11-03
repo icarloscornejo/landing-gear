@@ -16,7 +16,7 @@
  * is inspired by the skill-verification pattern in srbhr/Resume-Matcher
  * (Apache-2.0) — specifically their four-way verify_skill_target_plan() split.
  * This is an independent reimplementation, not a code port: different language,
- * zero LLM calls, and folded down to three buckets because career-ops never
+ * zero LLM calls, and folded down to three buckets because landing-gear never
  * auto-adds a claim to cv.md either way (their jd_added/unsupported distinction
  * only matters if a tool is allowed to add something automatically).
  *
@@ -30,14 +30,14 @@ import { readFileSync, existsSync } from 'fs';
 import { canonicalize, extractSkills, SKILL_PATTERN } from './skill-extract.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
 import { join } from 'path';
-import { getCareerOpsRoot } from './path-resolver.mjs';
+import { getLandingGearRoot } from './path-resolver.mjs';
 import { normalizePandocLine, toPlainText } from './lib/cv-markdown.mjs';
 
 // ── Config ──────────────────────────────────────────────────────────
 
 // From the data root, not the cwd. cv.md is a Source-of-Truth Boundary primary
-// file and lives wherever CAREER_OPS_ROOT / CAREER_OPS_DATA_DIR / the
-// .career-ops-data marker points; a bare relative path resolves against
+// file and lives wherever LANDING_GEAR_ROOT / LANDING_GEAR_DATA_DIR / the
+// .landing-gear-data marker points; a bare relative path resolves against
 // whatever directory the process was started in.
 //
 // Everything this script reports is a comparison against that file, so without
@@ -45,7 +45,7 @@ import { normalizePandocLine, toPlainText } from './lib/cv-markdown.mjs';
 // different users at once: one who never wrote a cv.md, and one who has one
 // sitting outside the data root this resolver just looked in. Naming only one
 // of them sends the other to the wrong fix.
-const CV_PATH = join(getCareerOpsRoot(), 'cv.md');
+const CV_PATH = join(getLandingGearRoot(), 'cv.md');
 
 // ── JD skill extraction (regex, no LLM) ─────────────────────────────
 //
@@ -1247,7 +1247,7 @@ if (selfTestMode) {
   }
   if (!existsSync(CV_PATH)) {
     console.error(`Error: cv.md not found at ${CV_PATH}`);
-    console.error('Create it there, or point CAREER_OPS_ROOT / CAREER_OPS_DATA_DIR (or a .career-ops-data marker) at the directory that already has it.');
+    console.error('Create it there, or point LANDING_GEAR_ROOT / LANDING_GEAR_DATA_DIR (or a .landing-gear-data marker) at the directory that already has it.');
     process.exit(1);
   }
 

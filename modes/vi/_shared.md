@@ -1,4 +1,4 @@
-# Ngữ cảnh chung -- career-ops (Tiếng Việt)
+# Ngữ cảnh chung -- landing-gear (Tiếng Việt)
 
 <!-- ============================================================
      FILE NÀY THUỘC LỚP HỆ THỐNG.
@@ -8,7 +8,7 @@
      File này chứa ngữ cảnh chung, archetype và quy tắc cho các
      mode tiếng Việt, cùng đặc thù thị trường lao động Việt Nam.
 
-     Trước khi dùng career-ops, hãy đảm bảo:
+     Trước khi dùng landing-gear, hãy đảm bảo:
      1. config/profile.yml đã điền thông tin của bạn
      2. cv.md đã có ở thư mục gốc dự án (CV dạng Markdown)
      3. (Tùy chọn) article-digest.md chứa các proof point của bạn
@@ -275,7 +275,7 @@ Trước khi gán `confidence`, phân loại bằng chứng cho từng chiều (
 
 ### Giao việc cho subagent (giới hạn chi phí)
 
-Mọi subagent bạn tạo cho career-ops là worker chạy một lượt: KHÔNG tạo thêm subagent, KHÔNG gọi skill khác (đặc biệt skill nghiên cứu mở/đệ quy), và nghiên cứu công ty/vai trò/lương luôn thực hiện ngay trong phiên với số truy vấn WebSearch/WebFetch nhỏ mà mode quy định. Một lệnh `/landing-gear <JD>` đánh giá một vai trò, không được nhân thành đàn agent.
+Mọi subagent bạn tạo cho landing-gear là worker chạy một lượt: KHÔNG tạo thêm subagent, KHÔNG gọi skill khác (đặc biệt skill nghiên cứu mở/đệ quy), và nghiên cứu công ty/vai trò/lương luôn thực hiện ngay trong phiên với số truy vấn WebSearch/WebFetch nhỏ mà mode quy định. Một lệnh `/landing-gear <JD>` đánh giá một vai trò, không được nhân thành đàn agent.
 
 ### Xác nhận agency trước mọi thao tác ghi
 

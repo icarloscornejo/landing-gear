@@ -68,7 +68,7 @@ Per ogni domanda, costruire la risposta seguendo questo schema:
 2. **Blocco G precedente:** se esiste una bozza, usarla come base e affinarla.
 3. **Tono "Vi scelgo":** sicuro e professionale, non implorante né puramente descrittivo.
 4. **Specificità:** citare qualcosa di concreto dell'annuncio visibile a schermo.
-5. **career-ops proof point:** includerlo nel campo "Informazioni aggiuntive" se presente nel modulo.
+5. **landing-gear proof point:** includerlo nel campo "Informazioni aggiuntive" se presente nel modulo.
 
 **Campi specifici per i moduli di candidatura italiani:**
 - **Retribuzione desiderata (RAL):** fascia definita in `profile.yml` in euro, con l'aggiunta "negoziabile in base al pacchetto complessivo di benefit e welfare".

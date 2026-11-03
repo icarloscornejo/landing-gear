@@ -42,7 +42,7 @@ try {
     fail('profileTargetKeywords should return [] for a profile with no target_roles');
   }
 
-  tmp = mkdtempSync(join(tmpdir(), 'career-ops-profile-keywords-'));
+  tmp = mkdtempSync(join(tmpdir(), 'landing-gear-profile-keywords-'));
   const profilePath = join(tmp, 'profile.yml');
   writeFileSync(profilePath, [
     'target_roles:',

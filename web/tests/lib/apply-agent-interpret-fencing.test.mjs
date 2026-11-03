@@ -69,21 +69,21 @@ const ONE_CONTROL = [{ n: 0, tag: "input", type: "text", name: "first", placehol
 /**
  * Put a stub `claude` first on PATH that records each launch and prints no
  * JSON, so the interpreter's "launched but nothing usable" path is reachable
- * without a real CLI. Restores PATH and CAREER_OPS_ROOT afterwards.
+ * without a real CLI. Restores PATH and LANDING_GEAR_ROOT afterwards.
  */
 function withStubClaude(t) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "career-ops-agent-interpret-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "landing-gear-agent-interpret-"));
   const log = path.join(dir, "launches.log");
   const bin = path.join(dir, "claude");
   fs.writeFileSync(bin, `#!/bin/sh\necho launched >> "${log}"\necho "no json here"\n`);
   fs.chmodSync(bin, 0o755);
-  const saved = { PATH: process.env.PATH, CAREER_OPS_ROOT: process.env.CAREER_OPS_ROOT };
+  const saved = { PATH: process.env.PATH, LANDING_GEAR_ROOT: process.env.LANDING_GEAR_ROOT };
   process.env.PATH = dir;
-  process.env.CAREER_OPS_ROOT = dir;
+  process.env.LANDING_GEAR_ROOT = dir;
   t.after(() => {
     process.env.PATH = saved.PATH;
-    if (saved.CAREER_OPS_ROOT === undefined) delete process.env.CAREER_OPS_ROOT;
-    else process.env.CAREER_OPS_ROOT = saved.CAREER_OPS_ROOT;
+    if (saved.LANDING_GEAR_ROOT === undefined) delete process.env.LANDING_GEAR_ROOT;
+    else process.env.LANDING_GEAR_ROOT = saved.LANDING_GEAR_ROOT;
     fs.rmSync(dir, { recursive: true, force: true });
   });
   return { launches: () => (fs.existsSync(log) ? fs.readFileSync(log, "utf8").trim().split("\n").filter(Boolean).length : 0) };

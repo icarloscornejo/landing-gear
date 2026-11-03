@@ -13,7 +13,7 @@ import { isMainModule } from '../../lib/is-main-module.mjs';
 import { apiBase, fetchWithTimeout, readBoundedText } from './lib/api.mjs';
 import { CONTROL_CHARS, displayClean } from './lib/clean.mjs';
 
-const USER_AGENT = 'career-ops-plugin-h1b-sponsor/1.0';
+const USER_AGENT = 'landing-gear-plugin-h1b-sponsor/1.0';
 const TIMEOUT_MS = 10_000;
 const USAGE = 'Usage: node plugins/h1b-sponsor/token.mjs request';
 // A real token is h1b_ followed by hex. Anything else must not reach the

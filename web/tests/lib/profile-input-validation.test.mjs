@@ -29,11 +29,11 @@ const { POST } = await import("../../src/app/api/profile/route.ts");
 const source = "# Original fixture comment\ncandidate:\n  full_name: Fixture Candidate\n  email: fixture@example.invalid\ncompensation:\n  currency: USD\n  target_range: 80-90\n";
 async function fixture(t, body) {
   const root = mkdtempSync(path.join(tmpdir(), "profile-input-"));
-  const previous = process.env.CAREER_OPS_ROOT;
-  process.env.CAREER_OPS_ROOT = root;
+  const previous = process.env.LANDING_GEAR_ROOT;
+  process.env.LANDING_GEAR_ROOT = root;
   t.after(() => {
-    if (previous === undefined) delete process.env.CAREER_OPS_ROOT;
-    else process.env.CAREER_OPS_ROOT = previous;
+    if (previous === undefined) delete process.env.LANDING_GEAR_ROOT;
+    else process.env.LANDING_GEAR_ROOT = previous;
     rmSync(root, { recursive: true, force: true });
   });
   const config = path.join(root, "config");

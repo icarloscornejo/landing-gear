@@ -70,7 +70,7 @@ async function plan({ cliId, spec, binPath }) {
 test("a runtime argv that contradicts the capability record is refused, not spawned", { skip }, async () => {
   // Given: a Codex spec whose argv already spells its own sandbox — the exact
   // shape the fencer exists to refuse — and a binary that must never run.
-  const mustNotRun = path.join(os.tmpdir(), `career-ops-planner-must-not-run-${process.pid}`);
+  const mustNotRun = path.join(os.tmpdir(), `landing-gear-planner-must-not-run-${process.pid}`);
   assert.equal(fs.existsSync(mustNotRun), false);
   const spec = {
     id: "codex",
@@ -116,7 +116,7 @@ test("a runtime with no verified fencing mechanism runs and the notice reaches t
 test("the Claude planner argv carries the derived deny list, not a hand-written one", { skip: skip || (process.platform === "win32" && "sh fixture") }, async () => {
   // Given: an executable that echoes its argv, one per line, so the fenced
   // command line the planner actually spawns can be read back.
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "career-ops-planner-argv-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "landing-gear-planner-argv-"));
   const bin = path.join(dir, "echo-argv");
   fs.writeFileSync(bin, '#!/bin/sh\nfor a in "$@"; do printf "%s\\n" "$a"; done\n');
   fs.chmodSync(bin, 0o755);

@@ -27,7 +27,7 @@ const BLOCKED_URL = 'http://127.0.0.1:9/jobs/1';
 const REPORT = '[5](../reports/005-acme-2026-06-01.md)';
 
 function workspace(t, rows, { url = false } = {}) {
-  const root = mkdtempSync(join(tmpdir(), 'career-ops-status-hooks-'));
+  const root = mkdtempSync(join(tmpdir(), 'landing-gear-status-hooks-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   const data = join(root, 'data');
   mkdirSync(data);
@@ -43,10 +43,10 @@ function workspace(t, rows, { url = false } = {}) {
     root, data, file,
     env: {
       ...process.env,
-      CAREER_OPS_ROOT: root,
-      CAREER_OPS_DATA_DIR: '',
-      CAREER_OPS_TRACKER: file,
-      CAREER_OPS_JD_ARCHIVE_TIMEOUT_MS: '20000',
+      LANDING_GEAR_ROOT: root,
+      LANDING_GEAR_DATA_DIR: '',
+      LANDING_GEAR_TRACKER: file,
+      LANDING_GEAR_JD_ARCHIVE_TIMEOUT_MS: '20000',
     },
   };
 }

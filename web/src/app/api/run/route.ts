@@ -9,7 +9,7 @@ import { cliSubstitutionNotice, cliUnavailableError, resolveCliOrFallback } from
 import { localISODate } from "@/lib/followups";
 import { accumulateTokens, createAgentTextJoiner, isFatalGenericStderr, killMsForKind, timeoutMessage } from "@/lib/run-cli-support.mjs";
 import { spawnHeadlessCli } from "@/lib/spawn-cli.mjs";
-import { careerOpsRoot, readMemory, findReportFile, readInbox, readScanDates, readLanguageConfig } from "@/lib/career-ops";
+import { landingGearRoot, readMemory, findReportFile, readInbox, readScanDates, readLanguageConfig } from "@/lib/landing-gear";
 import { resolvePdfPaths, type PdfPaths } from "@/lib/pdf-paths.mjs";
 import { renderAndMarkPdf, writeCvHtml, pdfRunOutcome } from "@/lib/pdf-render.mjs";
 import { createCvEnvelopeFilter, type CvEnvelope } from "@/lib/cv-envelope.mjs";
@@ -37,7 +37,7 @@ export const maxDuration = 1800; // RUN_MAX_DURATION_S: a Haiku max-effort evalu
 /** Hosts listed in data/needs-real-chrome.txt (bot walls; never script-fetched). */
 function readNeedsChromeHosts(): string[] {
   try {
-    return parseNeedsChrome(fs.readFileSync(path.join(careerOpsRoot(), "data", "needs-real-chrome.txt"), "utf8"));
+    return parseNeedsChrome(fs.readFileSync(path.join(landingGearRoot(), "data", "needs-real-chrome.txt"), "utf8"));
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === "ENOENT") return [];
     throw err;
@@ -47,7 +47,7 @@ function readNeedsChromeHosts(): string[] {
 /** pipeline.triage_threshold from config/profile.yml; modes/triage.md defaults to 3.5. */
 function readTriageThreshold(): number {
   try {
-    const yml = fs.readFileSync(path.join(careerOpsRoot(), "config", "profile.yml"), "utf8");
+    const yml = fs.readFileSync(path.join(landingGearRoot(), "config", "profile.yml"), "utf8");
     const value = Number(/^\s*triage_threshold:\s*([\d.]+)/m.exec(yml)?.[1]);
     return Number.isFinite(value) ? value : 3.5;
   } catch (err) {
@@ -56,8 +56,8 @@ function readTriageThreshold(): number {
   }
 }
 
-const PIPELINE_LOCK = () => path.join(careerOpsRoot(), "pipeline-lock.mjs");
-const PIPELINE_FILE = () => path.join(careerOpsRoot(), "data", "pipeline.md");
+const PIPELINE_LOCK = () => path.join(landingGearRoot(), "pipeline-lock.mjs");
+const PIPELINE_FILE = () => path.join(landingGearRoot(), "data", "pipeline.md");
 
 export async function POST(req: Request) {
   const body = await readJsonObject<{ kind?: string; input?: string; cliId?: string; brief?: unknown; detach?: boolean; runId?: string; title?: string; subtitle?: string; source?: string }>(req);
@@ -124,15 +124,15 @@ export async function POST(req: Request) {
   const lang = readLanguageConfig();
   const needsScript: Record<string, string> = { evaluate: lang.evalModeFile, "fix-portal": "verify-portals.mjs", pdf: "generate-pdf.mjs", cover: "modes/cover.md", triage: "modes/triage.md" };
   const required = needsScript[kind];
-  // CAREER_OPS_ROOT is runtime user data, not a build input. Tracing this
+  // LANDING_GEAR_ROOT is runtime user data, not a build input. Tracing this
   // dynamic path would copy the whole web project into every server bundle.
   const requiredPath = required
-    ? path.join(/* turbopackIgnore: true */ careerOpsRoot(), required)
+    ? path.join(/* turbopackIgnore: true */ landingGearRoot(), required)
     : "";
   if (required && !fs.existsSync(/* turbopackIgnore: true */ requiredPath)) {
     return new Response(
       JSON.stringify({
-        error: `This needs a complete landing-gear checkout (${required}). CAREER_OPS_ROOT has data only. Point it at a full checkout.`,
+        error: `This needs a complete landing-gear checkout (${required}). LANDING_GEAR_ROOT has data only. Point it at a full checkout.`,
       }),
       { status: 400, headers: { "Content-Type": "application/json" } },
     );
@@ -151,7 +151,7 @@ export async function POST(req: Request) {
 
   // An A–F score is meaningless without a CV to score against — the CLI would
   // hallucinate a fit narrative and still emit a VERDICT. Require cv.md first.
-  if ((kind === "evaluate" || kind === "pdf" || kind === "cover" || kind === "triage") && !fs.existsSync(path.join(careerOpsRoot(), "cv.md"))) {
+  if ((kind === "evaluate" || kind === "pdf" || kind === "cover" || kind === "triage") && !fs.existsSync(path.join(landingGearRoot(), "cv.md"))) {
     return new Response(
       JSON.stringify({ error: "Add your CV first so I can score this against you. Drop it on the home page." }),
       { status: 400, headers: { "Content-Type": "application/json" } },
@@ -176,7 +176,7 @@ export async function POST(req: Request) {
     // only the title of a client-rendered board like Ashby's, and the worker then
     // scored real postings SKIP 0.0/5 as empty shells.
     if (!jdPath && /^https?:\/\//i.test(input)) jdPath = await fetchJdCapture(input, localISODate());
-    if (jdPath) jdText = fs.readFileSync(path.join(careerOpsRoot(), jdPath), "utf8");
+    if (jdPath) jdText = fs.readFileSync(path.join(landingGearRoot(), jdPath), "utf8");
   }
 
   const today = localISODate();
@@ -188,7 +188,7 @@ export async function POST(req: Request) {
   // no longer told these paths, so a stale file cannot survive into a render.
   let pdfPaths: PdfPaths | undefined;
   if (kind === "pdf") {
-    const pathsResult = resolvePdfPaths(input, today, careerOpsRoot(), findReportFile);
+    const pathsResult = resolvePdfPaths(input, today, landingGearRoot(), findReportFile);
     if (!pathsResult.ok) {
       return new Response(JSON.stringify({ error: pathsResult.error }), {
         status: 400,
@@ -198,7 +198,7 @@ export async function POST(req: Request) {
     pdfPaths = pathsResult.paths;
   }
 
-  const coverRequest = kind === "cover" ? parseCoverRequest({ input, brief, root: careerOpsRoot(), findReportFile }) : undefined;
+  const coverRequest = kind === "cover" ? parseCoverRequest({ input, brief, root: landingGearRoot(), findReportFile }) : undefined;
   if (coverRequest && !coverRequest.ok) {
     return new Response(JSON.stringify({ error: coverRequest.error }), {
       status: 400,
@@ -220,9 +220,9 @@ export async function POST(req: Request) {
   // is: the worker has no Bash (#2172), so it cannot run cv-templates.mjs and the
   // prompt used to name the base template outright, silently ignoring cv.template
   // (#4034). Only pdf fills a template, so nothing else pays for the lookup.
-  // The root is passed, not re-derived: a relative CAREER_OPS_PROFILE resolves
+  // The root is passed, not re-derived: a relative LANDING_GEAR_PROFILE resolves
   // against it, and `process.cwd()` here is `<core>/web` (see cv-template.mjs).
-  const cvTemplate = kind === "pdf" ? await resolveCvTemplate(careerOpsRoot()) : undefined;
+  const cvTemplate = kind === "pdf" ? await resolveCvTemplate(landingGearRoot()) : undefined;
   const prompt = buildPrompt({
     kind,
     input,
@@ -272,7 +272,7 @@ export async function POST(req: Request) {
     child = spawnHeadlessCli(
       binPath,
       args,
-      { cwd: careerOpsRoot(), env: process.env },
+      { cwd: landingGearRoot(), env: process.env },
       { cliId, capabilities },
     );
   } catch (e) {
@@ -529,7 +529,7 @@ export async function POST(req: Request) {
           const result = await persistEvaluation({
             spawnFn: spawn,
             execPath: process.execPath,
-            root: careerOpsRoot(),
+            root: landingGearRoot(),
             markdown,
             url: input,
             today,
@@ -571,7 +571,7 @@ export async function POST(req: Request) {
           const result = await renderAndMarkPdf({
             spawnFn: spawn,
             execPath: process.execPath,
-            root: careerOpsRoot(),
+            root: landingGearRoot(),
             pdfPaths: paths,
             format,
             reportNum: paths.reportNum,

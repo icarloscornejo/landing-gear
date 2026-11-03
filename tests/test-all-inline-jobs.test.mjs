@@ -43,9 +43,9 @@ if (begins.length !== 1 || ends.length !== 1 || begins[0].index > ends[0].index)
 
   const head = realRunner.slice(0, begins[0].index + begins[0][0].length);
   const tail = realRunner.slice(ends[0].index);
-  const box = createRunnerSandbox('career-ops-inline-jobs-test-');
+  const box = createRunnerSandbox('landing-gear-inline-jobs-test-');
   // Where a fixture section and a fixture suite leave each other a note.
-  const meeting = mkdtempSync(join(tmpdir(), 'career-ops-inline-jobs-meeting-'));
+  const meeting = mkdtempSync(join(tmpdir(), 'landing-gear-inline-jobs-meeting-'));
 
   /**
    * Give the sandbox one set of inline sections and one set of suites.
@@ -72,7 +72,7 @@ if (begins.length !== 1 || ends.length !== 1 || begins[0].index > ends[0].index)
       "console.log('\\n🧪 fixture suite\\n');",
       "console.log('1. First section');",
       "pass('inline: one');",
-      "pass(`inline: jobs env is [${process.env.CAREER_OPS_TEST_JOBS}], quick is ${QUICK}`);",
+      "pass(`inline: jobs env is [${process.env.LANDING_GEAR_TEST_JOBS}], quick is ${QUICK}`);",
       sleep(500),
       "warn('inline: a warning');",
       "console.error('inline: a stderr line');",
@@ -122,8 +122,8 @@ if (begins.length !== 1 || ends.length !== 1 || begins[0].index > ends[0].index)
     }
     {
       // The default is every CPU, so this is the run a contributor gets.
-      const r = box.runner(['--quick'], { CAREER_OPS_TEST_JOBS: '3' });
-      check('CAREER_OPS_TEST_JOBS above 1 runs the sections at the same time too',
+      const r = box.runner(['--quick'], { LANDING_GEAR_TEST_JOBS: '3' });
+      check('LANDING_GEAR_TEST_JOBS above 1 runs the sections at the same time too',
         r.status === 0 && /in one of the 3 slots/.test(r.stdout) && r.totals === '📊 Results: 9 passed, 0 failed, 2 warnings', r.all);
     }
     {

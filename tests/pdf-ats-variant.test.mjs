@@ -7,7 +7,7 @@
 // commands out of Step 21a itself and runs them in order. A renamed flag, a
 // dropped fold, or a reordered step fails here rather than in a user's run.
 //
-// HERMETIC: tmpdir fixtures only; CAREER_OPS_ROOT points the fact gate at a
+// HERMETIC: tmpdir fixtures only; LANDING_GEAR_ROOT points the fact gate at a
 // fixture cv.md, never the developer's real one.
 
 import { test } from 'node:test';
@@ -71,7 +71,7 @@ function runDocumentedStep(payload, report = '', dirPrefix = 'pdf-ats-variant-')
   writeFileSync(join(dataRoot, 'cv.md'), CV_MD);
   const styledJson = join(dir, `cv-jane-smith${seg}-acme.json`);
   writeFileSync(styledJson, JSON.stringify(payload, null, 2));
-  const env = { ...process.env, CAREER_OPS_ROOT: dataRoot };
+  const env = { ...process.env, LANDING_GEAR_ROOT: dataRoot };
 
   // Split the documented template into arguments FIRST, then substitute into
   // each argument, so a substituted value containing whitespace (a checkout or

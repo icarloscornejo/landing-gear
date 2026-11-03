@@ -47,7 +47,7 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { loadYaml } from './lib/yaml-document.mjs';
 import { LIVENESS_CONTEXT_OPTIONS, rejectPrivateOrInvalid } from './liveness-browser.mjs';
-import { getCareerOpsRoot, getProfilePath } from './path-resolver.mjs';
+import { getLandingGearRoot, getProfilePath } from './path-resolver.mjs';
 import { resolveAtsApi, JD_TEXT_API_ATS } from './liveness-api.mjs';
 import { classifyLiveness } from './liveness-core.mjs';
 import { decodeEntities } from './providers/_html-entities.mjs';
@@ -63,7 +63,7 @@ import { guardText, hiddenHtml } from './posting-guard.mjs';
 // ten per-ATS fetchers report hidden markup without threading an argument through each.
 const guardFindings = new AsyncLocalStorage();
 
-const CAREER_OPS = getCareerOpsRoot();
+const LANDING_GEAR = getLandingGearRoot();
 
 const DEFAULT_TIMEOUT_MS = 15_000;
 const HYDRATION_WAIT_MS = 2_000;

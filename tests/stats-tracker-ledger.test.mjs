@@ -10,7 +10,7 @@ const header = '| # | Date | Company | Role | Score | Status | PDF | Report | No
 const trackerContent = status => header + `| 1 | 2026-06-01 | Acme | Backend Engineer | 4/5 | ${status} | - | - | |\n`;
 
 function fixture(status) {
-  const root = mkdtempSync(join(tmpdir(), 'career-ops-stats-ledger-'));
+  const root = mkdtempSync(join(tmpdir(), 'landing-gear-stats-ledger-'));
   const dataRoot = join(root, 'workspace');
   const trackerDir = join(root, 'selected-tracker');
   mkdirSync(join(dataRoot, 'data'), { recursive: true });
@@ -35,7 +35,7 @@ function check(label, status, run) {
 function cli(f, script, args = []) {
   const result = spawnSync(NODE, [join(ROOT, script), ...args], {
     cwd: f.root, encoding: 'utf8', timeout: 15_000,
-    env: { ...process.env, CAREER_OPS_ROOT: f.dataRoot, CAREER_OPS_DATA_DIR: '', CAREER_OPS_TRACKER: f.tracker },
+    env: { ...process.env, LANDING_GEAR_ROOT: f.dataRoot, LANDING_GEAR_DATA_DIR: '', LANDING_GEAR_TRACKER: f.tracker },
   });
   assert.equal(result.status, 0, result.stderr || result.stdout);
   return JSON.parse(result.stdout);

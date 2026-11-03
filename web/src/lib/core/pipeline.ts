@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { careerOpsRoot, rootScript } from "@/lib/career-ops";
+import { landingGearRoot, rootScript } from "@/lib/landing-gear";
 import type { DiscoveredOffer } from "./scan";
 
 /**
@@ -11,7 +11,7 @@ import type { DiscoveredOffer } from "./scan";
  * the CANONICAL writers exported by the core's scan.mjs (`appendToPipeline`,
  * `appendToScanHistory`) instead of re-implementing the line format / section
  * markers — single source of truth, per the web↔core contract. We invoke them in
- * a short-lived node process (cwd = the user's career-ops root) so the core's own
+ * a short-lived node process (cwd = the user's landing-gear root) so the core's own
  * code does the writing; the web never owns a parallel copy of that logic.
  *
  * Discovered-but-not-added offers stay "new" (a dry-run scan writes nothing);
@@ -41,7 +41,7 @@ export function addOffersToPipeline(offers: DiscoveredOffer[]): Promise<AddResul
   }
 
   const scanUrl = pathToFileURL(rootScript("scan")).href;
-  const localTodayUrl = pathToFileURL(path.join(careerOpsRoot(), "lib", "local-today.mjs")).href;
+  const localTodayUrl = pathToFileURL(path.join(landingGearRoot(), "lib", "local-today.mjs")).href;
   const code = `
 import { appendToPipeline, appendToScanHistory } from ${JSON.stringify(scanUrl)};
 import { localToday } from ${JSON.stringify(localTodayUrl)};
@@ -66,7 +66,7 @@ process.stdin.on("end", async () => {
 
   return new Promise((resolve) => {
     const child = spawn(process.execPath, ["--input-type=module", "-e", code], {
-      cwd: careerOpsRoot(),
+      cwd: landingGearRoot(),
       env: process.env,
     });
     let out = "";

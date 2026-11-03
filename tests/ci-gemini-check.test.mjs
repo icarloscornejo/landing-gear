@@ -13,20 +13,20 @@ import { describeSpawn } from './helpers/describe-spawn.mjs';
 config();
 
 function isLiveGeminiCheckEnabled(env = process.env) {
-  return env.CAREER_OPS_LIVE_GEMINI === '1' && Boolean(env.GEMINI_API_KEY?.trim());
+  return env.LANDING_GEAR_LIVE_GEMINI === '1' && Boolean(env.GEMINI_API_KEY?.trim());
 }
 
 test('Gemini live smoke check requires explicit opt-in and an API key', () => {
   assert.equal(isLiveGeminiCheckEnabled({ GEMINI_API_KEY: 'configured-key' }), false);
-  assert.equal(isLiveGeminiCheckEnabled({ CAREER_OPS_LIVE_GEMINI: '1', GEMINI_API_KEY: '   ' }), false);
-  assert.equal(isLiveGeminiCheckEnabled({ CAREER_OPS_LIVE_GEMINI: '1' }), false);
-  assert.equal(isLiveGeminiCheckEnabled({ CAREER_OPS_LIVE_GEMINI: 'true', GEMINI_API_KEY: 'configured-key' }), false);
-  assert.equal(isLiveGeminiCheckEnabled({ CAREER_OPS_LIVE_GEMINI: '1', GEMINI_API_KEY: 'configured-key' }), true);
+  assert.equal(isLiveGeminiCheckEnabled({ LANDING_GEAR_LIVE_GEMINI: '1', GEMINI_API_KEY: '   ' }), false);
+  assert.equal(isLiveGeminiCheckEnabled({ LANDING_GEAR_LIVE_GEMINI: '1' }), false);
+  assert.equal(isLiveGeminiCheckEnabled({ LANDING_GEAR_LIVE_GEMINI: 'true', GEMINI_API_KEY: 'configured-key' }), false);
+  assert.equal(isLiveGeminiCheckEnabled({ LANDING_GEAR_LIVE_GEMINI: '1', GEMINI_API_KEY: 'configured-key' }), true);
 });
 
-if (process.env.CAREER_OPS_GEMINI_GATE_CHILD !== '1') {
+if (process.env.LANDING_GEAR_GEMINI_GATE_CHILD !== '1') {
   test('a Gemini key loaded from .env does not trigger a live request without opt-in', () => {
-    const tempDir = mkdtempSync(join(tmpdir(), 'career-ops-gemini-gate-'));
+    const tempDir = mkdtempSync(join(tmpdir(), 'landing-gear-gemini-gate-'));
     const fetchMarker = join(tempDir, 'fetch-called');
     const preloadPath = join(tempDir, 'block-network.cjs');
 
@@ -35,14 +35,14 @@ if (process.env.CAREER_OPS_GEMINI_GATE_CHILD !== '1') {
       writeFileSync(preloadPath, `
         const { writeFileSync } = require('node:fs');
         globalThis.fetch = (...args) => {
-          writeFileSync(process.env.CAREER_OPS_GEMINI_FETCH_MARKER, String(args[0]));
+          writeFileSync(process.env.LANDING_GEAR_GEMINI_FETCH_MARKER, String(args[0]));
           throw new Error('Unexpected network request in Gemini opt-in regression test');
         };
       `);
 
-      const env = { ...process.env, CAREER_OPS_GEMINI_GATE_CHILD: '1', CAREER_OPS_GEMINI_FETCH_MARKER: fetchMarker };
+      const env = { ...process.env, LANDING_GEAR_GEMINI_GATE_CHILD: '1', LANDING_GEAR_GEMINI_FETCH_MARKER: fetchMarker };
       delete env.GEMINI_API_KEY;
-      delete env.CAREER_OPS_LIVE_GEMINI;
+      delete env.LANDING_GEAR_LIVE_GEMINI;
       delete env.NODE_TEST_CONTEXT;
 
       const result = spawnSync(process.execPath, ['--require', preloadPath, fileURLToPath(import.meta.url)], {
@@ -61,7 +61,7 @@ if (process.env.CAREER_OPS_GEMINI_GATE_CHILD !== '1') {
   });
 }
 
-// Run a live API check only when explicitly requested with CAREER_OPS_LIVE_GEMINI=1.
+// Run a live API check only when explicitly requested with LANDING_GEAR_LIVE_GEMINI=1.
 test('Gemini AI Integration Smoke Test', { skip: !isLiveGeminiCheckEnabled() }, async () => {
   const apiKey = process.env.GEMINI_API_KEY;
   const modelName = process.env.GEMINI_MODEL || 'gemini-1.5-flash';

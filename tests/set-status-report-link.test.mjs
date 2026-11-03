@@ -16,7 +16,7 @@ const HEADER = '| # | Date | Company | Role | Score | Status | PDF | Report | No
 const ROW = '| 42 | 2026-02-01 | Example Co | Engineer | 4.2/5 | Evaluated | ❌ | [7](reports/007.md) | original |\n';
 
 function fixture(t, content = HEADER + ROW) {
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-report-link-'));
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-report-link-'));
   const data = join(dir, 'data');
   mkdirSync(data);
   const tracker = join(data, 'applications.md');
@@ -28,7 +28,7 @@ function fixture(t, content = HEADER + ROW) {
 function run(f, args = ['--report-link', '7', 'Applied']) {
   const result = spawnSync(process.execPath, [join(ROOT, 'set-status.mjs'), ...args, '--json'], {
     cwd: ROOT,
-    env: { ...process.env, CAREER_OPS_ROOT: f.dir, CAREER_OPS_TRACKER: f.tracker, CAREER_OPS_TRACKER_LOCK: '' },
+    env: { ...process.env, LANDING_GEAR_ROOT: f.dir, LANDING_GEAR_TRACKER: f.tracker, LANDING_GEAR_TRACKER_LOCK: '' },
     encoding: 'utf8', timeout: 30_000,
   });
   assert.equal(result.error, undefined);
@@ -185,7 +185,7 @@ test('pipe-only writers cannot begin rewriting tab rows through the shared parse
   const f = fixture(t, before);
   const result = spawnSync(process.execPath, [join(ROOT, 'mark-pdf-ready.mjs'), '7', '--json'], {
     cwd: ROOT,
-    env: { ...process.env, CAREER_OPS_ROOT: f.dir, CAREER_OPS_TRACKER: f.tracker, CAREER_OPS_TRACKER_LOCK: '' },
+    env: { ...process.env, LANDING_GEAR_ROOT: f.dir, LANDING_GEAR_TRACKER: f.tracker, LANDING_GEAR_TRACKER_LOCK: '' },
     encoding: 'utf8', timeout: 30_000,
   });
   assert.equal(result.error, undefined);

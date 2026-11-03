@@ -47,7 +47,7 @@ meaning. The reader never removes or rewrites drops.
   two mailboxes with the same message ID from colliding. It is not a secret or
   authentication proof.
 - `tracker_path` is the absolute canonical real path returned by core's
-  `resolveTrackerPath(getCareerOpsRoot())`. It must equal the active tracker
+  `resolveTrackerPath(getLandingGearRoot())`. It must equal the active tracker
   path. A foreign path is rejected and never opened. A copied drop cannot
   silently target another user's tracker with the same row numbers.
 - `application` is an exact snapshot of the parsed tracker identity: positive
@@ -121,10 +121,10 @@ Applied drops can also be removed; their tracker receipts preserve deduplication
 
 ## Data paths
 
-The drop directory follows `getCareerOpsRoot()`: `CAREER_OPS_ROOT`, then
-`CAREER_OPS_DATA_DIR`, then the `.career-ops-data` marker, then the code root.
+The drop directory follows `getLandingGearRoot()`: `LANDING_GEAR_ROOT`, then
+`LANDING_GEAR_DATA_DIR`, then the `.landing-gear-data` marker, then the code root.
 It is user-layer data under the existing `data/*` ignore/protection rules.
-An explicit `CAREER_OPS_TRACKER` still requires a matching `tracker_path` in
+An explicit `LANDING_GEAR_TRACKER` still requires a matching `tracker_path` in
 every proposal; it does not change the drop directory. Paths in proposals
 never override the configured root or tracker. With a proposal directory
 present and no reply-candidates file, reply-watch reviews proposals without

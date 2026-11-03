@@ -86,7 +86,7 @@ try {
 }
 
 // Chromium is needed for PDF generation and browser checks, not for the rest
-// of career-ops, so a failed download must not fail `npm install`: offline,
+// of landing-gear, so a failed download must not fail `npm install`: offline,
 // behind a proxy, or with the CDN down, the dependencies are already in place
 // and only the browser is missing. The script tries twice, then warns and
 // exits 0. Here `npx` is stubbed to fail, so nothing downloads.

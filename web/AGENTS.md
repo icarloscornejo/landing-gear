@@ -37,10 +37,10 @@ you want to assert.
 ```
 npm test          # node --test "tests/**/*.test.mjs"
 npm run typecheck # tsc --noEmit
-npm run dev       # the app, reading the sibling career-ops files
+npm run dev       # the app, reading the sibling landing-gear files
 ```
 
-Point `CAREER_OPS_ROOT` at a scratch directory when you need data to test against;
+Point `LANDING_GEAR_ROOT` at a scratch directory when you need data to test against;
 it is how the app finds the user's files, and it keeps your real pipeline out of it.
 
 ## Reviews and scope

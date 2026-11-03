@@ -23,7 +23,7 @@ import {
 import { describeSpawn, exitedNonZero } from './helpers/describe-spawn.mjs';
 
 function workspace(pageFormat) {
-  const dir = mkdtempSync(join(tmpdir(), 'career-ops-page-format-auto-'));
+  const dir = mkdtempSync(join(tmpdir(), 'landing-gear-page-format-auto-'));
   for (const sub of ['config', 'data', 'output']) mkdirSync(join(dir, sub), { recursive: true });
   writeFileSync(
     join(dir, 'config', 'profile.yml'),
@@ -37,8 +37,8 @@ const profileOf = (dir) => join(dir, 'config', 'profile.yml');
 function workspaceEnv(dir) {
   return {
     ...process.env,
-    CAREER_OPS_ROOT: dir,
-    CAREER_OPS_TRACKER: join(dir, 'data', 'applications.md'),
+    LANDING_GEAR_ROOT: dir,
+    LANDING_GEAR_TRACKER: join(dir, 'data', 'applications.md'),
   };
 }
 

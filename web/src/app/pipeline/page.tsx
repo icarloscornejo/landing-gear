@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { pipelineSummary, readReport, readStatusLog } from "@/lib/career-ops";
+import { pipelineSummary, readReport, readStatusLog } from "@/lib/landing-gear";
 import { pendingInbox } from "@/lib/inbox-pending.mjs";
 import { PipelineView } from "@/components/pipeline-view";
 import { GRID_TABS, inboxTabHas, pipelineTab, showsBoard, trackerTabOf } from "@/lib/pipeline-navigation.mjs";

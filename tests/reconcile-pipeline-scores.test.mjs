@@ -12,7 +12,7 @@ const SCRIPT = join(dirname(dirname(fileURLToPath(import.meta.url))), 'reconcile
 const URL = 'https://jobs.example.test/4521';
 
 function fixture(t, { report, stateScore = '-', stateStatus = 'completed', language = 'en' }) {
-  const root = mkdtempSync(join(tmpdir(), 'career-ops-reconcile-score-'));
+  const root = mkdtempSync(join(tmpdir(), 'landing-gear-reconcile-score-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   for (const dir of ['data', 'batch', 'reports']) mkdirSync(join(root, dir));
   const pipeline = join(root, 'data', 'pipeline.md');
@@ -26,7 +26,7 @@ function fixture(t, { report, stateScore = '-', stateStatus = 'completed', langu
   const run = (...args) => {
     const result = spawnSync(process.execPath, [SCRIPT, '--pipeline', pipeline, '--state', join(root, 'batch', 'batch-state.tsv'), ...args], {
       cwd: root,
-      env: { ...process.env, CAREER_OPS_ROOT: root, CAREER_OPS_DATA_DIR: root, CAREER_OPS_TRACKER: '' },
+      env: { ...process.env, LANDING_GEAR_ROOT: root, LANDING_GEAR_DATA_DIR: root, LANDING_GEAR_TRACKER: '' },
       encoding: 'utf8',
       timeout: 15_000,
     });
@@ -123,7 +123,7 @@ for (const [pdf, expected] of [
   ['未生成 — 运行 /landing-gear pdf example 按需生成', 'PDF ❌'],
   ['❌', 'PDF ❌'],
   ['✅', 'PDF ✅'],
-  ['/home/candidate/career-ops/output/cv-candidate-042-example-2026-09-01.PDF', 'PDF ✅'],
+  ['/home/candidate/landing-gear/output/cv-candidate-042-example-2026-09-01.PDF', 'PDF ✅'],
 ]) {
   test(`a skipped batch entry preserves PDF field: ${pdf}`, t => {
     const f = fixture(t, { report: `**Score:** 2.5/5\n**PDF:** ${pdf}`, stateStatus: 'skipped' });

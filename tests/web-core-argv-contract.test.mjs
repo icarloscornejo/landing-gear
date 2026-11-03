@@ -262,16 +262,16 @@ export function runWebCoreArgvContract() {
 
     const env = {
       ...process.env,
-      CAREER_OPS_ROOT: sandbox,
-      CAREER_OPS_DATA_DIR: '',
+      LANDING_GEAR_ROOT: sandbox,
+      LANDING_GEAR_DATA_DIR: '',
       // set-status.mjs resolves its root from the codebase, not from
-      // CAREER_OPS_ROOT, so without this the probe would read and write the
+      // LANDING_GEAR_ROOT, so without this the probe would read and write the
       // developer's own tracker.
-      CAREER_OPS_TRACKER: tracker,
+      LANDING_GEAR_TRACKER: tracker,
       // verify-portals.mjs reads portals.yml relative to the codebase root, and
       // a real one would put this probe on the network. Point it at a path that
       // does not exist: the script's documented no-op for a fresh setup.
-      CAREER_OPS_PORTALS: join(sandbox, 'no-portals.yml'),
+      LANDING_GEAR_PORTALS: join(sandbox, 'no-portals.yml'),
     };
 
     for (const site of CALL_SITES) {
@@ -343,6 +343,6 @@ export function runWebCoreArgvContract() {
   }
 }
 
-if (process.env.CAREER_OPS_WEB_ARGV_CONTRACT_STATIC_ONLY !== '1') {
+if (process.env.LANDING_GEAR_WEB_ARGV_CONTRACT_STATIC_ONLY !== '1') {
   runWebCoreArgvContract();
 }

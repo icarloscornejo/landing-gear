@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import fs from "node:fs";
 import path from "node:path";
-import { careerOpsRoot } from "@/lib/career-ops";
+import { landingGearRoot } from "@/lib/landing-gear";
 import { atomicWriteWithBackup } from "@/lib/core/safe-write";
 import { readJsonObject } from "@/lib/json-body";
 
 function cvPath() {
-  return path.join(careerOpsRoot(), "cv.md");
+  return path.join(landingGearRoot(), "cv.md");
 }
 
 const MAX_CV_BYTES = 200_000;

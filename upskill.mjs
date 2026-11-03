@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * upskill.mjs — Aggregate skill-gap analyzer for career-ops (#1520, phase 1)
+ * upskill.mjs — Aggregate skill-gap analyzer for landing-gear (#1520, phase 1)
  *
  * Reads the tracker + every linked evaluation report, extracts skill tokens
  * from each report's gaps (Machine Summary hard_stops/soft_gaps + Gap table),
@@ -31,19 +31,19 @@ import { validateFlags, flagValue, hasFlag } from './lib/cli-flags.mjs';
 import { loadCanonicalStates, resolveCanonicalStateId } from './tracker-utils.mjs';
 import { rankSkipBlockers, parseRequirementImportance } from './skip-blockers.mjs';
 
-import { getCareerOpsRoot, getProfilePath, rawTrackerPath, resolveTrackerPath } from './path-resolver.mjs';
+import { getLandingGearRoot, getProfilePath, rawTrackerPath, resolveTrackerPath } from './path-resolver.mjs';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
-const CAREER_OPS = getCareerOpsRoot();
-const APPS_FILE = resolveTrackerPath(CAREER_OPS);
+const LANDING_GEAR = getLandingGearRoot();
+const APPS_FILE = resolveTrackerPath(LANDING_GEAR);
 // Report links resolve against the tracker's directory as spelled first:
-// withinReports() compares candidates lexically against CAREER_OPS, so the
+// withinReports() compares candidates lexically against LANDING_GEAR, so the
 // realpath above alone (macOS /var -> /private/var, or any symlinked data
 // root) would push every valid link outside reports/. The realpath's own
 // directory stays a candidate for a tracker file that is itself a symlink,
 // whose links are written relative to its target.
-const TRACKER_DIR = dirname(resolve(rawTrackerPath(CAREER_OPS)));
-const CV_FILE = join(CAREER_OPS, 'cv.md');
+const TRACKER_DIR = dirname(resolve(rawTrackerPath(LANDING_GEAR)));
+const CV_FILE = join(LANDING_GEAR, 'cv.md');
 const PROFILE_FILE = getProfilePath();
 const STATES_FILE = join(ROOT, 'templates/states.yml');
 
@@ -60,11 +60,11 @@ const STATES_FILE = join(ROOT, 'templates/states.yml');
 // errors rethrow, matching readTextIfExists. Identical to the guard in
 // analyze-patterns.mjs so both sites behave the same.
 function withinReports(candidate) {
-  const repoRelative = relative(CAREER_OPS, candidate).split(sep).join('/');
+  const repoRelative = relative(LANDING_GEAR, candidate).split(sep).join('/');
   if (!repoRelative.startsWith('reports/') || repoRelative.includes('..')) return false;
   let realRoot;
   try {
-    realRoot = realpathSync(join(CAREER_OPS, 'reports'));
+    realRoot = realpathSync(join(LANDING_GEAR, 'reports'));
   } catch (err) {
     if (err.code === 'ENOENT' || err.code === 'ENOTDIR') return false;
     throw err;
@@ -478,7 +478,7 @@ function analyze(minReports) {
     const candidates = new Set([
       join(TRACKER_DIR, linkTarget),
       join(dirname(APPS_FILE), linkTarget),
-      join(CAREER_OPS, linkTarget),
+      join(LANDING_GEAR, linkTarget),
     ]);
     let content = null;
     for (const p of candidates) {
@@ -709,11 +709,11 @@ soft_gaps:
   // traversal link escapes root and must be rejected before any read. join()
   // collapses '..' at the call site, so the candidate is already absolute here.
   {
-    const legit = join(CAREER_OPS, 'reports', '042-acme-2026-01-01.md');
+    const legit = join(LANDING_GEAR, 'reports', '042-acme-2026-01-01.md');
     if (!withinReports(legit)) failures.push('containment: legit reports/ path wrongly rejected');
-    const escape = join(CAREER_OPS, 'reports/../../../etc/passwd');
+    const escape = join(LANDING_GEAR, 'reports/../../../etc/passwd');
     if (withinReports(escape)) failures.push('containment: traversal path escaped reports/ (path-traversal guard broken)');
-    const sibling = join(CAREER_OPS, 'reports-evil', 'x.md');
+    const sibling = join(LANDING_GEAR, 'reports-evil', 'x.md');
     if (withinReports(sibling)) failures.push('containment: reports-prefixed sibling dir wrongly accepted');
   }
 
@@ -723,7 +723,7 @@ soft_gaps:
   // reports/ still passes and a missing candidate degrades gracefully (the
   // downstream read returns null) rather than throwing.
   {
-    const reportsDir = join(CAREER_OPS, 'reports');
+    const reportsDir = join(LANDING_GEAR, 'reports');
     if (existsSync(reportsDir)) {
       const tag = `__co2655-${process.pid}-${Date.now()}`;
       const realReport = join(reportsDir, `${tag}-real.md`);
@@ -968,7 +968,7 @@ if (isMain) {
       // fresh checkout still produces a meaningful comparison. Keyed on the read
       // result rather than existsSync: a cv.md that exists but cannot be read is,
       // for this purpose, the same as one that is not there.
-      if (!cvRaw) cvRaw = readOptionalText(join(CAREER_OPS, 'cv-example.md'));
+      if (!cvRaw) cvRaw = readOptionalText(join(LANDING_GEAR, 'cv-example.md'));
 
       const { gaps: gapList, excludedAsKnown, knownSkills } =
         computeTargetedGaps(

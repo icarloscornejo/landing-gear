@@ -37,7 +37,7 @@ function sandbox(fn) {
     const r = spawnSync(NODE, [join(ROOT, 'tracker.mjs'), 'delete', ...args], {
       encoding: 'utf-8',
       timeout: 30_000,
-      env: { ...process.env, CAREER_OPS_TRACKER: trackerPath, CAREER_OPS_TRACKER_DB: join(dir, 'applications.db') },
+      env: { ...process.env, LANDING_GEAR_TRACKER: trackerPath, LANDING_GEAR_TRACKER_DB: join(dir, 'applications.db') },
     });
     // Spread the real result so describeSpawn() can reach stdout, stderr, signal
   // and error. Returning only { status, all } printed "(empty)" for both
@@ -89,7 +89,7 @@ ok('a second delete replaces the .bak with the tracker as it was before THAT del
   assert.equal(readFileSync(`${tracker}.bak`, 'utf-8'), afterFirst);
 }));
 
-// A tracker reached through a symlink (a CAREER_OPS_TRACKER pointing at a link)
+// A tracker reached through a symlink (a LANDING_GEAR_TRACKER pointing at a link)
 // keeps its backup beside the real file, not beside the link. Same choice, for
 // the same reason, as fix-report-links.mjs: the backup is written from the bytes
 // read inside the lock, next to the path the transaction actually replaces.

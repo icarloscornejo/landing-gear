@@ -5,18 +5,18 @@ import { existsSync, readFileSync, realpathSync } from 'fs';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 /**
- * Returns the resolved career-ops data directory root.
- * Priority: process.env.CAREER_OPS_ROOT or process.env.CAREER_OPS_DATA_DIR >
- * .career-ops-data marker file > codebase root (__dirname).
+ * Returns the resolved landing-gear data directory root.
+ * Priority: process.env.LANDING_GEAR_ROOT or process.env.LANDING_GEAR_DATA_DIR >
+ * .landing-gear-data marker file > codebase root (__dirname).
  * 
  * @returns {string} Absolute path to the data root
  */
-export function getCareerOpsRoot() {
-  const env = process.env.CAREER_OPS_ROOT?.trim() || process.env.CAREER_OPS_DATA_DIR?.trim();
+export function getLandingGearRoot() {
+  const env = process.env.LANDING_GEAR_ROOT?.trim() || process.env.LANDING_GEAR_DATA_DIR?.trim();
   if (env) {
     return resolve(__dirname, env);
   }
-  const markerFile = join(__dirname, '.career-ops-data');
+  const markerFile = join(__dirname, '.landing-gear-data');
   if (existsSync(markerFile)) {
     try {
       const content = readFileSync(markerFile, 'utf-8').trim();
@@ -31,21 +31,21 @@ export function getCareerOpsRoot() {
 }
 
 /**
- * True when CAREER_OPS_PROFILE names a profile. Callers that must tell "an
+ * True when LANDING_GEAR_PROFILE names a profile. Callers that must tell "an
  * override is set" from "none" use this instead of comparing paths: an override
  * may name the data-root profile itself.
  *
  * @returns {boolean}
  */
 export function hasProfileOverride() {
-  return Boolean(process.env.CAREER_OPS_PROFILE?.trim());
+  return Boolean(process.env.LANDING_GEAR_PROFILE?.trim());
 }
 
 /**
  * Returns the path to the user's config/profile.yml.
- * Priority: rootDir argument > process.env.CAREER_OPS_PROFILE > data root.
+ * Priority: rootDir argument > process.env.LANDING_GEAR_PROFILE > data root.
  * A relative override resolves against the working directory, like the other
- * lane variables (CAREER_OPS_PORTALS, CAREER_OPS_PIPELINE, CAREER_OPS_SCAN_HISTORY).
+ * lane variables (LANDING_GEAR_PORTALS, LANDING_GEAR_PIPELINE, LANDING_GEAR_SCAN_HISTORY).
  *
  * Every reader of the profile resolves it here. The override used to be
  * copied by hand into a handful of modules while the rest built the data-root
@@ -58,8 +58,8 @@ export function hasProfileOverride() {
  */
 export function getProfilePath(rootDir) {
   if (rootDir) return join(rootDir, 'config', 'profile.yml');
-  const override = process.env.CAREER_OPS_PROFILE?.trim();
-  return override ? resolve(override) : join(getCareerOpsRoot(), 'config', 'profile.yml');
+  const override = process.env.LANDING_GEAR_PROFILE?.trim();
+  return override ? resolve(override) : join(getLandingGearRoot(), 'config', 'profile.yml');
 }
 
 /**
@@ -132,9 +132,9 @@ function namesAsStoredOnWindows(path) {
 
 /**
  * Returns the canonical path to the tracker applications.md file for reading.
- * Priority: process.env.CAREER_OPS_TRACKER > root/data/applications.md > root/applications.md.
+ * Priority: process.env.LANDING_GEAR_TRACKER > root/data/applications.md > root/applications.md.
  *
- * @param {string} rootDir The career-ops data root directory
+ * @param {string} rootDir The landing-gear data root directory
  * @returns {string} Canonical absolute path to the tracker file
  */
 export function resolveTrackerPath(rootDir) {
@@ -148,11 +148,11 @@ export function resolveTrackerPath(rootDir) {
  * resolveWorkspaceRootFor) so a symlinked `data/` does not realpath the
  * workspace out of the repo (#3169).
  *
- * @param {string} rootDir The career-ops data root directory
+ * @param {string} rootDir The landing-gear data root directory
  * @returns {string} Uncanonicalized tracker path
  */
 export function rawTrackerPath(rootDir) {
-  const env = process.env.CAREER_OPS_TRACKER?.trim();
+  const env = process.env.LANDING_GEAR_TRACKER?.trim();
   return env
     ? env
     : existsSync(join(rootDir, 'data/applications.md'))
@@ -162,14 +162,14 @@ export function rawTrackerPath(rootDir) {
 
 /**
  * Returns the resolved path to the tracker applications.md file for writing.
- * Priority: process.env.CAREER_OPS_TRACKER > root/data/applications.md.
+ * Priority: process.env.LANDING_GEAR_TRACKER > root/data/applications.md.
  * Does not check for file existence, providing a deterministic write target.
  * 
- * @param {string} root The career-ops data root directory
+ * @param {string} root The landing-gear data root directory
  * @returns {string} Absolute path to the tracker file for writing
  */
 export function resolveTrackerPathForWrite(root) {
-  const env = process.env.CAREER_OPS_TRACKER?.trim();
+  const env = process.env.LANDING_GEAR_TRACKER?.trim();
   if (env) {
     // Same canonicalization as the read path (see canonicalizeTrackerPath): an
     // un-canonicalized env override derives divergent lock paths on symlinked

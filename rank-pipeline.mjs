@@ -38,11 +38,11 @@ import { flagValue, hasFlag, safeIntFlag, validateFlags } from './lib/cli-flags.
 import { sanitizeMarkdownField } from './scan.mjs';
 import { withPipelineLock } from './pipeline-lock.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
-import { getCareerOpsRoot } from './path-resolver.mjs';
+import { getLandingGearRoot } from './path-resolver.mjs';
 import { readRememberedCli } from './lib/agent-cli.mjs';
 
-const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
-const DATA_ROOT = getCareerOpsRoot();
+const LANDING_GEAR = dirname(fileURLToPath(import.meta.url));
+const DATA_ROOT = getLandingGearRoot();
 const PIPELINE_PATH = join(DATA_ROOT, 'data', 'pipeline.md');
 const CV_PATH = join(DATA_ROOT, 'cv.md');
 
@@ -80,7 +80,7 @@ const GROK_DENIED_TOOLS = [
   'monitor', 'scheduler_create', 'write', 'search_replace', 'read_file', 'list_dir', 'grep',
 ].join(',');
 
-const COPILOT_NO_TOOLS = 'career-ops-no-tools';
+const COPILOT_NO_TOOLS = 'landing-gear-no-tools';
 
 export const CLI_CANDIDATES = [
   { bin: 'claude', args: p => ['-p', p, '--tools', '', '--disallowedTools', '*'] },
@@ -107,12 +107,12 @@ const USAGE = `
   node rank-pipeline.mjs [--limit N] [--cli <name>] [--model <name>] [--dry-run]
 
     --limit N     max entries to rank this run (default ${DEFAULT_LIMIT}, ceiling ${LIMIT_CEILING})
-    --cli <name>  force a CLI instead of $CAREER_OPS_CLI or auto-detection
+    --cli <name>  force a CLI instead of $LANDING_GEAR_CLI or auto-detection
     --model <n>   passed through to the CLI when it accepts one
     --dry-run     print the annotations, write nothing
     --self-test   run the in-memory suite (no subprocess, no network)
 
-    CAREER_OPS_RANK_TIMEOUT_MS  per-call timeout (default ${DEFAULT_TIMEOUT_MS})
+    LANDING_GEAR_RANK_TIMEOUT_MS  per-call timeout (default ${DEFAULT_TIMEOUT_MS})
 `;
 const KNOWN_FLAGS = [
   '--limit',
@@ -302,8 +302,8 @@ export function buildPrompt(entries, cvExcerpt) {
     .join('\n');
 }
 
-/** Per-call timeout from CAREER_OPS_RANK_TIMEOUT_MS; anything but a positive integer means the default. */
-export function resolveRankTimeoutMs(raw = process.env.CAREER_OPS_RANK_TIMEOUT_MS) {
+/** Per-call timeout from LANDING_GEAR_RANK_TIMEOUT_MS; anything but a positive integer means the default. */
+export function resolveRankTimeoutMs(raw = process.env.LANDING_GEAR_RANK_TIMEOUT_MS) {
   const n = Number(raw);
   return Number.isInteger(n) && n > 0 ? n : DEFAULT_TIMEOUT_MS;
 }
@@ -313,7 +313,7 @@ function callCli(cli, prompt, model, timeout) {
   if (model) args.push('--model', model);
   // An empty directory gives an agent CLI nothing to read, and keeps it out of
   // the user's CV, reports and tracker.
-  const cwd = mkdtempSync(join(tmpdir(), 'career-ops-rank-'));
+  const cwd = mkdtempSync(join(tmpdir(), 'landing-gear-rank-'));
   try {
     // Explicit maxBuffer: a verbose response otherwise throws
     // ERR_CHILD_PROCESS_STDIO_MAXBUFFER and fails the batch for no good reason.
@@ -343,7 +343,7 @@ const ANSI = /\x1b\[[0-9;]*m/g;
  */
 export function describeCliFailure(err, bin, timeoutMs) {
   if (err?.code === 'ETIMEDOUT') {
-    return timeoutMs ? `${bin} timed out after ${timeoutMs / 1000} s; raise CAREER_OPS_RANK_TIMEOUT_MS to wait longer` : `${bin} timed out`;
+    return timeoutMs ? `${bin} timed out after ${timeoutMs / 1000} s; raise LANDING_GEAR_RANK_TIMEOUT_MS to wait longer` : `${bin} timed out`;
   }
   if (err?.code === 'ENOENT') return `${bin} not found`;
   const lines = String(err?.stderr ?? '').replace(ANSI, '').split(/\r?\n/).map(l => l.trim()).filter(Boolean);
@@ -366,7 +366,7 @@ async function main(args) {
     return 1;
   }
   const model = flagValue(args, '--model');
-  const forced = flagValue(args, '--cli') ?? process.env.CAREER_OPS_RANK_CLI;
+  const forced = flagValue(args, '--cli') ?? process.env.LANDING_GEAR_RANK_CLI;
 
   if (forced === 'hermes') {
     console.error('Hermes is not supported for batch ranking.');

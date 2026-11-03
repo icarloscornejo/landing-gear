@@ -14,7 +14,7 @@ import {
 import { nextScheduledRun } from "../src/lib/scheduled-cadence.mjs";
 import { isMainModule } from "../../lib/is-main-module.mjs";
 import { scheduledRunnerResourcePath, scheduledStorePath } from "../src/lib/scheduled-runner-path.mjs";
-import { getCareerOpsRoot } from "../../path-resolver.mjs";
+import { getLandingGearRoot } from "../../path-resolver.mjs";
 
 const CODE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 export const MAX_RUNS = 100;
@@ -203,7 +203,7 @@ export function executeJob(root, job, options = {}) {
         [command.script, ...command.args],
         {
           cwd: CODE_ROOT,
-          env: { ...process.env, CAREER_OPS_ROOT: root, CAREER_OPS_PORTALS: tempPortals },
+          env: { ...process.env, LANDING_GEAR_ROOT: root, LANDING_GEAR_PORTALS: tempPortals },
           encoding: "utf8",
           timeout: SCAN_TIMEOUT_MS,
           maxBuffer: MAX_OUTPUT_BYTES,
@@ -284,7 +284,7 @@ function requestedJobId(args) {
 }
 
 async function main() {
-  const root = getCareerOpsRoot();
+  const root = getLandingGearRoot();
   const storePath = scheduledStorePath(root);
   const runnerResource = runnerResourcePath(storePath);
   const manualJobId = requestedJobId(process.argv.slice(2));

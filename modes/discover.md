@@ -3,7 +3,7 @@
 ## Purpose
 
 Take a list of companies and resolve each to a scannable ATS board by probing
-the public JSON APIs career-ops already supports — Greenhouse, Ashby, Lever, and
+the public JSON APIs landing-gear already supports — Greenhouse, Ashby, Lever, and
 Workday — via the existing `providers/` layer. Zero LLM tokens, zero auth. A
 company "resolves" when a vendor's board exists AND currently lists ≥1 job.
 Confirmed entries are appended to `portals.yml` `tracked_companies` (deduped,
@@ -41,7 +41,7 @@ reusable tool that feeds the scanner.
   ```
 
 - `portals.yml` — dedupe target and write destination (user layer). Honors the
-  `CAREER_OPS_PORTALS` env override for scratch/testing.
+  `LANDING_GEAR_PORTALS` env override for scratch/testing.
 
 ### Generating the input list from scan history
 

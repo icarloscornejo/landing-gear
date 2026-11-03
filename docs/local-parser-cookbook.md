@@ -32,7 +32,7 @@ Because the script has to sit in the tree, put a parser you do not intend to con
 - `local/` is gitignored by default. `local/acme-jobs.mjs` is the simplest home for a one-off, company-specific parser.
 - `portals.yml` is already a user-layer file (gitignored), so the `parser:` block that points at the script stays private too.
 
-Use `scripts/parsers/` only for a parser you plan to open a PR for. `career-ops` does not bundle company-specific parser scripts, so in practice that is rare.
+Use `scripts/parsers/` only for a parser you plan to open a PR for. `landing-gear` does not bundle company-specific parser scripts, so in practice that is rare.
 
 ## Token savings
 

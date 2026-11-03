@@ -3,10 +3,10 @@
 //
 // providers/ADDING_A_PROVIDER.md: "If the source blocks the default UA through a
 // WAF/CDN, use BROWSER_LIKE_USER_AGENT from the same module — do not add your own
-// constant." That rule is what keeps the User-Agent career-ops sends nameable:
+// constant." That rule is what keeps the User-Agent landing-gear sends nameable:
 // site owners write robots.txt rules against a product token (RFC 9309 §2.2.1),
 // and a per-provider literal makes the fleet's identity unknowable — nobody can
-// answer "what does career-ops send?" by reading user-agent.mjs.
+// answer "what does landing-gear send?" by reading user-agent.mjs.
 //
 // This is a CONVENTION check, not a compliance one: importing the shared
 // BROWSER_LIKE_USER_AGENT is allowed and several providers legitimately need it.
@@ -48,8 +48,8 @@ test('no provider hardcodes a User-Agent literal', () => {
   );
 });
 
-test('the shared User-Agent identifies career-ops and carries a contact URL', async () => {
+test('the shared User-Agent identifies landing-gear and carries a contact URL', async () => {
   const { DEFAULT_USER_AGENT } = await import(pathToFileURL(join(ROOT, 'user-agent.mjs')).href);
-  assert.match(DEFAULT_USER_AGENT, /career-ops/, 'the default UA names the product');
+  assert.match(DEFAULT_USER_AGENT, /landing-gear/, 'the default UA names the product');
   assert.match(DEFAULT_USER_AGENT, /\+https?:\/\//, 'the default UA carries a URL a site owner can follow');
 });

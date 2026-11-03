@@ -6,14 +6,14 @@ import { pass, fail } from './helpers.mjs';
 const root = mkdtempSync(join(tmpdir(), 'cadence-integers-'));
 const profilePath = join(root, 'profile.yml');
 writeFileSync(profilePath, '{}');
-const previousProfile = process.env.CAREER_OPS_PROFILE;
-process.env.CAREER_OPS_PROFILE = profilePath;
+const previousProfile = process.env.LANDING_GEAR_PROFILE;
+process.env.LANDING_GEAR_PROFILE = profilePath;
 let cadence;
 try {
   cadence = await import('../followup-cadence.mjs');
 } finally {
-  if (previousProfile === undefined) delete process.env.CAREER_OPS_PROFILE;
-  else process.env.CAREER_OPS_PROFILE = previousProfile;
+  if (previousProfile === undefined) delete process.env.LANDING_GEAR_PROFILE;
+  else process.env.LANDING_GEAR_PROFILE = previousProfile;
 }
 
 const keys = {

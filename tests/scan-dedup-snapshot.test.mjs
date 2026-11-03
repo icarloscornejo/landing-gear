@@ -98,7 +98,7 @@ const GOLDEN = {
   ],
 };
 
-// The module-level data/ paths are anchored to CAREER_OPS_ROOT (frozen at
+// The module-level data/ paths are anchored to LANDING_GEAR_ROOT (frozen at
 // module load), so a chdir can no longer retarget them: each call receives the
 // sandbox's explicit paths through loadDedupSnapshot's path-options seam.
 function inSandbox(files, fn) {

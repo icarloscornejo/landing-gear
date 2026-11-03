@@ -8,7 +8,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { createHash } from "node:crypto";
-import { careerOpsRoot } from "@/lib/career-ops";
+import { landingGearRoot } from "@/lib/landing-gear";
 import { fetchJdCapture, listJdFiles, readJdSources } from "@/lib/jd-captures";
 import { pastedJdMarkdown, parseNeedsChrome, resolveWorkerInput } from "@/lib/lifecycle.mjs";
 import { bareUrl, jdFromHimalayas, jdFromHtml, type FreeJd } from "@/lib/pretriage-jd-parse.mjs";
@@ -23,7 +23,7 @@ type Job = { url: string; company: string; role: string };
 
 function readNeedsChromeHosts(): string[] {
   try {
-    return parseNeedsChrome(fs.readFileSync(path.join(careerOpsRoot(), "data", "needs-real-chrome.txt"), "utf8"));
+    return parseNeedsChrome(fs.readFileSync(path.join(landingGearRoot(), "data", "needs-real-chrome.txt"), "utf8"));
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === "ENOENT") return [];
     throw err;
@@ -41,7 +41,7 @@ const onHost = (host: string, listed: string) => host === listed || host.endsWit
 
 /** The JD body of a saved capture: everything after its "## Job description" heading. */
 function captureText(relative: string): string {
-  const markdown = fs.readFileSync(path.join(careerOpsRoot(), relative), "utf8");
+  const markdown = fs.readFileSync(path.join(landingGearRoot(), relative), "utf8");
   const heading = markdown.search(/^## Job description/m);
   const body = heading === -1 ? markdown : markdown.slice(markdown.indexOf("\n", heading) + 1);
   // The guard's report is about the posting, not part of it.
@@ -58,9 +58,9 @@ function guarded(jd: FreeJd): FreeJd {
 function saveCapture(job: Job, jd: FreeJd, how: string): void {
   const relative = path.join("jds", `fetched-${createHash("sha1").update(job.url).digest("hex").slice(0, 10)}.md`);
   const date = new Date().toISOString().slice(0, 10);
-  fs.mkdirSync(path.join(careerOpsRoot(), "jds"), { recursive: true });
+  fs.mkdirSync(path.join(landingGearRoot(), "jds"), { recursive: true });
   const markdown = pastedJdMarkdown({ url: job.url, company: job.company, role: job.role, text: jd.text, date, how });
-  fs.writeFileSync(path.join(careerOpsRoot(), relative), markdown + integritySection(jd.integrity ?? []));
+  fs.writeFileSync(path.join(landingGearRoot(), relative), markdown + integritySection(jd.integrity ?? []));
 }
 
 async function fetchPage(url: string): Promise<string | null> {

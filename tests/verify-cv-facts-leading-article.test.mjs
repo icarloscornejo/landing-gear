@@ -21,7 +21,7 @@ console.log('\nA tool named after a leading "a" or "an"');
 // measure ("3CX", "4D", "n8n"), and dotted names such as "node.js". A fragment
 // with none of them ("a small team", "a 2024 roadmap") claims nothing. The
 // determiners of #4004 ("the", "our", "their") still mark ordinary reference.
-const tmp = mkdtempSync(join(tmpdir(), 'career-ops-leading-article-'));
+const tmp = mkdtempSync(join(tmpdir(), 'landing-gear-leading-article-'));
 try {
   const source = join(tmp, 'cv.md');
   const config = join(tmp, 'cv-facts.json');

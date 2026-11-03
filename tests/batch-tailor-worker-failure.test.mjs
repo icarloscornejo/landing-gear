@@ -35,7 +35,7 @@ require('node:module').syncBuiltinESMExports();
 `);
       const result = spawnSync(process.execPath, ['--require', stub, 'batch-tailor.mjs'], {
         cwd: new URL('..', import.meta.url), encoding: 'utf8',
-        env: { ...process.env, CAREER_OPS_ROOT: root, CAREER_OPS_BATCH_STATE: state },
+        env: { ...process.env, LANDING_GEAR_ROOT: root, LANDING_GEAR_BATCH_STATE: state },
       });
       assert.equal(result.error, undefined);
       assert.equal(readFileSync(calls, 'utf8').trim().split('\n').length, 3);

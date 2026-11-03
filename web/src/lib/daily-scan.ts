@@ -6,7 +6,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { spawn } from "node:child_process";
-import { careerOpsRoot, rootScript } from "@/lib/career-ops";
+import { landingGearRoot, rootScript } from "@/lib/landing-gear";
 
 const START_HOUR = 12;
 const CHECK_EVERY_MS = 10 * 60 * 1000;
@@ -34,15 +34,15 @@ type State = {
   attempt?: { startedAt: string; finishedAt?: string; exitCode?: number | null };
 };
 
-type Holder = { __careerOpsDailyScanV3?: { timer: NodeJS.Timeout | null; running: boolean } };
+type Holder = { __landingGearDailyScanV3?: { timer: NodeJS.Timeout | null; running: boolean } };
 
 function holder(): { timer: NodeJS.Timeout | null; running: boolean } {
   const g = globalThis as Holder;
-  g.__careerOpsDailyScanV3 ??= { timer: null, running: false };
-  return g.__careerOpsDailyScanV3;
+  g.__landingGearDailyScanV3 ??= { timer: null, running: false };
+  return g.__landingGearDailyScanV3;
 }
 
-const stateDir = () => path.join(careerOpsRoot(), ".career-ops-web");
+const stateDir = () => path.join(landingGearRoot(), ".landing-gear-web");
 const statePath = () => path.join(stateDir(), "daily-scan.json");
 const logPath = () => path.join(stateDir(), "daily-scan.log");
 
@@ -82,7 +82,7 @@ export function dailyScanStatus(): DailyScanStatus {
 export function runDailyScan(): boolean {
   const scan = holder();
   if (scan.running) return false;
-  const root = careerOpsRoot();
+  const root = landingGearRoot();
   // The script ships with the code, so it lives in the checkout, not in the data root.
   const script = path.join(path.dirname(rootScript("scan")), "daily-scan.sh");
   if (!fs.existsSync(script)) {
@@ -113,7 +113,7 @@ export function runDailyScan(): boolean {
       }
       state.lastComplete = { date: finished.toLocaleDateString("en-CA"), finishedAt: finished.toISOString(), newPostings: newPostingsFromLog(output) };
     } else {
-      console.warn(`daily scan: exited with code ${exitCode}, see .career-ops-web/daily-scan.log`);
+      console.warn(`daily scan: exited with code ${exitCode}, see .landing-gear-web/daily-scan.log`);
     }
     writeState(state);
   };
@@ -137,7 +137,7 @@ export function scanDue(state: State, now: Date): boolean {
 export function startDailyScan(): void {
   const scan = holder();
   // Opt-out for scratch copies and tests, which must not scan with real network calls.
-  if (scan.timer || process.env.CAREER_OPS_NO_DAILY_SCAN === "1") return;
+  if (scan.timer || process.env.LANDING_GEAR_NO_DAILY_SCAN === "1") return;
   const check = () => {
     try {
       if (!scan.running && scanDue(readState(), new Date())) runDailyScan();

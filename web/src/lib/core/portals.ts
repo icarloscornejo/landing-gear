@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import * as yaml from "js-yaml";
-import { careerOpsRoot } from "@/lib/career-ops";
+import { landingGearRoot } from "@/lib/landing-gear";
 import { DEFAULT_FILTERS, cleanChips, type ExploreFilters } from "@/lib/explore";
 import { profileTargetKeywords } from "@/lib/profile-keywords.mjs";
 
@@ -11,7 +11,7 @@ import { profileTargetKeywords } from "@/lib/profile-keywords.mjs";
  * ACL for portals.yml — the core's scan-filter config (a CONTRACT entry-point,
  * see reference_web_core_sync_protocol). The Explorer NEVER mutates the user's
  * real portals.yml: it writes an EPHEMERAL filter file and points the scanner at
- * it via CAREER_OPS_PORTALS, so an ad-hoc search can't clobber the curated config.
+ * it via LANDING_GEAR_PORTALS, so an ad-hoc search can't clobber the curated config.
  * We also read the real portals.yml + config/profile.yml (tolerantly) only to
  * SEED sensible defaults for the first search.
  *
@@ -35,14 +35,14 @@ import { serializePortals } from "./portals-serialize.mjs";
 
 /** Write the ephemeral filter file to a temp path; caller cleans it up. */
 export function writeTempPortals(f: FilterLists): string {
-  const file = path.join(os.tmpdir(), `career-ops-explore-${randomUUID()}.yml`);
+  const file = path.join(os.tmpdir(), `landing-gear-explore-${randomUUID()}.yml`);
   fs.writeFileSync(file, serializePortals(f), "utf8");
   return file;
 }
 
 export function cleanupTempPortals(file: string): void {
   try {
-    if (file.startsWith(os.tmpdir()) && file.includes("career-ops-explore-")) fs.unlinkSync(file);
+    if (file.startsWith(os.tmpdir()) && file.includes("landing-gear-explore-")) fs.unlinkSync(file);
   } catch {
     /* best-effort */
   }
@@ -50,7 +50,7 @@ export function cleanupTempPortals(file: string): void {
 
 function loadYaml(rel: string): Record<string, unknown> | null {
   try {
-    const doc = yaml.load(fs.readFileSync(path.join(careerOpsRoot(), rel), "utf8"));
+    const doc = yaml.load(fs.readFileSync(path.join(landingGearRoot(), rel), "utf8"));
     return doc && typeof doc === "object" ? (doc as Record<string, unknown>) : null;
   } catch {
     return null;

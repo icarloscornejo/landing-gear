@@ -102,7 +102,7 @@ const CORPUS = [
   ['bytes that are not UTF-8', Buffer.from([0x63, 0x6f, 0x6e, 0x73, 0x74, 0x20, 0xff, 0xfe, 0x20, 0x3d, 0x20, 0x31, 0x3b, 0x0a]), null],
 ];
 
-const dir = mkdtempSync(join(tmpdir(), 'career-ops-syntax-check-'));
+const dir = mkdtempSync(join(tmpdir(), 'landing-gear-syntax-check-'));
 const say = (ok) => (ok ? 'accepts' : 'rejects');
 
 try {

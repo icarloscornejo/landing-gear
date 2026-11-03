@@ -1,6 +1,6 @@
 // Optional live-browser regression suite (run explicitly from web/tests/lib).
 // Run a local web server with
-// CAREER_OPS_ROOT set to a disposable fixture directory, then set
+// LANDING_GEAR_ROOT set to a disposable fixture directory, then set
 // PIPELINE_STATUS_TEST_URL and PIPELINE_STATUS_TEST_ROOT when running this file.
 // Generate that directory with: node tests/fixtures/pipeline-status.mjs
 // The marker and fictional-only rows guard against testing a personal tracker.

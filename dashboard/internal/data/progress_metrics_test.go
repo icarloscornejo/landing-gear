@@ -3,7 +3,7 @@ package data
 import (
 	"testing"
 
-	"github.com/santifer/career-ops/dashboard/internal/model"
+	"github.com/icarloscornejo/landing-gear/dashboard/internal/model"
 )
 
 // apps builds a slice of applications from a status -> count map-ish list.

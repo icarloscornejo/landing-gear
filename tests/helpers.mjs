@@ -8,7 +8,7 @@ import { basename, join, dirname, resolve, sep } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { isNestedCheckout, trackedFiles } from '../lib/mjs-files.mjs';
 import { localToday } from '../lib/local-today.mjs';
-import { getCareerOpsRoot } from '../path-resolver.mjs';
+import { getLandingGearRoot } from '../path-resolver.mjs';
 import { describeDrift, diffSnapshots, snapshotDataRoot } from './data-root-guard.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -17,7 +17,7 @@ export const QUICK = process.argv.includes('--quick');
 export const NODE = process.execPath;
 
 // The suite must never follow a developer's own tracker override into their
-// real data. CAREER_OPS_TRACKER outranks the CAREER_OPS_ROOT that fixtures pin,
+// real data. LANDING_GEAR_TRACKER outranks the LANDING_GEAR_ROOT that fixtures pin,
 // so with it set in the shell a test that runs normalize-statuses.mjs against
 // its fixture root rewrote the developer's tracker instead (and left a .bak
 // beside it), and a dozen checks failed on rows that were not theirs.
@@ -27,33 +27,33 @@ export const NODE = process.execPath;
 // a suite that imports these helpers is covered when run on its own as well.
 // Blanked rather than deleted: every reader trims the value and treats an empty
 // one as unset, which is also how the Go tests neutralise it
-// (`t.Setenv("CAREER_OPS_TRACKER", "")`), and a variable that is set is not
+// (`t.Setenv("LANDING_GEAR_TRACKER", "")`), and a variable that is set is not
 // overwritten by a later .env load (#4707 did the same for one test and
-// CAREER_OPS_PIPELINE). A test that needs the override sets its own.
-process.env.CAREER_OPS_TRACKER = '';
+// LANDING_GEAR_PIPELINE). A test that needs the override sets its own.
+process.env.LANDING_GEAR_TRACKER = '';
 
 // The same rule for the data root itself, which is where everything else a
 // script reads and writes is resolved from (#5113). Left alone, the suite ran
-// against whatever the shell pointed at: with CAREER_OPS_ROOT exported the way
+// against whatever the shell pointed at: with LANDING_GEAR_ROOT exported the way
 // the README suggests, the script smoke tests appended a fixture row to the
 // developer's real data/assessments.tsv on every run, and with nothing
 // exported, three suites overwrote live files in the checkout's own data/ and
 // restored them from memory — so an interrupted run left a three-row fixture
 // where the tracker had been, in a directory git does not track.
 //
-// So the suite gets a data root of its own. Pinned through CAREER_OPS_ROOT
-// because that outranks both CAREER_OPS_DATA_DIR and the `.career-ops-data`
+// So the suite gets a data root of its own. Pinned through LANDING_GEAR_ROOT
+// because that outranks both LANDING_GEAR_DATA_DIR and the `.landing-gear-data`
 // marker (path-resolver.mjs), and set here for the reason the tracker override
 // is cleared here: the runner and every child it spawns inherit it, and a suite
 // run on its own is covered as well. A test that needs a particular root pins
 // its own, in its child's env or around its own import.
 //
 // One directory per run, not per process. The process that creates it exports
-// it as CAREER_OPS_TEST_DATA_ROOT; a child that loads these helpers finds that
+// it as LANDING_GEAR_TEST_DATA_ROOT; a child that loads these helpers finds that
 // and joins the run's root rather than making another, and only the creator
 // removes it.
-const SANDBOX_ENV = 'CAREER_OPS_TEST_DATA_ROOT';
-const SANDBOX_PREFIX = 'career-ops-test-data-';
+const SANDBOX_ENV = 'LANDING_GEAR_TEST_DATA_ROOT';
+const SANDBOX_PREFIX = 'landing-gear-test-data-';
 
 // The variable is inherited, so it is only as trustworthy as the shell it came
 // from: a stale export naming a real directory would make this process a
@@ -79,7 +79,7 @@ const ownsSandbox = !(inheritedSandbox && isRunSandbox(inheritedSandbox));
  * overridden below. Null in a child of the run: the process that owns the
  * sandbox is the one that answers for the real root.
  */
-export const REAL_DATA_ROOT = ownsSandbox ? getCareerOpsRoot() : null;
+export const REAL_DATA_ROOT = ownsSandbox ? getLandingGearRoot() : null;
 const realRootBefore = ownsSandbox ? snapshotDataRoot(REAL_DATA_ROOT, ROOT) : null;
 
 /** The scratch data root every script resolves to while the suite runs. */
@@ -91,7 +91,7 @@ export const SANDBOX_DATA_ROOT = ownsSandbox
  * Point the data root back at the suite's sandbox.
  *
  * Called when these helpers load, and again by any test that had to move or
- * unset the variable in-process: `delete process.env.CAREER_OPS_ROOT` in a
+ * unset the variable in-process: `delete process.env.LANDING_GEAR_ROOT` in a
  * `finally` does not restore anything, it hands every later suite in the same
  * process the developer's real root.
  *
@@ -99,9 +99,9 @@ export const SANDBOX_DATA_ROOT = ownsSandbox
  */
 export function pinSandboxDataRoot() {
   process.env[SANDBOX_ENV] = SANDBOX_DATA_ROOT;
-  process.env.CAREER_OPS_ROOT = SANDBOX_DATA_ROOT;
-  // Blanked, not deleted, for the same reasons as CAREER_OPS_TRACKER above.
-  process.env.CAREER_OPS_DATA_DIR = '';
+  process.env.LANDING_GEAR_ROOT = SANDBOX_DATA_ROOT;
+  // Blanked, not deleted, for the same reasons as LANDING_GEAR_TRACKER above.
+  process.env.LANDING_GEAR_DATA_DIR = '';
 }
 pinSandboxDataRoot();
 
@@ -111,14 +111,14 @@ pinSandboxDataRoot();
  * Many fixtures copy a script and path-resolver.mjs into a temp directory and
  * expect the copy to treat that directory as its data root, which is what the
  * resolver does when nothing overrides it. Something does now — the pin above —
- * and a developer's exported CAREER_OPS_ROOT always did, so the expectation is
+ * and a developer's exported LANDING_GEAR_ROOT always did, so the expectation is
  * stated in the child's env instead of assumed from the shell's.
  *
  * @param {Record<string, string>} [extra] - Further variables for the child.
  * @returns {NodeJS.ProcessEnv}
  */
 export function ownRootEnv(extra = {}) {
-  return { ...process.env, CAREER_OPS_ROOT: '', CAREER_OPS_DATA_DIR: '', ...extra };
+  return { ...process.env, LANDING_GEAR_ROOT: '', LANDING_GEAR_DATA_DIR: '', ...extra };
 }
 
 let realRootChecked = false;
@@ -221,7 +221,7 @@ let warnings = 0;
  * Record and print one passing test assertion.
  *
  * The suite uses these small counters instead of a framework so it can run in
- * any freshly cloned career-ops checkout with only Node.js available.
+ * any freshly cloned landing-gear checkout with only Node.js available.
  *
  * @param {string} msg - Human-readable success message for the terminal log.
  * @returns {void}
@@ -459,8 +459,8 @@ export function run(cmd, args = [], opts = {}) {
   lastFailure = null;
   const exe = resolveAllowedExecutable(cmd);
   const env = opts.env ?? process.env;
-  const isolatedOpts = args.includes('merge-tracker.mjs') && env.CAREER_OPS_ADDITIONS
-    ? { ...opts, env: { ...env, CAREER_OPS_BATCH_STATE: isolatedBatchStatePath(env.CAREER_OPS_ADDITIONS) } }
+  const isolatedOpts = args.includes('merge-tracker.mjs') && env.LANDING_GEAR_ADDITIONS
+    ? { ...opts, env: { ...env, LANDING_GEAR_BATCH_STATE: isolatedBatchStatePath(env.LANDING_GEAR_ADDITIONS) } }
     : opts;
   opts = isolatedOpts;
   try {
@@ -495,7 +495,7 @@ let lastFailure = null;
 // describeSpawn lives in helpers/describe-spawn.mjs and is re-exported here so
 // the 410 tests that already import from this file can reach it. It is a
 // SEPARATE module because importing this one is not free: the lines above set
-// process.env.CAREER_OPS_TRACKER, call pinSandboxDataRoot() and register an
+// process.env.LANDING_GEAR_TRACKER, call pinSandboxDataRoot() and register an
 // 'exit' hook. A test that does not already depend on that must be able to
 // describe a failed child without inheriting it.
 export { describeSpawn } from './helpers/describe-spawn.mjs';
@@ -657,7 +657,7 @@ export function formatRunFailure(maxChars = 2000) {
 /**
  * Check whether a repo-relative file exists.
  *
- * @param {string} path - Path relative to the career-ops repository root.
+ * @param {string} path - Path relative to the landing-gear repository root.
  * @returns {boolean} True when the file exists.
  */
 export function fileExists(path) { return existsSync(join(ROOT, path)); }
@@ -1382,7 +1382,7 @@ export async function captureConsoleErrors(fn) {
  *   temp dir names the suite that made it.
  * @param {boolean} [options.includeRoot=false] - Add `root` to the returned ctx.
  *   `addPaths` resolves paths against it to decide what is a directory; without
- *   it the guard would lstat the real career-ops checkout instead of the
+ *   it the guard would lstat the real landing-gear checkout instead of the
  *   fixture. `isTracked` never reads it.
  * @returns {{dir: string, g: Function, ctx: {git: Function, root?: string}}}
  */

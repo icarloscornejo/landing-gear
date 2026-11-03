@@ -97,7 +97,7 @@ export function mergeSections(existingMd, rendered, core) {
 
 /**
  * The shipped template. A SYSTEM file: it lives in the engine checkout, never
- * in the data root — under the split layout (CAREER_OPS_ROOT pointing at a
+ * in the data root — under the split layout (LANDING_GEAR_ROOT pointing at a
  * data-only directory) the data root has no template at all.
  */
 export function templatePath(codeRoot) {
@@ -131,7 +131,7 @@ function readTemplate(codeRoot) {
  * either cannot be read: with no template every section compares as "filled",
  * and an unreadable profile compares as "missing".
  *
- * @param {string} dataRoot career-ops home, i.e. careerOpsRoot()
+ * @param {string} dataRoot landing-gear home, i.e. landingGearRoot()
  * @param {string} codeRoot engine checkout, i.e. resolveCodeRoot()
  */
 export function readPersonalizationState(dataRoot, codeRoot, core) {

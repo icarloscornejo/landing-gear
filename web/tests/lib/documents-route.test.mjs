@@ -6,7 +6,7 @@ import os from "node:os";
 import { handleDocumentsRequest } from "../../src/lib/documents.ts";
 
 function setupTestEnv() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "career-ops-api-test-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "landing-gear-api-test-"));
   const outputDir = path.join(root, "output");
   const dataDir = path.join(root, "data");
   fs.mkdirSync(outputDir, { recursive: true });

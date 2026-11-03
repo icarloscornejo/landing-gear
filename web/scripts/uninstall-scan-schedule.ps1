@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 
-$taskName = 'career-ops recurring scan'
+$taskName = 'landing-gear recurring scan'
 $task = $null
 try {
   $task = Get-ScheduledTask -TaskName $taskName -ErrorAction Stop

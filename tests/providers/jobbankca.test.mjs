@@ -319,20 +319,20 @@ try {
   // same pattern as tests/providers/vdab.test.mjs. ──
   {
     const withTmpCwd = async (setup, run) => {
-      const tmp = mkdtempSync(join(tmpdir(), 'career-ops-jobbankca-fallback-'));
+      const tmp = mkdtempSync(join(tmpdir(), 'landing-gear-jobbankca-fallback-'));
       const cwdBefore = process.cwd();
-      const rootEnvBefore = { root: process.env.CAREER_OPS_ROOT, dir: process.env.CAREER_OPS_DATA_DIR };
+      const rootEnvBefore = { root: process.env.LANDING_GEAR_ROOT, dir: process.env.LANDING_GEAR_DATA_DIR };
       try {
         setup(tmp);
         process.chdir(tmp);
-        process.env.CAREER_OPS_ROOT = tmp;
-        process.env.CAREER_OPS_DATA_DIR = '';
+        process.env.LANDING_GEAR_ROOT = tmp;
+        process.env.LANDING_GEAR_DATA_DIR = '';
         return await run();
       } finally {
-        if (rootEnvBefore.root === undefined) delete process.env.CAREER_OPS_ROOT;
-        else process.env.CAREER_OPS_ROOT = rootEnvBefore.root;
-        if (rootEnvBefore.dir === undefined) delete process.env.CAREER_OPS_DATA_DIR;
-        else process.env.CAREER_OPS_DATA_DIR = rootEnvBefore.dir;
+        if (rootEnvBefore.root === undefined) delete process.env.LANDING_GEAR_ROOT;
+        else process.env.LANDING_GEAR_ROOT = rootEnvBefore.root;
+        if (rootEnvBefore.dir === undefined) delete process.env.LANDING_GEAR_DATA_DIR;
+        else process.env.LANDING_GEAR_DATA_DIR = rootEnvBefore.dir;
         process.chdir(cwdBefore);
         rmSync(tmp, { recursive: true, force: true });
       }

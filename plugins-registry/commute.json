@@ -1,7 +1,7 @@
 {
-  "name": "career-ops-plugin-commute",
+  "name": "landing-gear-plugin-commute",
   "id": "commute",
-  "repo": "https://github.com/bullitt186/career-ops-plugin-commute",
+  "repo": "https://github.com/bullitt186/landing-gear-plugin-commute",
   "author": "bullitt186",
   "hooks": [
     "ingest",

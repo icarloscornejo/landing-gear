@@ -142,7 +142,7 @@ test('style.project_break_inside: avoid removes the one-word project widow', asy
 
     // The override arrives exactly as theme-style.mjs delivers a profile token:
     // a later :root block, which is why the token may only be declared on :root.
-    const override = '<style id="career-ops-dynamic-theme">\n'
+    const override = '<style id="landing-gear-dynamic-theme">\n'
       + ':root { --project-break-inside: avoid; }\n</style>';
     const set = await render(
       build(shape).replace(/<\/head>/i, `${override}\n</head>`),

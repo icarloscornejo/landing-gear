@@ -3,12 +3,12 @@
  *
  * Lives in a plain .mjs, taking the root as a parameter, for the same reason
  * pdf-paths.mjs does. web/tests runs bare `node --test`, which cannot resolve
- * career-ops.ts through the `@/` alias, and this is logic that has to be
- * asserted on as a VALUE. career-ops.ts keeps readMemory() as its entry point
- * and calls in here with careerOpsRoot().
+ * landing-gear.ts through the `@/` alias, and this is logic that has to be
+ * asserted on as a VALUE. landing-gear.ts keeps readMemory() as its entry point
+ * and calls in here with landingGearRoot().
  *
  * The marker constants are exported rather than duplicated. rememberFact() in
- * career-ops.ts is the only WRITER of the managed block and needs them to know
+ * landing-gear.ts is the only WRITER of the managed block and needs them to know
  * where to append and how to dedupe: one definition, two consumers.
  */
 import fs from "node:fs";
@@ -50,7 +50,7 @@ export function profilePath(root) {
  * user, and the consumer is a prompt, so a line this function invented would
  * read there as something the user wrote.
  *
- * @param {string} root career-ops home, i.e. careerOpsRoot()
+ * @param {string} root landing-gear home, i.e. landingGearRoot()
  * @returns {string}
  */
 export function readProfileMemory(root) {
@@ -59,7 +59,7 @@ export function readProfileMemory(root) {
       return fs.readFileSync(file, "utf8").trim();
     } catch (err) {
       /* ENOENT alone is "nobody ever wrote one", and it is a real state: with a
-         separate CAREER_OPS_ROOT the data dir has no modes/ until doctor.mjs
+         separate LANDING_GEAR_ROOT the data dir has no modes/ until doctor.mjs
          copies the template in. Every other code means the path is broken or the
          file is unreadable, and returning "" for those is this file's own bug one
          layer down — buildPrompt() omits the notes section for an empty memory,
@@ -72,6 +72,6 @@ export function readProfileMemory(root) {
     }
   };
   const profile = read(profilePath(root));
-  const legacy = read(path.join(root, ".career-ops-web", "memory.md"));
+  const legacy = read(path.join(root, ".landing-gear-web", "memory.md"));
   return [profile, legacy].filter(Boolean).join("\n\n");
 }

@@ -1,4 +1,4 @@
-# Career-Ops: Canonical Discard Reasons
+# Landing-Gear: Canonical Discard Reasons
 # Source of truth for the Machine Summary `discard_reasons` vocabulary (#2785).
 # Writers: batch/batch-prompt.md (and modes/oferta.md, which defers to it).
 # Readers: analyze-patterns.mjs, dashboard discard picker

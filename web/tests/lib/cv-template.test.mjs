@@ -2,7 +2,7 @@
 //
 // The half that is easy to get wrong is not the lookup — that is delegated to the
 // core's cv-templates.mjs — but the BASE a relative path resolves against.
-// cv-templates.mjs reads CAREER_OPS_PROFILE relative to the cwd, and the cwd is
+// cv-templates.mjs reads LANDING_GEAR_PROFILE relative to the cwd, and the cwd is
 // `<core>` for the CLI and `<core>/web` for the dashboard. `config/profile.yml`
 // therefore names two different files, one of which does not exist: the dashboard
 // finds no profile, falls back to the base template, and the two agree on nothing
@@ -12,7 +12,7 @@
 // cv-templates.mjs, and drives the REAL `process.env` and `process.cwd()` rather
 // than injected stand-ins. That is not ceremony: an injected env made the relative
 // case pass against the UNFIXED code, because cv-templates.mjs reads
-// `process.env.CAREER_OPS_PROFILE` itself, at module load, and never saw the
+// `process.env.LANDING_GEAR_PROFILE` itself, at module load, and never saw the
 // stand-in. The test agreed with the bug.
 //
 // Run:  node --test tests/lib/cv-template.test.mjs
@@ -42,7 +42,7 @@ try {
 }
 
 /**
- * A throwaway career-ops checkout: the real cv-templates.mjs, a base template, a
+ * A throwaway landing-gear checkout: the real cv-templates.mjs, a base template, a
  * named one, and a profile.yml selecting the named one. Each call gets its own
  * directory, which also gives cv-templates.mjs a fresh module URL — it caches its
  * default profile path at load, so a shared copy would freeze the first case's env.
@@ -101,24 +101,24 @@ function fakeCheckout({ profileAt = "config/profile.yml", template = "mine", pac
 }
 
 /**
- * Run `fn` as the dashboard does: cwd `<root>/web`, with this CAREER_OPS_PROFILE.
+ * Run `fn` as the dashboard does: cwd `<root>/web`, with this LANDING_GEAR_PROFILE.
  *
  * And with no data-root override. The default profile path follows the data
  * root, so "the checkout's own config/profile.yml" is only the fake checkout's
- * while nothing points the root elsewhere — and an inherited CAREER_OPS_ROOT
+ * while nothing points the root elsewhere — and an inherited LANDING_GEAR_ROOT
  * does: the core suite pins one for every child it spawns, and a developer may
  * export their own (#5113).
  */
 async function asDashboard(root, profileEnv, fn) {
   const priorCwd = process.cwd();
   const priorEnv = {};
-  for (const name of ["CAREER_OPS_PROFILE", "CAREER_OPS_ROOT", "CAREER_OPS_DATA_DIR"]) {
+  for (const name of ["LANDING_GEAR_PROFILE", "LANDING_GEAR_ROOT", "LANDING_GEAR_DATA_DIR"]) {
     priorEnv[name] = process.env[name];
     delete process.env[name];
   }
   fs.mkdirSync(path.join(root, "web"), { recursive: true });
   process.chdir(path.join(root, "web"));
-  if (profileEnv !== undefined) process.env.CAREER_OPS_PROFILE = profileEnv;
+  if (profileEnv !== undefined) process.env.LANDING_GEAR_PROFILE = profileEnv;
   try {
     return await fn();
   } finally {
@@ -130,8 +130,8 @@ async function asDashboard(root, profileEnv, fn) {
   }
 }
 
-test("a RELATIVE CAREER_OPS_PROFILE resolves against the checkout, not the cwd", { skip: !coreUsable }, async () => {
-  // Given a user who points CAREER_OPS_PROFILE at their profile the way the core
+test("a RELATIVE LANDING_GEAR_PROFILE resolves against the checkout, not the cwd", { skip: !coreUsable }, async () => {
+  // Given a user who points LANDING_GEAR_PROFILE at their profile the way the core
   // documents it — relative — and a dashboard whose cwd is `<core>/web`
   const root = fakeCheckout();
 
@@ -144,7 +144,7 @@ test("a RELATIVE CAREER_OPS_PROFILE resolves against the checkout, not the cwd",
   assert.equal(rel, "templates/cv-template.mine.html");
 });
 
-test("an ABSOLUTE CAREER_OPS_PROFILE is left alone", { skip: !coreUsable }, async () => {
+test("an ABSOLUTE LANDING_GEAR_PROFILE is left alone", { skip: !coreUsable }, async () => {
   // Given a profile kept outside the checkout entirely (#524's supported setup),
   // path.resolve must return it unchanged
   const abs = path.join(os.tmpdir(), `cv-template-profile-${process.pid}.yml`);
@@ -156,7 +156,7 @@ test("an ABSOLUTE CAREER_OPS_PROFILE is left alone", { skip: !coreUsable }, asyn
   fs.rmSync(abs, { force: true });
 });
 
-test("no CAREER_OPS_PROFILE falls back to the checkout's own config/profile.yml", { skip: !coreUsable }, async () => {
+test("no LANDING_GEAR_PROFILE falls back to the checkout's own config/profile.yml", { skip: !coreUsable }, async () => {
   // Given the default install, where the core's own default is the right answer
   // and this module must not restate it
   const root = fakeCheckout();

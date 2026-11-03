@@ -1,6 +1,6 @@
 # Supported CLIs
 
-Career-ops is AI-agnostic and runs on several command-line agent tools. The core logic is shared via `AGENTS.md`, while CLI-specific nuances are handled through entry wrappers in the repository root.
+Landing-gear is AI-agnostic and runs on several command-line agent tools. The core logic is shared via `AGENTS.md`, while CLI-specific nuances are handled through entry wrappers in the repository root.
 
 | CLI | Entry File | How to Invoke |
 | --- | --- | --- |
@@ -26,7 +26,7 @@ Hermes runs the same pipeline as every other CLI here. Trust the checkout once w
 Pi needs no wrapper file: it reads `AGENTS.md` from the working directory as project context, and it discovers the shared skill at `.agents/skills/landing-gear/SKILL.md` on its own. In interactive mode the router is available as `/skill:landing-gear`; `--skill <path>` loads it explicitly, and `-p` runs one headless prompt.
 
 ```bash
-cd career-ops
+cd landing-gear
 pi                                          # interactive
 pi -p "Evaluate this JD with landing-gear auto-pipeline: https://company.com/jobs/123"
 ```

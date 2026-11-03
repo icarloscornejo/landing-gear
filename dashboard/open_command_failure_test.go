@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/santifer/career-ops/dashboard/internal/ui/screens"
+	"github.com/icarloscornejo/landing-gear/dashboard/internal/ui/screens"
 )
 
 // Issue 3913: the dashboard runs under a Bubble Tea alt-screen, so anything

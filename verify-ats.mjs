@@ -487,7 +487,7 @@ function auditAts(html, opts = {}) {
   // catches Competences, Competências and Competenze via the fold, so only
   // genuinely different words need their own alternative.
   //
-  // career-ops ships evaluation modes for ar, da, de, es, fr, hi, id, it, ja,
+  // landing-gear ships evaluation modes for ar, da, de, es, fr, hi, id, it, ja,
   // ko, nl, pl, pt, ru, tr, ua, zh and zh-TW, and before this every one of
   // them failed the gate on a structurally perfect CV. The Skills and
   // experience terms are taken from the `| Skills |` and `| Career history |`
@@ -804,7 +804,7 @@ function runSelfTest() {
   check('missing Education+Skills is flagged', hasIssue(noSections.issues, 'Education') && hasIssue(noSections.issues, 'Skills'));
   check('missing two required sections is critical', hasCritical(noSections.issues));
 
-  // A CV in any language career-ops ships a mode for must clear the gate on the
+  // A CV in any language landing-gear ships a mode for must clear the gate on the
   // same structure an English one clears it on. Before #4261 every one of these
   // was reported as missing all three sections, which is critical, so a
   // structurally perfect non-English CV did not merely score lower: it FAILED.

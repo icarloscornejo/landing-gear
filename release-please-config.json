@@ -4,17 +4,12 @@
   "packages": {
     ".": {
       "release-type": "simple",
-      "package-name": "career-ops",
+      "package-name": "landing-gear",
       "exclude-paths": ["web"],
       "extra-files": [
         {
           "type": "json",
           "path": "package.json",
-          "jsonpath": "$.version"
-        },
-        {
-          "type": "json",
-          "path": "scaffolder/package.json",
           "jsonpath": "$.version"
         },
         {
@@ -50,7 +45,7 @@
     },
     "web": {
       "release-type": "node",
-      "package-name": "career-ops-web",
+      "package-name": "landing-gear-web",
       "component": "web",
       "include-component-in-tag": true
     }

@@ -68,16 +68,16 @@
 import { readFileSync, existsSync, readdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
-import { getCareerOpsRoot, getProfilePath, resolveTrackerPath } from './path-resolver.mjs';
+import { getLandingGearRoot, getProfilePath, resolveTrackerPath } from './path-resolver.mjs';
 import { resolveColumns, parseTrackerRow, extractTrackerReportLinks, extractTrackerReportNumbers } from './tracker-parse.mjs';
 import { loadYaml } from './lib/yaml-document.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
 import { flagValue, hasFlag } from './lib/cli-flags.mjs';
 import { parseAmount, compensationPeriod } from './providers/_salary-text.mjs';
 
-const CAREER_OPS = getCareerOpsRoot();
-const OBS_PATH = join(CAREER_OPS, 'data/salary-observations.tsv');
-const REPORTS_DIR = join(CAREER_OPS, 'reports');
+const LANDING_GEAR = getLandingGearRoot();
+const OBS_PATH = join(LANDING_GEAR, 'data/salary-observations.tsv');
+const REPORTS_DIR = join(LANDING_GEAR, 'reports');
 // templates/ is SYSTEM layer (Data Contract) — resolved relative to this
 // script's own directory, never the (possibly different) user data root.
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
@@ -1448,7 +1448,7 @@ function readReportsByNum() {
 
 function readTrackerRows() {
   let trackerPath;
-  try { trackerPath = resolveTrackerPath(CAREER_OPS); } catch { return null; }
+  try { trackerPath = resolveTrackerPath(LANDING_GEAR); } catch { return null; }
   if (!trackerPath || !existsSync(trackerPath)) return null;
   let lines;
   try { lines = readFileSync(trackerPath, 'utf-8').split('\n'); } catch { return null; }

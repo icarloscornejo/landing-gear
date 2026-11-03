@@ -29,7 +29,7 @@ console.log('\nverifiers resolve provider plugins like the scanner (#4026)');
 // test never reads, writes, or deletes the developer's real files. Plugin code
 // resolves from this CODE_ROOT while config/plugins.yml resolves from the
 // separate Data Root, matching a split checkout. Copies the flat scripts plus
-// the dirs the verifiers reach into (scaffolder/ for doctor.mjs); node_modules
+// the dirs the verifiers reach into (lib/ for doctor.mjs); node_modules
 // is symlinked.
 function prepareFixtureCodeRoot(tmp) {
   const codeRoot = join(tmp, 'code-root');
@@ -39,7 +39,7 @@ function prepareFixtureCodeRoot(tmp) {
       cpSync(join(ROOT, entry.name), join(codeRoot, entry.name));
     }
   }
-  for (const dir of ['providers', 'plugins', 'templates', 'lib', 'batch', 'scaffolder']) {
+  for (const dir of ['providers', 'plugins', 'templates', 'lib', 'batch']) {
     if (existsSync(join(ROOT, dir))) cpSync(join(ROOT, dir), join(codeRoot, dir), { recursive: true });
   }
   // Through the shared helper, so this site and the one in test-all.mjs cannot
@@ -98,10 +98,10 @@ providerFixture: {
       break providerFixture;
     }
 
-    // verify-pipeline.mjs resolves CAREER_OPS via getCareerOpsRoot() and, past
+    // verify-pipeline.mjs resolves LANDING_GEAR via getLandingGearRoot() and, past
     // the tracker, mkdir's/reads real-looking data/reports paths under it
-    // (line 54 `mkdirSync(join(CAREER_OPS, 'data'), ...)`). The spawn below
-    // inherits the full process.env, so a developer's own CAREER_OPS_ROOT
+    // (line 54 `mkdirSync(join(LANDING_GEAR, 'data'), ...)`). The spawn below
+    // inherits the full process.env, so a developer's own LANDING_GEAR_ROOT
     // would otherwise leak in and the check would touch their real checkout.
     const dataRoot = join(tmp, 'data-root');
     mkdirSync(join(dataRoot, 'config'), { recursive: true });
@@ -123,17 +123,17 @@ providerFixture: {
             cwd: codeRoot, encoding: 'utf8', timeout: 60000, stdio: ['pipe', 'pipe', 'pipe'],
             env: {
               ...process.env,
-              CAREER_OPS_ROOT: dataRoot,
+              LANDING_GEAR_ROOT: dataRoot,
               // Explicitly undefined (not omitted): a bare ...process.env
               // spread would otherwise leak the developer's own
-              // CAREER_OPS_REPORTS in unchanged, and verify-pipeline.mjs
-              // resolves it as an absolute-or-relative-to-CAREER_OPS override
+              // LANDING_GEAR_REPORTS in unchanged, and verify-pipeline.mjs
+              // resolves it as an absolute-or-relative-to-LANDING_GEAR override
               // that wins over dataRoot entirely (CodeRabbit, #4046). An
               // undefined value drops the key from the child's env, so
               // verify-pipeline.mjs falls back to its default, dataRoot/reports.
-              CAREER_OPS_REPORTS: undefined,
-              CAREER_OPS_PORTALS: portals,
-              CAREER_OPS_TRACKER: tracker,
+              LANDING_GEAR_REPORTS: undefined,
+              LANDING_GEAR_PORTALS: portals,
+              LANDING_GEAR_TRACKER: tracker,
               APIFY_TOKEN: '',
             },
           }),

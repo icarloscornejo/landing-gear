@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Compass, ChevronDown, RotateCcw, AlertTriangle, Sparkles, Settings } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
-import type { Application, InboxJob } from "@/lib/career-ops";
+import type { Application, InboxJob } from "@/lib/landing-gear";
 import { normalizeTextKey } from "@/lib/core/normalize-text-key.mjs";
 import { paramsToFilters, paramsToAi, type ExploreFilters } from "@/lib/explore";
 import { FilterBuilder } from "./filter-builder";
@@ -51,7 +51,7 @@ export function ExplorerView({
 
   useEffect(() => {
     try {
-      const id = JSON.parse(localStorage.getItem("career-ops:config") || "{}").cliId || null;
+      const id = JSON.parse(localStorage.getItem("landing-gear:config") || "{}").cliId || null;
       setCli({ id, name: id ? CLI_NAMES[id] || id : undefined });
     } catch {
       setCli({ id: null });

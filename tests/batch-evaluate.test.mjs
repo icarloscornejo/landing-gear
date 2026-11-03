@@ -19,8 +19,8 @@ async function testProcessOffer() {
     PATHS.trackerAdditions = additionsDir;
     
     // reserve-report-num.mjs respects these env vars
-    process.env.CAREER_OPS_REPORTS_DIR = reportsDir;
-    process.env.CAREER_OPS_TRACKER = join(work, 'applications.md');
+    process.env.LANDING_GEAR_REPORTS_DIR = reportsDir;
+    process.env.LANDING_GEAR_TRACKER = join(work, 'applications.md');
 
     // Create a dummy applications.md to satisfy reserve-report-num.mjs
     mkdirSync(work, { recursive: true });
@@ -94,8 +94,8 @@ LEGITIMACY: High Confidence
   } finally {
     PATHS.reports = oldReports;
     PATHS.trackerAdditions = oldAdditions;
-    delete process.env.CAREER_OPS_REPORTS_DIR;
-    delete process.env.CAREER_OPS_TRACKER;
+    delete process.env.LANDING_GEAR_REPORTS_DIR;
+    delete process.env.LANDING_GEAR_TRACKER;
     rmSync(work, { recursive: true, force: true });
   }
 }
@@ -271,7 +271,7 @@ async function run() {
 }
 
 // Top-level await, not a floating `run()`: this suite is imported in-process by
-// test-all.mjs, and it sets CAREER_OPS_TRACKER for its own fixture. Without the
+// test-all.mjs, and it sets LANDING_GEAR_TRACKER for its own fixture. Without the
 // await the import resolves immediately, the async work keeps running alongside
 // later sections, and that variable stays pointed at this temp directory for a
 // window whose length depends on how fast the fixture runs — which is exactly

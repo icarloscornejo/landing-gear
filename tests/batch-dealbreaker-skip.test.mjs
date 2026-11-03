@@ -238,8 +238,8 @@ print_summary
         .replace('{role}', 'Product Designer').replace('{rule}', RULE).replace('{jd_line}', JD_LINE)
         .replaceAll('{{URL}}', URL).replaceAll('\\t', '\t');
       writeFileSync(join(dir, 'batch', 'tracker-additions', '1.tsv'), row);
-      const env = { ...process.env, CAREER_OPS_ROOT: dir };
-      for (const k of ['CAREER_OPS_DATA_DIR', 'CAREER_OPS_PROFILE', 'CAREER_OPS_TRACKER']) delete env[k];
+      const env = { ...process.env, LANDING_GEAR_ROOT: dir };
+      for (const k of ['LANDING_GEAR_DATA_DIR', 'LANDING_GEAR_PROFILE', 'LANDING_GEAR_TRACKER']) delete env[k];
       const res = spawnSync(process.execPath, [join(ROOT, 'merge-tracker.mjs')], { cwd: dir, encoding: 'utf8', env });
       assert.equal(res.status, 0, res.stderr);
       const merged = readFileSync(join(dir, 'data', 'applications.md'), 'utf8').trim().split('\n').at(-1);
@@ -261,7 +261,7 @@ print_summary
       writeFileSync(join(dir, 'batch-state.tsv'), 'id\turl\tstatus\tstarted_at\tcompleted_at\treport_num\tscore\terror\tretries\n'
         + `1\t${URL}\tskipped\ts\te\t042\t-\tdealbreaker: "${RULE}"\t0\n`
         + `3\t${other}\tskipped\ts\te\t044\t2.0\tbelow-min-score\t0\n`);
-      const env = { ...process.env, CAREER_OPS_ROOT: dir };
+      const env = { ...process.env, LANDING_GEAR_ROOT: dir };
       const res = spawnSync(process.execPath, [join(ROOT, 'reconcile-pipeline.mjs'), '--state', join(dir, 'batch-state.tsv')], { cwd: dir, encoding: 'utf8', env });
       assert.equal(res.status, 0, res.stderr);
       const text = readFileSync(join(dir, 'data', 'pipeline.md'), 'utf8');

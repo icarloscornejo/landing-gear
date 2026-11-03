@@ -23,7 +23,7 @@ for (const [cli, command] of [['codex', 'exec'], ['opencode', 'run'], ['claude',
       chmodSync(binary, 0o755);
       const env = {
         ...process.env,
-        CAREER_OPS_ROOT: root,
+        LANDING_GEAR_ROOT: root,
         PATH: `${join(root, 'bin')}:${process.env.PATH}`,
         RANK_ARGS: join(root, 'args.json'),
       };

@@ -1,10 +1,10 @@
 # Architecture
 
-A high-level map of how career-ops is put together. For the precise system/user file boundary, see [DATA_CONTRACT.md](DATA_CONTRACT.md); for contribution mechanics, see [CONTRIBUTING.md](CONTRIBUTING.md); for runtime flow diagrams (evaluation steps, batch processing), see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+A high-level map of how landing-gear is put together. For the precise system/user file boundary, see [DATA_CONTRACT.md](DATA_CONTRACT.md); for contribution mechanics, see [CONTRIBUTING.md](CONTRIBUTING.md); for runtime flow diagrams (evaluation steps, batch processing), see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Principles
 
-Career-ops is built on three commitments that every design decision serves:
+Landing-gear is built on three commitments that every design decision serves:
 
 - **Local-first.** Everything runs on your machine against your files. No account required, no server in the loop for the core tool.
 - **AI-agnostic.** The logic lives in Markdown prompt files under `modes/`, executed by whatever AI coding CLI you use (Claude Code, Codex, OpenCode, Gemini, Qwen, Grok, Antigravity) or by standalone Node scripts. No single model is hardcoded.
@@ -91,7 +91,7 @@ scan ──► data/pipeline.md ──► evaluate (oferta + cv) ──► repor
 
 - `test-all.mjs` — the full suite (500+ checks across scoring, scan, tracker, PDF, security, updater).
 - `updater-migration-tests.mjs` — enforces the system/user boundary and safe cross-version upgrades.
-- CI: `test` + CodeQL are required; CodeRabbit reviews every PR; Renovate keeps deps current.
+- CI: `test` + CodeQL are required; Renovate keeps deps current.
 
 ## Where to start reading
 

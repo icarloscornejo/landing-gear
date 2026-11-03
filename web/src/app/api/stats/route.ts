@@ -1,6 +1,6 @@
 import { execFile } from "node:child_process";
 import fs from "node:fs";
-import { careerOpsRoot, rootScript } from "@/lib/career-ops";
+import { landingGearRoot, rootScript } from "@/lib/landing-gear";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,7 +25,7 @@ export async function GET() {
   if (!fs.existsSync(script)) return Response.json({ available: false, stats: null });
 
   const stdout = await new Promise<string>((resolve) => {
-    execFile("node", [script], { cwd: careerOpsRoot(), timeout: 20_000, maxBuffer: 8 << 20 }, (err, out) =>
+    execFile("node", [script], { cwd: landingGearRoot(), timeout: 20_000, maxBuffer: 8 << 20 }, (err, out) =>
       resolve(err ? "" : out || ""),
     );
   });

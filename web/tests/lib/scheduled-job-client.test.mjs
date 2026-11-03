@@ -48,7 +48,7 @@ test("scheduler payload and overlay focus helpers fail closed and wrap", () => {
 });
 
 test("runner and scheduler-status derive the same default and custom lock path", () => {
-  const root = path.resolve("career-ops");
+  const root = path.resolve("landing-gear");
   const defaultStore = scheduledStorePath(root, null);
   assert.equal(scheduledRunnerResourcePath(defaultStore), `${defaultStore}.runner`);
   const configuredStore = path.resolve("profile", "scheduled-jobs.json");
@@ -57,12 +57,12 @@ test("runner and scheduler-status derive the same default and custom lock path",
   assert.equal(scheduledRunnerResourcePath(customStore), `${configuredStore}.runner`);
 });
 
-test("relative configured store paths resolve against the supplied career-ops root", () => {
+test("relative configured store paths resolve against the supplied landing-gear root", () => {
   // os.tmpdir(), which reads TEMP on Windows. Falling back to the working
   // directory when TEMP is unset, as it is on macOS and Linux, put both of
   // these in the repository root whenever test-all.mjs ran this file.
-  const firstRoot = fs.mkdtempSync(path.join(os.tmpdir(), "career-ops-store-root-a-"));
-  const secondRoot = fs.mkdtempSync(path.join(os.tmpdir(), "career-ops-store-root-b-"));
+  const firstRoot = fs.mkdtempSync(path.join(os.tmpdir(), "landing-gear-store-root-a-"));
+  const secondRoot = fs.mkdtempSync(path.join(os.tmpdir(), "landing-gear-store-root-b-"));
   try {
     const relative = "data/custom-scheduled-jobs.json";
     assert.equal(scheduledStorePath(firstRoot, relative), path.resolve(firstRoot, relative));
@@ -78,7 +78,7 @@ test("relative configured store paths resolve against the supplied career-ops ro
 test("scheduled-job CRUD uses the shared store resolver", () => {
   const source = fs.readFileSync(new URL("../../src/lib/scheduled-jobs.ts", import.meta.url), "utf8");
   assert.match(source, /import \{ scheduledStorePath \} from "\.\/scheduled-runner-path\.mjs"/);
-  assert.match(source, /scheduledStorePath\(careerOpsRoot\(\)\)/);
+  assert.match(source, /scheduledStorePath\(landingGearRoot\(\)\)/);
 });
 
 test("minute cadence changes clamp to the shared minimum without shrinking larger values", () => {

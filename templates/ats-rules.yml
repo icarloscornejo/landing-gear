@@ -1,4 +1,4 @@
-# Career-Ops — ATS Lint Rules
+# Landing-Gear — ATS Lint Rules
 # Source of truth for atsLint() in cv-templates.mjs.
 #
 # Rule: the ATS rules live in modes/pdf.md as prose. This file is the machine-

@@ -5,8 +5,8 @@
 //   an empty one.
 // - Prints "  + Company | Role | Location" for each row it added to data/pipeline.md (scan-hn prints
 //   another format, and Today counts only this one).
-// scan-hn has no --dry-run: to try it, point CAREER_OPS_PIPELINE / CAREER_OPS_SCAN_HISTORY /
-// CAREER_OPS_PORTALS at copies.
+// scan-hn has no --dry-run: to try it, point LANDING_GEAR_PIPELINE / LANDING_GEAR_SCAN_HISTORY /
+// LANDING_GEAR_PORTALS at copies.
 // Usage: node scan-hn-daily.mjs
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';

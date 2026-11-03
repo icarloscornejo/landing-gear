@@ -33,7 +33,7 @@
  *   node scan.mjs --posted-after 2026-07-01    # absolute lower bound on posting date
  *   node scan.mjs --posted-before 2026-08-01   # absolute upper bound on posting date
  *   node scan.mjs --rediscover-404             # re-verify tracked URLs that 404/410 (rides on --verify)
- *   node scan.mjs --quiet                      # suppress the manifesto footer
+ *   node scan.mjs --quiet                      # accepted, no effect (kept for old scripts)
  *   node scan.mjs --help                       # print this usage block and exit
  */
 
@@ -79,11 +79,11 @@ import { SCAN_HISTORY_COLUMNS, parseScanHistoryLine } from './lib/scan-history-c
 import { escapeFormulaCell } from './lib/tsv-formula-escape.mjs';
 import { sectionKind } from './lib/pipeline-sections.mjs';
 import { promoteKnownFragmentIdentity, LANGUAGE_PARAMS, languageSubtag } from './url-key.mjs';
-import { getCareerOpsRoot, getProfilePath, hasProfileOverride } from './path-resolver.mjs';
+import { getLandingGearRoot, getProfilePath, hasProfileOverride } from './path-resolver.mjs';
 import { checkLivenessViaApi } from './liveness-api.mjs';
 
 const CODE_ROOT = path.dirname(fileURLToPath(import.meta.url));
-const DATA_ROOT = getCareerOpsRoot();
+const DATA_ROOT = getLandingGearRoot();
 
 try {
   const { config } = await import('dotenv');
@@ -101,9 +101,9 @@ const parseYaml = loadYaml;
 // ── Config ──────────────────────────────────────────────────────────
 import { resolveTrackerPath } from './path-resolver.mjs';
 
-export const PORTALS_PATH = process.env.CAREER_OPS_PORTALS || path.join(DATA_ROOT, 'portals.yml');
+export const PORTALS_PATH = process.env.LANDING_GEAR_PORTALS || path.join(DATA_ROOT, 'portals.yml');
 // An explicit override wins; otherwise the root fixed above, since the .env just
-// loaded may name another CAREER_OPS_ROOT that getProfilePath() would follow.
+// loaded may name another LANDING_GEAR_ROOT that getProfilePath() would follow.
 const PROFILE_PATH = hasProfileOverride() ? getProfilePath() : getProfilePath(DATA_ROOT);
 // Overridable for the same reason the two inputs above are (#2271). A second
 // search lane - a bridge/income track, a career-change track, a partner sharing
@@ -116,8 +116,8 @@ const PROFILE_PATH = hasProfileOverride() ? getProfilePath() : getProfilePath(DA
 // to carry their own bare-relative copy, so a sibling could check existence and
 // create data/pipeline.md in the cwd, then append the actual results to the
 // anchored one (#3510). One resolution, imported, cannot drift.
-export const SCAN_HISTORY_PATH = process.env.CAREER_OPS_SCAN_HISTORY || path.join(DATA_ROOT, 'data/scan-history.tsv');
-export const PIPELINE_PATH = process.env.CAREER_OPS_PIPELINE || path.join(DATA_ROOT, 'data/pipeline.md');
+export const SCAN_HISTORY_PATH = process.env.LANDING_GEAR_SCAN_HISTORY || path.join(DATA_ROOT, 'data/scan-history.tsv');
+export const PIPELINE_PATH = process.env.LANDING_GEAR_PIPELINE || path.join(DATA_ROOT, 'data/pipeline.md');
 
 export const APPLICATIONS_PATH = resolveTrackerPath(DATA_ROOT);
 const PROVIDERS_DIR = path.resolve(CODE_ROOT, 'providers');
@@ -2154,8 +2154,8 @@ export function collectSeenUrls(sources = {}, policy = {}, { extraTokensFor } = 
 }
 
 // Path options mirror mergeIntoPipeline's seam below: the defaults are the
-// CAREER_OPS_ROOT-anchored module constants, and a caller with its own lane
-// (or a test with a fixture) passes explicit paths. Before CAREER_OPS_ROOT the
+// LANDING_GEAR_ROOT-anchored module constants, and a caller with its own lane
+// (or a test with a fixture) passes explicit paths. Before LANDING_GEAR_ROOT the
 // defaults were cwd-relative strings, so callers could retarget them by
 // chdir'ing; an anchored default needs a real parameter instead.
 export function loadSeenUrls(policy = {}, {
@@ -3354,7 +3354,7 @@ Paste job URLs below as \`- [ ] {url}\` then run \`/landing-gear pipeline\`.
 // Locked (pipeline-lock.mjs) so scan.mjs, scan-ats-full.mjs, and plugins.mjs
 // (pipeline mode) — the three current callers — can never interleave their
 // read-modify-write and silently drop each other's offers.
-// Same seam as loadSeenUrls above: the default is the CAREER_OPS_ROOT-anchored
+// Same seam as loadSeenUrls above: the default is the LANDING_GEAR_ROOT-anchored
 // module constant; a caller with its own lane (or a fixture) passes the path.
 export async function appendToPipeline(offers, { pipelinePath = PIPELINE_PATH } = {}) {
   if (offers.length === 0) return;
@@ -3548,7 +3548,7 @@ export function parseAggregatorDomains(text) {
   return entries;
 }
 
-export const AGGREGATOR_DOMAINS_PATH = process.env.CAREER_OPS_AGGREGATOR_DOMAINS || path.join(CODE_ROOT, 'data-static/aggregator-domains.txt');
+export const AGGREGATOR_DOMAINS_PATH = process.env.LANDING_GEAR_AGGREGATOR_DOMAINS || path.join(CODE_ROOT, 'data-static/aggregator-domains.txt');
 
 /**
  * Load data-static/aggregator-domains.txt dataset.
@@ -3685,7 +3685,7 @@ export function appendScanRunSummary(c, filePath = SCAN_RUNS_PATH) {
 // sandboxed run was writing fixture rows into the live data/portal-health.tsv of
 // whatever checkout owned scan.mjs. That problem was real; the mechanism traded
 // one unanchored path for another, and left this file with two different rules
-// for where user data lives. Isolation now comes from CAREER_OPS_ROOT, which is
+// for where user data lives. Isolation now comes from LANDING_GEAR_ROOT, which is
 // how the rest of the suite already sandboxes writes — see
 // tests/portal-health-path.test.mjs, which still asserts the checkout's own data
 // directory is never touched.
@@ -3980,7 +3980,7 @@ const USAGE = `Usage:
   node scan.mjs --posted-after 2026-07-01    # absolute lower bound on posting date
   node scan.mjs --posted-before 2026-08-01   # absolute upper bound on posting date
   node scan.mjs --json                       # emit one machine-readable receipt on stdout
-  node scan.mjs --quiet                      # suppress the manifesto footer
+  node scan.mjs --quiet                      # accepted, no effect (kept for old scripts)
   node scan.mjs --help                       # print this usage block and exit`;
 
 async function main() {
@@ -5039,7 +5039,7 @@ async function main() {
       + totalFilteredContent + totalFilteredCountryEligibility + totalFilteredBlacklist
       + totalFilteredVisa + totalFilteredCooldown;
     emitJsonReceipt({
-      version: 'careerops.scan.receipt@1',
+      version: 'landinggear.scan.receipt@1',
       date,
       scanned: targets.length,
       skipped: skippedCount,
@@ -5052,23 +5052,6 @@ async function main() {
       unverified_zero: unverifiedZeroTargets,
       dry_run: dryRun,
     }, errors.length > 0 ? 2 : 0);
-  }
-
-  // One-time-ever manifesto note: first successful REAL run only. The state
-  // file keeps it from ever repeating; --dry-run must leave no trace, and a
-  // piped/quiet run is not the moment for it.
-  if (!dryRun && process.stdout.isTTY && !process.argv.includes('--quiet') && !existsSync('.manifesto-noted')) {
-    // OSC 8 hyperlink where support is known, so the click attributes as
-    // utm_source=cli while the visible text stays clean; otherwise print the
-    // URL with the utm so typed visits attribute too.
-    const osc8 = ['iTerm.app', 'WezTerm', 'vscode', 'ghostty', 'Hyper', 'Tabby'].includes(process.env.TERM_PROGRAM)
-      || !!process.env.WT_SESSION || !!process.env.KITTY_WINDOW_ID
-      || parseInt(process.env.VTE_VERSION || '0', 10) >= 5000;
-    const link = osc8
-      ? '\x1b]8;;https://career-ops.org/manifesto?utm_source=cli\x1b\\career-ops.org/manifesto\x1b]8;;\x1b\\'
-      : 'career-ops.org/manifesto?utm_source=cli';
-    console.log(`\nthe practice behind this tool has a name and a manifesto: ${link}`);
-    try { writeFileSync('.manifesto-noted', new Date().toISOString() + '\n'); } catch { /* best-effort */ }
   }
 }
 

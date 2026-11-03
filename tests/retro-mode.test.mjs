@@ -61,8 +61,8 @@ function argv(line, root, fill) {
 }
 
 function run(root, args, extraEnv = {}) {
-  const env = { ...process.env, CAREER_OPS_ROOT: root, CAREER_OPS_DATA_DIR: '', ...extraEnv };
-  for (const key of ['CAREER_OPS_HEADLESS', 'CAREER_OPS_BATCH_STATE']) {
+  const env = { ...process.env, LANDING_GEAR_ROOT: root, LANDING_GEAR_DATA_DIR: '', ...extraEnv };
+  for (const key of ['LANDING_GEAR_HEADLESS', 'LANDING_GEAR_BATCH_STATE']) {
     if (!(key in extraEnv)) delete env[key];
   }
   return spawnSync(NODE, [join(ROOT, 'learn.mjs'), ...args], { cwd: ROOT, env, encoding: 'utf8', timeout: 60_000 });
@@ -119,7 +119,7 @@ if (checkCommand && applyCommand) {
     const root = scratchRoot();
     try {
       writeExample(root);
-      const r = run(root, argv(checkCommand, root, {}), { CAREER_OPS_HEADLESS: '1' });
+      const r = run(root, argv(checkCommand, root, {}), { LANDING_GEAR_HEADLESS: '1' });
       assert(r.status !== 0, 'check ran headless');
       const dir = join(root, 'data/learning/pending');
       assert(!existsSync(dir) || readdirSync(dir).length === 0, 'a pending file was written');

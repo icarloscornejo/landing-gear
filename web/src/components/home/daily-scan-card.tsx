@@ -67,7 +67,7 @@ export function DailyScanCard({ initial }: { initial: DailyScanStatus }) {
           </p>
           {!status.running && lastFailure && (
             <p className="mt-0.5 text-xs text-amber-600 dark:text-amber-400">
-              The run started {when(lastFailure.startedAt)} did not finish{lastFailure.exitCode !== null ? ` (exit code ${lastFailure.exitCode})` : ""}; see .career-ops-web/daily-scan.log.
+              The run started {when(lastFailure.startedAt)} did not finish{lastFailure.exitCode !== null ? ` (exit code ${lastFailure.exitCode})` : ""}; see .landing-gear-web/daily-scan.log.
             </p>
           )}
           {error && <p role="alert" className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}

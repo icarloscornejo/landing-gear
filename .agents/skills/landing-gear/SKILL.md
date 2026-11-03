@@ -14,11 +14,11 @@ license: MIT
 
 # landing-gear -- Router
 
-career-ops is a multi-CLI AI job search agent. The routing below is shared across supported agent CLIs even when the invocation surface differs.
+landing-gear is a multi-CLI AI job search agent. The routing below is shared across supported agent CLIs even when the invocation surface differs.
 
 ## Project Root Resolution
 
-Before reading any repo-relative path, derive `PROJECT_ROOT` from this loaded `SKILL.md`: start at the skill file's directory and walk upward until the nearest directory containing both `AGENTS.md` and `modes/`. This is required even when the checkout itself is nested (for example `Development\\career-ops`) or the command starts from a subdirectory. If those two sentinels cannot be found, stop and locate the career-ops checkout before reading or writing files. Then derive `DATA_ROOT`, where the user's own files live, with the precedence `path-resolver.mjs` uses: `CAREER_OPS_ROOT` or `CAREER_OPS_DATA_DIR` if either is set; otherwise the path written in `PROJECT_ROOT/.career-ops-data` if that file exists and is not empty; otherwise `PROJECT_ROOT` itself. A relative value in either place resolves against `PROJECT_ROOT`. Run from `PROJECT_ROOT`, `node -e "import('./path-resolver.mjs').then(m => console.log(m.getCareerOpsRoot()))"` prints the same directory. With no override the two roots are one directory.
+Before reading any repo-relative path, derive `PROJECT_ROOT` from this loaded `SKILL.md`: start at the skill file's directory and walk upward until the nearest directory containing both `AGENTS.md` and `modes/`. This is required even when the checkout itself is nested (for example `Development\\landing-gear`) or the command starts from a subdirectory. If those two sentinels cannot be found, stop and locate the landing-gear checkout before reading or writing files. Then derive `DATA_ROOT`, where the user's own files live, with the precedence `path-resolver.mjs` uses: `LANDING_GEAR_ROOT` or `LANDING_GEAR_DATA_DIR` if either is set; otherwise the path written in `PROJECT_ROOT/.landing-gear-data` if that file exists and is not empty; otherwise `PROJECT_ROOT` itself. A relative value in either place resolves against `PROJECT_ROOT`. Run from `PROJECT_ROOT`, `node -e "import('./path-resolver.mjs').then(m => console.log(m.getLandingGearRoot()))"` prints the same directory. With no override the two roots are one directory.
 
 Resolve every path in this router against one of these two roots, never against the process's current working directory. User Layer paths resolve against `DATA_ROOT`. They include `cv.md`, `article-digest.md`, `portals.yml`, `config/` (except the shipped `*.example.*` files), `data/`, `reports/`, `output/`, `interview-prep/`, `modes/_profile.md`, `modes/_custom.md`, `modes/_brief.md`, `batch/tracker-additions/`, and every other User Layer path in `DATA_CONTRACT.md`. Everything else (the other `modes/` files, scripts, templates, the `config/*.example.*` files) resolves against `PROJECT_ROOT`.
 
@@ -116,7 +116,7 @@ Inject this directive after loading the mode instructions and before producing a
 
 ## Session Title (host-optional, #5303)
 
-Hosts that title sessions automatically name them after the invocation, so every evaluation ends up called something like "Career ops LinkedIn job". Once a single-posting mode knows which posting it is working on, rename the current session after it.
+Hosts that title sessions automatically name them after the invocation, so every evaluation ends up called something like "Landing gear LinkedIn job". Once a single-posting mode knows which posting it is working on, rename the current session after it.
 
 - **When:** as soon as the role title and employer are known — after `auto-pipeline` Step 0 / the `oferta` liveness gate has read a real JD, or after `pdf`, `apply`, `contacto` or `interview-prep` has identified its posting from a JD or report. Once per posting; do not retitle on every mode handoff for the same posting. An unavailable JD (skeleton, login wall) has no trustworthy title yet: wait.
 - **Format:** `{Role}, {Company}`, e.g. `VP Infrastructure, Acme Health`. An agency posting with an undisclosed employer (Company `?`) is `{Role}, via {Agency}`, and only after `modes/_shared.md` → **Agency confirmation handoff** has resolved, so the title never carries an unconfirmed agency.
@@ -189,7 +189,7 @@ Available commands:
   /landing-gear upskill   → Aggregate skill-gap analysis from your evaluated reports
   /landing-gear followup  → Follow-up cadence tracker: flag overdue, generate drafts
   /landing-gear outcome   → Record application outcome & archive artifacts
-  /landing-gear update    → Update career-ops system files with diff preview + compat check
+  /landing-gear update    → Update landing-gear system files with diff preview + compat check
 
 Inbox: add URLs to data/pipeline.md → /landing-gear pipeline
 Or paste a JD directly to run the full pipeline.
@@ -231,7 +231,7 @@ For `scan`, `apply` (with Playwright), and `pipeline` (3+ URLs): launch as a wor
 Agent(
   subagent_type="general-purpose",
   prompt="[output language directive]\n\n[content of modes/_shared.md, or resolved shared context: every declared _shared.md once]\n\n[content of modes/_profile.md if exists]\n\n[content of modes/_custom.md if exists]\n\n[content of modes/{mode}.md, or resolved selected mode file; primary evaluation file for Blocks A-F]\n\n[invocation-specific data]",
-  description="career-ops {mode}"
+  description="landing-gear {mode}"
 )
 ```
 

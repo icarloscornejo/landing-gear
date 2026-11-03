@@ -59,7 +59,7 @@ test('a second run the same day makes no API calls', () => {
     mkdirSync(path.join(root, 'data'));
     writeFileSync(path.join(root, 'data', 'jsearch-last-run.txt'), `${localToday()}\n`);
     const out = execFileSync(process.execPath, [path.join(here, '..', 'scan-jsearch.mjs')], {
-      env: { ...process.env, CAREER_OPS_ROOT: root, JSEARCH_API_KEY: 'test-only', JSEARCH_HOST: 'rapidapi' },
+      env: { ...process.env, LANDING_GEAR_ROOT: root, JSEARCH_API_KEY: 'test-only', JSEARCH_HOST: 'rapidapi' },
       encoding: 'utf-8',
     });
     assert.match(out, /already ran today/);

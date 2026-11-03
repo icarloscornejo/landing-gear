@@ -30,7 +30,7 @@
  * present when this suite runs. Same reasoning as apply-cv-resolver.test.mjs;
  * see that file's header.
  *
- * resolveTailoredCover() is TypeScript that reaches web/src/lib/career-ops via
+ * resolveTailoredCover() is TypeScript that reaches web/src/lib/landing-gear via
  * the `@/` path alias (Next's tsconfig paths). Node 22 type-strips .ts on
  * import, but it does NOT understand that alias — `npm test` here is plain
  * `node --test`, with no webpack/SWC in the loop. The tiny inline loader below
@@ -78,9 +78,9 @@ const { resolveTailoredCover } = await import('../../src/lib/apply/cover.ts');
 const { matchesTailoredCover } = await import('../../src/lib/apply/cv-match.mjs');
 
 /**
- * Provision a throwaway career-ops root with an output/ dir, redirected via the
- * same CAREER_OPS_ROOT override careerOpsRoot() reads (see
- * web/src/lib/career-ops.ts) — no monkeypatching fs needed.
+ * Provision a throwaway landing-gear root with an output/ dir, redirected via the
+ * same LANDING_GEAR_ROOT override landingGearRoot() reads (see
+ * web/src/lib/landing-gear.ts) — no monkeypatching fs needed.
  *
  * `rows` (optional) are written as data/applications.md in the legacy fixed
  * column order parseApplications falls back to, so the applicationNumber path
@@ -115,13 +115,13 @@ async function withFixture(files, fn, rows) {
       ].join('\n')
     );
   }
-  const prev = process.env.CAREER_OPS_ROOT;
-  process.env.CAREER_OPS_ROOT = root;
+  const prev = process.env.LANDING_GEAR_ROOT;
+  process.env.LANDING_GEAR_ROOT = root;
   try {
     return await fn(outputDir);
   } finally {
-    if (prev === undefined) delete process.env.CAREER_OPS_ROOT;
-    else process.env.CAREER_OPS_ROOT = prev;
+    if (prev === undefined) delete process.env.LANDING_GEAR_ROOT;
+    else process.env.LANDING_GEAR_ROOT = prev;
   }
 }
 

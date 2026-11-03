@@ -1,17 +1,17 @@
 /**
  * pipeline-table.mjs — line parsing of `data/pipeline.md` for the web read path.
  *
- * Split out of career-ops.ts for the same reason tracker-table.mjs exists: the
+ * Split out of landing-gear.ts for the same reason tracker-table.mjs exists: the
  * web reader of a user data file is exactly the kind of code that needs a
  * regression test running the REAL parser, and `node --test` (see
- * web/package.json) can only import plain .mjs — career-ops.ts pulls in `@/`
+ * web/package.json) can only import plain .mjs — landing-gear.ts pulls in `@/`
  * path aliases and Next-only modules.
  *
  * Everything here is pure: text in, rows out. No fs, no Next.
  */
 
 /**
- * Split a career-ops data file into lines, tolerating CRLF.
+ * Split a landing-gear data file into lines, tolerating CRLF.
  *
  * `data/` is gitignored (see .gitignore), so the repo-wide `eol=lf` policy in
  * .gitattributes does NOT reach the user's own pipeline.md / scan-history.tsv:

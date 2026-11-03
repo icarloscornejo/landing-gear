@@ -1,5 +1,5 @@
 // tests/profile-path-override-readers.test.mjs — the core .mjs readers of
-// config/profile.yml follow CAREER_OPS_PROFILE, and fall back to the data root, not
+// config/profile.yml follow LANDING_GEAR_PROFILE, and fall back to the data root, not
 // the cwd (#5026). The web app has its own helper and test; the mode prompts
 // that tell an agent to read config/profile.yml are outside it.
 // batch/batch-runner.sh is covered by tests/batch-runner-profile-override.test.mjs.
@@ -12,7 +12,7 @@
 // How a module is observed: it runs in a child process with a preload that
 // records every profile.yml path the child touches (existsSync / statSync /
 // readFileSync / fs.promises, which is how every reader here opens the file).
-// The data root holds profile A; CAREER_OPS_PROFILE names profile B; the cwd is
+// The data root holds profile A; LANDING_GEAR_PROFILE names profile B; the cwd is
 // a third, empty directory. The assertion is on the SET of paths touched:
 //   - override set   -> exactly {B}. Any module still on the data-root path adds A.
 //   - override unset -> exactly {A}. Any module still on a cwd-relative path
@@ -27,11 +27,11 @@ import { join } from 'path';
 import { tmpdir } from 'os';
 import { pathToFileURL } from 'url';
 
-console.log('\nCAREER_OPS_PROFILE — every reader follows the override (#5026)');
+console.log('\nLANDING_GEAR_PROFILE — every reader follows the override (#5026)');
 
 const failOnce = (msg) => { fail(msg); process.exitCode = 1; };
 
-const scratch = realpathSync(mkdtempSync(join(tmpdir(), 'career-ops-profile-readers-')));
+const scratch = realpathSync(mkdtempSync(join(tmpdir(), 'landing-gear-profile-readers-')));
 const dataRoot = join(scratch, 'data-root');
 const decoyCwd = join(scratch, 'decoy-cwd');
 const explicitRoot = join(scratch, 'explicit-root');
@@ -119,18 +119,18 @@ function touched(argv, { override, cwd = decoyCwd, dotEnvDir }) {
   const env = {
     ...process.env,
     TRACE_LOG: log,
-    CAREER_OPS_ROOT: dataRoot,
-    CAREER_OPS_DATA_DIR: '',
-    CAREER_OPS_TRACKER: '',
-    CAREER_OPS_PROFILE: override ? profileB : '',
+    LANDING_GEAR_ROOT: dataRoot,
+    LANDING_GEAR_DATA_DIR: '',
+    LANDING_GEAR_TRACKER: '',
+    LANDING_GEAR_PROFILE: override ? profileB : '',
     OPENAI_API_KEY: 'unused', GEMINI_API_KEY: 'unused', OPENROUTER_API_KEY: 'unused',
     OPENAI_BASE_URL: 'http://127.0.0.1:9/v1', OLLAMA_BASE_URL: ollamaUrl,
-    CAREER_OPS_MODEL: 'probe-model',
+    LANDING_GEAR_MODEL: 'probe-model',
   };
   // dotenv never overrides a key that is already set, even to an empty string.
-  if (dotEnvDir) delete env.CAREER_OPS_PROFILE;
+  if (dotEnvDir) delete env.LANDING_GEAR_PROFILE;
   const dotEnvFile = dotEnvDir ? join(dotEnvDir, '.env') : null;
-  if (dotEnvFile) writeFileSync(dotEnvFile, `CAREER_OPS_PROFILE=${profileB}\n`, 'utf-8');
+  if (dotEnvFile) writeFileSync(dotEnvFile, `LANDING_GEAR_PROFILE=${profileB}\n`, 'utf-8');
   return new Promise((resolveRun) => {
     const child = spawn(NODE, ['--import', pathToFileURL(tracer).href, ...argv], { cwd, env, stdio: ['ignore', 'pipe', 'pipe'] });
     let out = '';
@@ -189,7 +189,7 @@ try {
   for (const [group, label, argv] of SUBJECTS) {
     const named = await touched(argv, { override: true });
     named.paths.length === 1 && named.paths[0] === profileB
-      ? pass(`${group}: ${label} reads the profile CAREER_OPS_PROFILE names, and only that one`)
+      ? pass(`${group}: ${label} reads the profile LANDING_GEAR_PROFILE names, and only that one`)
       : failOnce(`${group}: ${label} touched ${JSON.stringify(named.paths.map((p) => p.replace(scratch, '<scratch>')))} with the override set; expected only <scratch>/named-profile-B.yml (exit ${named.code})`);
 
     const fallback = await touched(argv, { override: false });
@@ -245,7 +245,7 @@ try {
     : failOnce(`builders: renderHtmlToPdf({workspaceRoot}) touched ${JSON.stringify(explicit.paths.map((p) => p.replace(scratch, '<scratch>')))}; expected only <scratch>/explicit-root/config/profile.yml (exit ${explicit.code})`);
   const defaulted = await touched(render(null), { override: true });
   defaulted.paths.length === 1 && defaulted.paths[0] === profileB
-    ? pass('builders: renderHtmlToPdf with no workspaceRoot reads the profile CAREER_OPS_PROFILE names')
+    ? pass('builders: renderHtmlToPdf with no workspaceRoot reads the profile LANDING_GEAR_PROFILE names')
     : failOnce(`builders: renderHtmlToPdf() touched ${JSON.stringify(defaulted.paths.map((p) => p.replace(scratch, '<scratch>')))}; expected only <scratch>/named-profile-B.yml (exit ${defaulted.code})`);
 
   // 4. update-system: the template variants the updater preserves are the ones the
@@ -276,7 +276,7 @@ try {
     '# CV -- Delta Person\n\n## Work Experience\n\n### Acme Widgets -- Austin, TX\n\n**Staff Engineer**\n2020-2024\n\n- Built the widget pipeline\n', 'utf-8');
   const ats = spawnSync(NODE, [join(ROOT, 'scripts', 'export-ats-text.mjs'), '--section', 'experience'], {
     cwd: decoyCwd, encoding: 'utf-8', timeout: 60_000,
-    env: { ...process.env, CAREER_OPS_ROOT: cvRoot, CAREER_OPS_DATA_DIR: '', CAREER_OPS_PROFILE: '', CAREER_OPS_CV: '' },
+    env: { ...process.env, LANDING_GEAR_ROOT: cvRoot, LANDING_GEAR_DATA_DIR: '', LANDING_GEAR_PROFILE: '', LANDING_GEAR_CV: '' },
   });
   ats.status === 0 && /Acme Widgets/.test(ats.stdout)
     ? pass('fallbacks: scripts/export-ats-text.mjs reads cv.md from the data root along with the profile, from any cwd')
@@ -284,22 +284,22 @@ try {
 
   // 5c. export-ats-text names the file it looked for, and its help text says where
   // the defaults live. "config/profile.yml not found" is a lie about a typo'd
-  // CAREER_OPS_PROFILE, and "config/profile.yml" in --help hides the data root.
+  // LANDING_GEAR_PROFILE, and "config/profile.yml" in --help hides the data root.
   const typo = join(scratch, 'ats-typo-profile.yml');
   const atsMissing = spawnSync(NODE, [join(ROOT, 'scripts', 'export-ats-text.mjs')], {
     cwd: decoyCwd, encoding: 'utf-8', timeout: 60_000,
-    env: { ...process.env, CAREER_OPS_ROOT: cvRoot, CAREER_OPS_DATA_DIR: '', CAREER_OPS_PROFILE: typo },
+    env: { ...process.env, LANDING_GEAR_ROOT: cvRoot, LANDING_GEAR_DATA_DIR: '', LANDING_GEAR_PROFILE: typo },
   });
   const atsMissingOut = `${atsMissing.stdout}${atsMissing.stderr}`;
-  atsMissing.status !== 0 && atsMissingOut.includes(typo) && /CAREER_OPS_PROFILE/.test(atsMissingOut)
-    ? pass('fallbacks: scripts/export-ats-text.mjs names CAREER_OPS_PROFILE and the file it looked for when that file is missing')
+  atsMissing.status !== 0 && atsMissingOut.includes(typo) && /LANDING_GEAR_PROFILE/.test(atsMissingOut)
+    ? pass('fallbacks: scripts/export-ats-text.mjs names LANDING_GEAR_PROFILE and the file it looked for when that file is missing')
     : failOnce(`fallbacks: scripts/export-ats-text.mjs gave ${JSON.stringify(atsMissingOut.slice(0, 200))} for a missing override target (exit ${atsMissing.status})`);
   const atsHelp = spawnSync(NODE, [join(ROOT, 'scripts', 'export-ats-text.mjs'), '--help'], { cwd: decoyCwd, encoding: 'utf-8', timeout: 60_000 });
   /--profile[^\n]*data root/i.test(atsHelp.stdout) && /--cv[^\n]*data root/i.test(atsHelp.stdout)
     ? pass('fallbacks: scripts/export-ats-text.mjs --help says the profile and CV defaults live in the data root')
     : failOnce(`fallbacks: scripts/export-ats-text.mjs --help does not mention the data root for --profile and --cv: ${JSON.stringify(atsHelp.stdout.slice(0, 400))}`);
 
-  // 3b. generate-pdf renders in the tracker workspace, which CAREER_OPS_TRACKER can
+  // 3b. generate-pdf renders in the tracker workspace, which LANDING_GEAR_TRACKER can
   // move off the data root. With no override it reads that workspace's profile; an
   // override that is set wins even when it names the data-root profile itself, so
   // "is an override set" cannot be inferred by comparing paths.
@@ -312,7 +312,7 @@ try {
   const sheetFor = (profileEnv) => spawnSync(NODE, ['--input-type=module', '-e',
     `const m = await import(${JSON.stringify(module('generate-pdf.mjs'))}); console.log(m.injectPrintPageCss('<html><head></head><body></body></html>'));`], {
     cwd: decoyCwd, encoding: 'utf-8', timeout: 60_000,
-    env: { ...process.env, CAREER_OPS_ROOT: pdfRoot, CAREER_OPS_DATA_DIR: '', CAREER_OPS_TRACKER: join(pdfWorkspace, 'data', 'applications.md'), CAREER_OPS_PROFILE: profileEnv },
+    env: { ...process.env, LANDING_GEAR_ROOT: pdfRoot, LANDING_GEAR_DATA_DIR: '', LANDING_GEAR_TRACKER: join(pdfWorkspace, 'data', 'applications.md'), LANDING_GEAR_PROFILE: profileEnv },
   }).stdout;
   const pageSize = (css) => (css.match(/size:\s*(A4|Letter)/i) || [])[1];
   const unsetSheet = pageSize(sheetFor(''));
@@ -322,7 +322,7 @@ try {
     : failOnce(`builders: generate-pdf with no override used sheet ${unsetSheet}, expected Letter from the tracker workspace profile`);
   namingDataRoot === 'A4'
     ? pass('builders: generate-pdf honors an override that names the data-root profile itself')
-    : failOnce(`builders: generate-pdf ignored CAREER_OPS_PROFILE naming the data-root profile: sheet ${namingDataRoot}, expected A4`);
+    : failOnce(`builders: generate-pdf ignored LANDING_GEAR_PROFILE naming the data-root profile: sheet ${namingDataRoot}, expected A4`);
 
   // 4b. apply() is not exported, so, as updater-apply-target-verification.test.mjs
   // does for the properties that only exist in its body, the wiring is asserted on
@@ -338,16 +338,16 @@ try {
     : failOnce(`updater: apply() does not pass [getProfilePath(), getProfilePath(dataRoot)] into the snapshot (takesProfile=${takesProfile}, call=${snapshotCall ? 'found' : 'missing'})`);
 
   // 4c. The self-reexec child runs with the checkout as its cwd, so a relative
-  // CAREER_OPS_PROFILE would name a different file there than in the user's shell.
+  // LANDING_GEAR_PROFILE would name a different file there than in the user's shell.
   // The parent resolves it and hands the child the absolute path.
   const reexecEnvFor = (profile) => JSON.parse(spawnSync(NODE, inline(
     `const { reexecProfileEnv } = await import(${JSON.stringify(module('update-system.mjs'))}); console.log(JSON.stringify(await reexecProfileEnv()));`), {
     cwd: decoyCwd, encoding: 'utf-8', timeout: 60_000,
-    env: { ...process.env, CAREER_OPS_ROOT: dataRoot, CAREER_OPS_DATA_DIR: '', CAREER_OPS_PROFILE: profile },
+    env: { ...process.env, LANDING_GEAR_ROOT: dataRoot, LANDING_GEAR_DATA_DIR: '', LANDING_GEAR_PROFILE: profile },
   }).stdout);
   const relEnv = reexecEnvFor('profiles/me.yml');
-  relEnv.CAREER_OPS_PROFILE === join(decoyCwd, 'profiles', 'me.yml') && Object.keys(reexecEnvFor('')).length === 0
-    ? pass('updater: the self-reexec child gets a relative CAREER_OPS_PROFILE resolved against the parent\'s cwd, and nothing when it is unset')
+  relEnv.LANDING_GEAR_PROFILE === join(decoyCwd, 'profiles', 'me.yml') && Object.keys(reexecEnvFor('')).length === 0
+    ? pass('updater: the self-reexec child gets a relative LANDING_GEAR_PROFILE resolved against the parent\'s cwd, and nothing when it is unset')
     : failOnce(`updater: reexecProfileEnv() gave ${JSON.stringify(relEnv)} for a relative override from ${decoyCwd}`);
   /\.\.\.process\.env,\s*\.\.\.await reexecProfileEnv\(\),/.test(updaterSource)
     ? pass('updater: apply() spreads reexecProfileEnv() into the self-reexec child env after process.env (source check)')
@@ -360,17 +360,17 @@ try {
     : failOnce('updater: apply() no longer prints configuredSnapshot.warnings');
 
   // 4e. Doctor's .env warning has to be true at this change: the evaluators follow
-  // CAREER_OPS_PROFILE now, after their working-directory config(), so it names them
+  // LANDING_GEAR_PROFILE now, after their working-directory config(), so it names them
   // beside scan.mjs as the commands that load a .env for the profile.
   const envWarnRoot = join(scratch, 'env-warn-root');
   mkdirSync(join(envWarnRoot, 'config'), { recursive: true });
   writeFileSync(join(envWarnRoot, 'config', 'profile.yml'), profileBody('Root'), 'utf-8');
-  writeFileSync(join(envWarnRoot, '.env'), `CAREER_OPS_PROFILE=${profileB}\n`, 'utf-8');
+  writeFileSync(join(envWarnRoot, '.env'), `LANDING_GEAR_PROFILE=${profileB}\n`, 'utf-8');
   const envWarnRun = spawnSync(NODE, [join(ROOT, 'doctor.mjs'), '--json'], {
     cwd: decoyCwd, encoding: 'utf-8', timeout: 60_000,
-    env: { ...process.env, CAREER_OPS_ROOT: envWarnRoot, CAREER_OPS_DATA_DIR: '', CAREER_OPS_PROFILE: '' },
+    env: { ...process.env, LANDING_GEAR_ROOT: envWarnRoot, LANDING_GEAR_DATA_DIR: '', LANDING_GEAR_PROFILE: '' },
   });
-  const envWarning = (JSON.parse(envWarnRun.stdout).warnings.find((w) => /\.env sets CAREER_OPS_PROFILE/.test(w))) ?? '';
+  const envWarning = (JSON.parse(envWarnRun.stdout).warnings.find((w) => /\.env sets LANDING_GEAR_PROFILE/.test(w))) ?? '';
   /only scan\.mjs, the evaluators, openai-tailor\.mjs and openrouter-runner\.mjs load \.env/.test(envWarning)
     ? pass('doctor: the .env warning names scan.mjs, the evaluators, openai-tailor.mjs and openrouter-runner.mjs as the .env loaders')
     : failOnce(`doctor: the .env warning is not true at this change: ${JSON.stringify(envWarning.slice(0, 160))}`);
@@ -381,12 +381,12 @@ try {
   const missingNamed = join(scratch, 'typo-profile.yml');
   const sync = spawnSync(NODE, [join(ROOT, 'cv-sync-check.mjs')], {
     cwd: decoyCwd, encoding: 'utf-8', timeout: 60_000,
-    env: { ...process.env, CAREER_OPS_ROOT: dataRoot, CAREER_OPS_DATA_DIR: '', CAREER_OPS_PROFILE: missingNamed },
+    env: { ...process.env, LANDING_GEAR_ROOT: dataRoot, LANDING_GEAR_DATA_DIR: '', LANDING_GEAR_PROFILE: missingNamed },
   });
   const syncOut = `${sync.stdout}${sync.stderr}`;
-  /CAREER_OPS_PROFILE/.test(syncOut) && syncOut.includes(missingNamed)
-    ? pass('builders: cv-sync-check names CAREER_OPS_PROFILE and its target when that file is missing')
-    : failOnce(`builders: cv-sync-check did not name CAREER_OPS_PROFILE and ${missingNamed} for a missing override target: ${JSON.stringify(syncOut.slice(0, 200))}`);
+  /LANDING_GEAR_PROFILE/.test(syncOut) && syncOut.includes(missingNamed)
+    ? pass('builders: cv-sync-check names LANDING_GEAR_PROFILE and its target when that file is missing')
+    : failOnce(`builders: cv-sync-check did not name LANDING_GEAR_PROFILE and ${missingNamed} for a missing override target: ${JSON.stringify(syncOut.slice(0, 200))}`);
 } catch (e) {
   failOnce(`profile-path readers suite crashed: ${e.stack || e.message}`);
 } finally {

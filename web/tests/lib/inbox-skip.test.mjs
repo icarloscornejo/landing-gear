@@ -15,7 +15,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SRC = path.join(HERE, "..", "..", "src", "lib", "inbox-skip.mjs");
-const CORE = process.env.CAREER_OPS_ROOT || path.join(HERE, "..", "..", "..");
+const CORE = process.env.LANDING_GEAR_ROOT || path.join(HERE, "..", "..", "..");
 const LOCK = path.join(CORE, "pipeline-lock.mjs");
 const HAS_LOCK = fs.existsSync(LOCK);
 

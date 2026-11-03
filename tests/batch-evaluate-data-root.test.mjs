@@ -36,9 +36,9 @@ import { describeSpawn } from './helpers/describe-spawn.mjs';
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 
-// Resolved in a child so CAREER_OPS_ROOT is read at module load, which is when
-// getCareerOpsRoot() runs.
-function resolvedPaths(dataRoot, cwd, { via = 'CAREER_OPS_ROOT' } = {}) {
+// Resolved in a child so LANDING_GEAR_ROOT is read at module load, which is when
+// getLandingGearRoot() runs.
+function resolvedPaths(dataRoot, cwd, { via = 'LANDING_GEAR_ROOT' } = {}) {
   // Fenced with a sentinel rather than sliced at the first '{'. batch-evaluate
   // imports dotenv, which prints a banner to stdout that itself contains '{',
   // so indexOf('{') parses the banner and reports confident nonsense.
@@ -48,14 +48,14 @@ function resolvedPaths(dataRoot, cwd, { via = 'CAREER_OPS_ROOT' } = {}) {
   `;
   const r = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
     cwd, encoding: 'utf-8', timeout: 60_000,
-    // CAREER_OPS_TRACKER cleared because path-resolver ranks it above the
+    // LANDING_GEAR_TRACKER cleared because path-resolver ranks it above the
     // resolved root; left inherited, a developer who exports it would have
     // these spawns ignore the fixture entirely (#3988).
     env: {
       ...process.env,
-      CAREER_OPS_ROOT: via === 'CAREER_OPS_ROOT' ? dataRoot : '',
-      CAREER_OPS_DATA_DIR: via === 'CAREER_OPS_DATA_DIR' ? dataRoot : '',
-      CAREER_OPS_TRACKER: '',
+      LANDING_GEAR_ROOT: via === 'LANDING_GEAR_ROOT' ? dataRoot : '',
+      LANDING_GEAR_DATA_DIR: via === 'LANDING_GEAR_DATA_DIR' ? dataRoot : '',
+      LANDING_GEAR_TRACKER: '',
     },
   });
   assert.equal(r.error, undefined, `spawn failed: ${r.error?.message}`);
@@ -66,8 +66,8 @@ function resolvedPaths(dataRoot, cwd, { via = 'CAREER_OPS_ROOT' } = {}) {
 }
 
 function roots() {
-  const dataRoot = mkdtempSync(join(tmpdir(), 'career-ops-batcheval-'));
-  const decoyCwd = mkdtempSync(join(tmpdir(), 'career-ops-batchdecoy-'));
+  const dataRoot = mkdtempSync(join(tmpdir(), 'landing-gear-batcheval-'));
+  const decoyCwd = mkdtempSync(join(tmpdir(), 'landing-gear-batchdecoy-'));
   mkdirSync(join(dataRoot, 'modes'), { recursive: true });
   mkdirSync(join(dataRoot, 'batch'), { recursive: true });
   return { dataRoot, decoyCwd };
@@ -141,11 +141,11 @@ test('the three evaluators agree on which root each user-layer file uses', () =>
   assert.deepEqual(offenders, [], `user-layer paths joined onto the code root:\n${offenders.join('\n')}`);
 });
 
-test('CAREER_OPS_DATA_DIR selects the same root as CAREER_OPS_ROOT', () => {
+test('LANDING_GEAR_DATA_DIR selects the same root as LANDING_GEAR_ROOT', () => {
   // AGENTS.md documents both as ways to set the data root, and path-resolver
   // treats DATA_DIR as the fallback when ROOT is unset:
   //
-  //   const env = process.env.CAREER_OPS_ROOT?.trim() || process.env.CAREER_OPS_DATA_DIR?.trim();
+  //   const env = process.env.LANDING_GEAR_ROOT?.trim() || process.env.LANDING_GEAR_DATA_DIR?.trim();
   //
   // Every suite in this repo that mentions DATA_DIR sets it to '' to clear it;
   // none passes a real value, so the documented fallback was exercised nowhere.
@@ -153,11 +153,11 @@ test('CAREER_OPS_DATA_DIR selects the same root as CAREER_OPS_ROOT', () => {
   // them.
   const f = roots();
   try {
-    const viaRoot = resolvedPaths(f.dataRoot, f.decoyCwd, { via: 'CAREER_OPS_ROOT' });
-    const viaDataDir = resolvedPaths(f.dataRoot, f.decoyCwd, { via: 'CAREER_OPS_DATA_DIR' });
+    const viaRoot = resolvedPaths(f.dataRoot, f.decoyCwd, { via: 'LANDING_GEAR_ROOT' });
+    const viaDataDir = resolvedPaths(f.dataRoot, f.decoyCwd, { via: 'LANDING_GEAR_DATA_DIR' });
     assert.deepEqual(
       viaDataDir, viaRoot,
-      'CAREER_OPS_DATA_DIR resolved a different table than CAREER_OPS_ROOT for the same directory',
+      'LANDING_GEAR_DATA_DIR resolved a different table than LANDING_GEAR_ROOT for the same directory',
     );
     assert.ok(viaDataDir.profile.startsWith(f.dataRoot), `_profile.md resolved to ${viaDataDir.profile}`);
   } finally { cleanup(f); }

@@ -4,8 +4,8 @@
  * generate-pdf.mjs — HTML → PDF via Playwright
  *
  * Usage:
- *   node career-ops/generate-pdf.mjs <input.html> <output.pdf> [--format=letter|a4] [--country=XX] [--report=NNN] [--kind=cv|cover] [--allow-reorder] [--allow-nonchronological] [--max-pages=N] [--strict-pages] [--skip-fact-check]
- *   node career-ops/generate-pdf.mjs --batch=<manifest.json> [--format=letter|a4] [--country=XX] [--allow-reorder] [--allow-nonchronological] [--max-pages=N] [--strict-pages] [--skip-fact-check]
+ *   node landing-gear/generate-pdf.mjs <input.html> <output.pdf> [--format=letter|a4] [--country=XX] [--report=NNN] [--kind=cv|cover] [--allow-reorder] [--allow-nonchronological] [--max-pages=N] [--strict-pages] [--skip-fact-check]
+ *   node landing-gear/generate-pdf.mjs --batch=<manifest.json> [--format=letter|a4] [--country=XX] [--allow-reorder] [--allow-nonchronological] [--max-pages=N] [--strict-pages] [--skip-fact-check]
  *
  * --batch renders every document in a JSON manifest (an array of
  * {input, output, format?, reportNum?}) through ONE shared Chromium instead of
@@ -46,7 +46,7 @@ import { readFile } from 'fs/promises';
 import { existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'fs';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { randomUUID } from 'node:crypto';
-import { getCareerOpsRoot, getProfilePath, hasProfileOverride } from './path-resolver.mjs';
+import { getLandingGearRoot, getProfilePath, hasProfileOverride } from './path-resolver.mjs';
 import { readStyleTokens, injectThemeStyle, readCvSectionOrder, readLockedSections } from './theme-style.mjs';
 import { validateCvExperienceOrder } from './cv-experience-order.mjs';
 import { resolvePdfIndexPath, resolveTrackerPath, resolveWorkspaceRootFor, writeFileAtomic } from './tracker-utils.mjs';
@@ -56,20 +56,20 @@ import { stripEmptyRenderedSections } from './cv-sections-core.mjs';
 import { PAGE_CSS_SIZE, PAGE_FORMATS, normalizePageFormat, pageFormatForCountry, resolvePageFormat } from './lib/page-format.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const trackerPath = resolveTrackerPath(getCareerOpsRoot());
+const trackerPath = resolveTrackerPath(getLandingGearRoot());
 // Derive the workspace root from the uncanonicalized tracker path (#3169): a
 // repo that symlinks only its data/ out (the #524 workaround) must still resolve
 // cv.md, config/ and output/ inside the repo, not follow data/ to the symlink
 // target. resolveWorkspaceRootFor canonicalizes the derived root itself, so the
 // spelling the rest of the module compares against stays canonical as before.
-const workspaceRoot = resolveWorkspaceRootFor(getCareerOpsRoot());
+const workspaceRoot = resolveWorkspaceRootFor(getLandingGearRoot());
 const PDF_PAGE_MARGIN = '0.6in';
 
 /**
  * The profile a render reads. An explicit root is the workspace the caller
- * named, so the environment does not redirect it. Otherwise CAREER_OPS_PROFILE
+ * named, so the environment does not redirect it. Otherwise LANDING_GEAR_PROFILE
  * names the file outright, and without it the profile sits in the workspace
- * (which CAREER_OPS_TRACKER can move off the data root, #2471).
+ * (which LANDING_GEAR_TRACKER can move off the data root, #2471).
  */
 function workspaceProfilePath(explicitRoot) {
   if (explicitRoot) return getProfilePath(explicitRoot);
@@ -78,11 +78,11 @@ function workspaceProfilePath(explicitRoot) {
 
 // Canonical tracker workspace: realpath so a symlinked ancestor (e.g. macOS
 // /var -> /private/var) is compared like-for-like by assertInsideWorkspace.
-// When CAREER_OPS_TRACKER points at another workspace, that workspace—not the
+// When LANDING_GEAR_TRACKER points at another workspace, that workspace—not the
 // installed script directory—is the safe boundary for input and output.
 //
 // Derived at USE time, not frozen at import (#3162, root-caused occurrence 6):
-// the root reads CAREER_OPS_TRACKER, and a sibling test that legitimately sets
+// the root reads LANDING_GEAR_TRACKER, and a sibling test that legitimately sets
 // that variable for its own fixture — and correctly restores it afterwards —
 // still poisoned this module for the whole process if the import happened to
 // land inside that window. A `const` cannot un-read an env var, so the guard
@@ -94,23 +94,23 @@ let __rootCache = { key: null, root: null, canonical: null };
 function refreshRootCache() {
   // Derive the root on EVERY call and key the cache on the resolved value.
   //
-  // The root can move three ways: CAREER_OPS_TRACKER, CAREER_OPS_ROOT /
-  // CAREER_OPS_DATA_DIR, and the .career-ops-data marker file. Keying on the
+  // The root can move three ways: LANDING_GEAR_TRACKER, LANDING_GEAR_ROOT /
+  // LANDING_GEAR_DATA_DIR, and the .landing-gear-data marker file. Keying on the
   // environment alone misses the marker, which is a file on disk and can change
   // while the environment does not, so the cache would keep serving a stale
   // workspace. The resolved root is the one value that captures all three, and
   // what is memoised is only realpathSync(), the syscall worth avoiding.
   //
-  // getCareerOpsRoot(), not __dirname: the data root is the env vars, then a
-  // .career-ops-data marker, then the repo, and only the last of those is the
+  // getLandingGearRoot(), not __dirname: the data root is the env vars, then a
+  // .landing-gear-data marker, then the repo, and only the last of those is the
   // script's own directory. With the user layer outside the checkout this
   // derived the workspace from the CODE directory, so every path under the
   // real data root read as an escape and the PDF was refused (#4389). Line 49
-  // already used getCareerOpsRoot(), so the two disagreed inside one module.
+  // already used getLandingGearRoot(), so the two disagreed inside one module.
   //
   // Same #3169 derivation as the import-time const: resolveWorkspaceRootFor works
   // from the uncanonicalized tracker so a symlinked data/ stays in the repo.
-  const root = resolveWorkspaceRootFor(getCareerOpsRoot());
+  const root = resolveWorkspaceRootFor(getLandingGearRoot());
   if (__rootCache.key !== root) {
     __rootCache = { key: root, root, canonical: realpathSync(root) };
   }
@@ -1370,7 +1370,7 @@ export function injectPrintPageCss(html, format, country) {
   // hardcoded value would silently win the cascade and make style.margin
   // ineffective (#1837 review). PDF_PAGE_MARGIN is only the fallback for a
   // template that never declares --page-margin at all.
-  const pageStyle = `<style id="career-ops-page-setup">\n@page { size: ${pageSize}; margin: var(--page-margin, ${PDF_PAGE_MARGIN}); }\n</style>`;
+  const pageStyle = `<style id="landing-gear-page-setup">\n@page { size: ${pageSize}; margin: var(--page-margin, ${PDF_PAGE_MARGIN}); }\n</style>`;
 
   if (/<\/head>/i.test(html)) {
     // Replacer function, matching the <html> branch just below. `pageStyle`
@@ -1783,7 +1783,7 @@ async function generatePDF() {
   // before the guard runs, so the guard judges the document that will be
   // printed. Anchored to workspaceRoot, NOT __dirname: readStyleTokens() reads
   // the same file from workspaceRoot, and cv.md is read from there too, so an
-  // __dirname anchor made CAREER_OPS_TRACKER split one logical profile across
+  // __dirname anchor made LANDING_GEAR_TRACKER split one logical profile across
   // two files — style from the workspace, section order from the checkout —
   // and validated the workspace's CV against the checkout's declared order.
   html = reorderCvSections(html, readCvSectionOrder(workspaceProfilePath()));
@@ -2154,7 +2154,7 @@ async function renderInPage(browser, html, outputPath, opts = {}) {
   // keep the render workspace-owned while still allowing the input itself to
   // be read.
   const baseDir = isWorkspaceOutputPath(
-    resolve(requestedBaseDir, '.career-ops-render-anchor'),
+    resolve(requestedBaseDir, '.landing-gear-render-anchor'),
     outputRoot,
   ) ? requestedBaseDir : resolve(outputRoot);
   const reportNum = opts.reportNum || '';
@@ -2192,7 +2192,7 @@ async function renderInPage(browser, html, outputPath, opts = {}) {
 
   // Write HTML to a temp file in baseDir so page.goto() gives a file://
   // origin that can load local images, fonts, and other resources.
-  const tmpHtmlPath = resolve(baseDir, `.career-ops-render-${randomUUID()}.html`);
+  const tmpHtmlPath = resolve(baseDir, `.landing-gear-render-${randomUUID()}.html`);
   const { writeFile, unlink } = await import('fs/promises');
   await writeFile(tmpHtmlPath, html, 'utf-8');
 

@@ -21,10 +21,10 @@ function fixture(t, populated = true) {
 }
 
 function run(root, args) {
-  const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('CAREER_OPS_')));
+  const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('LANDING_GEAR_')));
   const result = spawnSync(process.execPath, [SCRIPT, ...args], {
     cwd: root,
-    env: { ...env, CAREER_OPS_ROOT: root },
+    env: { ...env, LANDING_GEAR_ROOT: root },
     encoding: 'utf8',
     timeout: 30_000,
   });

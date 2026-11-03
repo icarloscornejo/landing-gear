@@ -14,7 +14,7 @@ console.log('\nTool names inside punctuation, invisible characters, or a long fr
 // block case pairs a tool the source backs with one it does not, so the only
 // correct verdict is a block on the second. The pass cases show the name is
 // read as the same name, not turned into a different claim that blocks.
-const tmp = mkdtempSync(join(tmpdir(), 'career-ops-tool-fragments-'));
+const tmp = mkdtempSync(join(tmpdir(), 'landing-gear-tool-fragments-'));
 try {
   const source = join(tmp, 'cv.md');
   const config = join(tmp, 'cv-facts.json');

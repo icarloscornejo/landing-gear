@@ -1,5 +1,5 @@
 import { pathToFileURL } from "node:url";
-import { careerOpsRoot, rootScript } from "@/lib/career-ops";
+import { landingGearRoot, rootScript } from "@/lib/landing-gear";
 import { resolveCodeRoot } from "@/lib/core/code-root.mjs";
 import { atomicWriteWithBackup } from "@/lib/core/safe-write";
 import { coercePersonalization, SECTIONS } from "@/lib/personalization.mjs";
@@ -20,7 +20,7 @@ export const dynamic = "force-dynamic";
 // assistant's SETUP STATE both read that, so neither re-asks for filled ones.
 
 // The template is a SYSTEM file and comes from the engine checkout
-// (resolveCodeRoot), not from careerOpsRoot(): with the data in another folder
+// (resolveCodeRoot), not from landingGearRoot(): with the data in another folder
 // there is no template there, and every section would compare as "filled".
 // A file that cannot be read, or cannot be spliced with certainty, is an error
 // here — never an empty string to merge onto.
@@ -38,7 +38,7 @@ async function corePersonalization() {
 export async function GET() {
   try {
     const core = await corePersonalization();
-    return Response.json(readPersonalizationState(careerOpsRoot(), codeRoot(), core));
+    return Response.json(readPersonalizationState(landingGearRoot(), codeRoot(), core));
   } catch (e) {
     return failure(e);
   }
@@ -57,7 +57,7 @@ export async function POST(req: Request) {
   // file is seeded from the template; an existing one is merged, never replaced.
   try {
     const core = await corePersonalization();
-    const { ids, merged } = savePersonalization({ dataRoot: careerOpsRoot(), codeRoot: codeRoot(), patch, dryRun, write: atomicWriteWithBackup, core });
+    const { ids, merged } = savePersonalization({ dataRoot: landingGearRoot(), codeRoot: codeRoot(), patch, dryRun, write: atomicWriteWithBackup, core });
     if (dryRun) return Response.json({ ok: true, dryRun: true, sections: ids, preview: merged });
     const labels = SECTIONS.filter((s) => ids.includes(s.id)).map((s) => s.heading.replace(/^## Your /, ""));
     return Response.json({ ok: true, sections: ids, labels });

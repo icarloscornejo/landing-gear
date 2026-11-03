@@ -105,15 +105,15 @@ test('parseContacts: internal-referral is distinct from peer (both still valid, 
 // --- 3. CLI ------------------------------------------------------------------
 
 function seedDataRoot() {
-  const dataRoot = mkdtempSync(join(tmpdir(), 'career-ops-contact-lookup-'));
+  const dataRoot = mkdtempSync(join(tmpdir(), 'landing-gear-contact-lookup-'));
   mkdirSync(join(dataRoot, 'data'), { recursive: true });
   writeFileSync(join(dataRoot, 'data', 'contacts.tsv'), FIXTURE);
   return dataRoot;
 }
 
 function runLookup(dataRoot, args) {
-  const env = { ...process.env, CAREER_OPS_ROOT: dataRoot };
-  delete env.CAREER_OPS_DATA_DIR;
+  const env = { ...process.env, LANDING_GEAR_ROOT: dataRoot };
+  delete env.LANDING_GEAR_DATA_DIR;
   return spawnSync(process.execPath, [SCRIPT, ...args], {
     cwd: CODE_ROOT, env, encoding: 'utf-8', timeout: 30_000,
   });
@@ -199,7 +199,7 @@ test('CLI: unknown flag exits 1 and names the bad flag', () => {
 });
 
 test('CLI: a company with no saved contacts.tsv at all answers empty, not a crash', () => {
-  const dataRoot = mkdtempSync(join(tmpdir(), 'career-ops-contact-lookup-empty-'));
+  const dataRoot = mkdtempSync(join(tmpdir(), 'landing-gear-contact-lookup-empty-'));
   try {
     const result = runLookup(dataRoot, ['--company', 'Anyone']);
     assert.equal(result.status, 0, describeSpawn(result));

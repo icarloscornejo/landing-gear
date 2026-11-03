@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { careerOpsRoot } from "@/lib/career-ops";
+import { landingGearRoot } from "@/lib/landing-gear";
 import { DEFAULT_FILTERS, parseExplorePatch, type ExploreFilters } from "@/lib/explore";
 import {
   isSafeScheduledId,
@@ -55,7 +55,7 @@ export class ScheduledJobValidationError extends Error {
   }
 }
 
-const storeFile = () => scheduledStorePath(careerOpsRoot());
+const storeFile = () => scheduledStorePath(landingGearRoot());
 
 function read(): Store {
   return readScheduledStore(storeFile()) as Store;
