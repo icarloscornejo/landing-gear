@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.1.0-0071e3">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.1.1-0071e3">
   <img alt="Node.js" src="https://img.shields.io/badge/Node.js-22.13%2B-5FA04E?logo=nodedotjs&logoColor=white">
   <img alt="Next.js" src="https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white">
   <img alt="Claude Code" src="https://img.shields.io/badge/Claude%20Code-ready-D97757?logo=anthropic&logoColor=white">

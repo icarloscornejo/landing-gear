@@ -2,6 +2,13 @@
 
 landing-gear is based on the upstream project at https://github.com/career-ops-hq/career-ops (MIT).
 
+## 1.1.1 (2026-11-06)
+
+* "Applied with CV" now rewrites the approval note from "will apply (not applied yet)" to "APPROVED: applied", so applied rows stop reading as pending.
+* Pipeline tables sort newest first by default: tracker tabs by date, inbox tabs (Discovered and the rest) by posting date, then by the order rows were added.
+* `config/cv-facts.example.json` lists gap phrases ("new to me", "still learning", "limited experience" and similar) that the fact gate blocks in CVs and cover letters, plus "working knowledge" and "familiar with" as warnings.
+* `.career-ops-web/` (the web state folder's pre-rename name) is gitignored again and no longer tracked.
+
 ## 1.1.0 (2026-11-02)
 
 * Full rename from career-ops to landing-gear.

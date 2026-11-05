@@ -7,9 +7,18 @@
   ],
   "forbidden_phrases": [
     "Fortune 500",
-    "patented"
+    "patented",
+    "new to me",
+    "still learning",
+    "not yet",
+    "limited experience",
+    "no direct experience",
+    "ramping up",
+    "eager to learn"
   ],
   "warn_phrases": [
-    "maybe"
+    "maybe",
+    "working knowledge",
+    "familiar with"
   ]
 }

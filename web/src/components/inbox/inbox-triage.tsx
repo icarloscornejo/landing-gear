@@ -7,7 +7,6 @@ import { useJobs } from "@/components/jobs/job-store";
 import type { InboxJob } from "@/lib/landing-gear";
 import type { AtsSource } from "@/lib/explore";
 import { daysSince, sourceFromUrl } from "@/lib/inbox";
-import { splitTriageLabel } from "@/lib/lifecycle.mjs";
 import { TriageRow, type RowScore } from "./triage-row";
 import { ShortlistTray, type ShortItem } from "./shortlist-tray";
 import { cn } from "@/lib/cn";
@@ -98,11 +97,11 @@ export function InboxTriage({ inbox }: { inbox: InboxJob[] }) {
   // triages once (and Save/Skip/score, all keyed by URL, act on it coherently).
   const enriched = useMemo(() => {
     const seen = new Set<string>();
-    const out: { job: InboxJob; source: AtsSource | null; age: number | null }[] = [];
+    const out: { job: InboxJob; source: AtsSource | null; age: number | null; order: number }[] = [];
     for (const job of inbox) {
       if (seen.has(job.url)) continue;
       seen.add(job.url);
-      out.push({ job, source: sourceFromUrl(job.url), age: daysSince(job.postedAt, now) });
+      out.push({ job, source: sourceFromUrl(job.url), age: daysSince(job.postedAt, now), order: out.length });
     }
     return out;
   }, [inbox, now]);
@@ -135,10 +134,11 @@ export function InboxTriage({ inbox }: { inbox: InboxJob[] }) {
   // 🔴 SINGLE ORDER PLUG POINT — freshness only (newest first_seen first; unknown last).
   // A smarter ranker replaces ONLY this comparator; facets/triage/shortlist/score never
   // touch relevance. This is the whole firewall in one line.
-  // Triaged rows rank by their triage score, best first; untriaged ones by freshness.
-  const triageScore = (job: InboxJob) => (job.triage ? splitTriageLabel(job.triage).score ?? -1 : -1);
+  // Every tab lists newest first (the engineer's choice, 2026-11-06): by posting date,
+  // then by pipeline.md order, where later lines were added later. Rows with no posting
+  // date sort after dated ones, newest added first.
   const ordered = useMemo(
-    () => [...filtered].sort((a, b) => triageScore(b.job) - triageScore(a.job) || (a.age ?? Infinity) - (b.age ?? Infinity)),
+    () => [...filtered].sort((a, b) => (a.age ?? Infinity) - (b.age ?? Infinity) || b.order - a.order),
     [filtered],
   );
 

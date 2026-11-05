@@ -4,7 +4,7 @@ import { readJsonObject } from "@/lib/json-body";
 import { scoreNum } from "@/lib/format";
 import { readRowWithHash, runSetStatus, setStatusFailure } from "@/lib/set-status-run";
 import { cvPickUrl, recordCvOutcome, recordCvPick } from "@/lib/cv-pick-run";
-import { isApproved } from "@/lib/home/awaiting.mjs";
+import { APPLIED_NOTE, APPROVED_NOTE, isApproved } from "@/lib/home/awaiting.mjs";
 
 export const runtime = "nodejs";
 
@@ -68,11 +68,18 @@ export async function POST(req: Request) {
   }
   steps.status = { ok: true };
 
+  const warnings: string[] = [];
+  // The approval note said "not applied yet"; rewrite it now that the row is Applied.
+  // A separate run because set-status takes one --note; a failure only warns.
+  if (String(app.notes ?? "").includes(APPROVED_NOTE)) {
+    const rewrite = await runSetStatus(["--row", row, "Applied", "--source", "web", "--json", "--expect-status", "Applied", "--replace-note", APPROVED_NOTE, `--note=${APPLIED_NOTE}`]);
+    if (setStatusFailure(rewrite, "/api/apply-cv")) warnings.push("Applied, but the approval note still says \"not applied yet\".");
+  }
+
   // 3. Outcome in the A/B log.
   if (url) {
     steps.outcome = await recordCvOutcome(url, "Applied");
   }
-  const warnings: string[] = [];
   if (!url) warnings.push("CV not logged: this row has no http or mailto URL.");
   if (steps.outcome && !steps.outcome.ok) warnings.push("Applied, but the CV log failed. Retry the CV log.");
   return NextResponse.json({ ok: true, steps, ...(warnings.length ? { warnings } : {}) });

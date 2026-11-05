@@ -64,6 +64,8 @@ export function pickAwaitingDecision(applications, scoreOf, limit = 6) {
 
 /** The note house rule 12 writes when the engineer approves a posting. */
 export const APPROVED_NOTE = "APPROVED: will apply (not applied yet)";
+/** What "Applied with CV" turns APPROVED_NOTE into, so the notes stop saying "not applied yet". */
+export const APPLIED_NOTE = "APPROVED: applied";
 // Older notes name who approved ("APPROVED by <name>: will apply"), so the name is optional.
 const APPROVED_MARK = /\bAPPROVED(?: by [^:;]+)?: will apply\b/;
 
