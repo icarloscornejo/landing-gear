@@ -185,3 +185,11 @@ test("profile-gated drops from the LinkedIn script: off by default, on when the 
   assert.equal(check("Android Engineer", "Remote", `${JD} Remote from LATAM or India.`), "pass");
   assert.equal(check("Android Engineer", "Remote", `${JD} Team based in Bangalore.`, { ...ON, blockedPlaces: [] }), "pass");
 });
+
+test("a region written in the title drops the row even with no location cell", () => {
+  assert.equal(reason("Flutter Engineer (iOS)（APAC - Remote)", undefined), "region in title (apac)");
+  assert.equal(reason("Senior Android Engineer, Asia & Pacific", undefined), "region in title (asia & pacific)");
+  assert.equal(reason("Mobile Engineer - EMEA", undefined), "region in title (emea)");
+  assert.equal(reason("Android Engineer (APAC or LATAM)", undefined), "pass");
+  assert.equal(reason("Android Engineer, Pacific Time", undefined), "pass");
+});

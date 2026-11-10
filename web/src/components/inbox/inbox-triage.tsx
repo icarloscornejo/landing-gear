@@ -252,7 +252,27 @@ export function InboxTriage({ inbox }: { inbox: InboxJob[] }) {
   // Re-check runs the current rules again on rows already pre-triaged (but not triaged).
   const recheckCount = inbox.filter((job) => !job.done && job.pretriaged && !job.triage).length;
   const [pretriaging, setPretriaging] = useState(false);
-  const [pretriageResult, setPretriageResult] = useState<{ passed: number; withoutJd?: number; dropped: { company: string; role: string; reason: string }[]; failed: string[] } | null>(null);
+  const [pretriageResult, setPretriageResult] = useState<{ passed: number; withoutJd?: number; dropped: { url: string; company: string; role: string; reason: string }[]; failed: string[] } | null>(null);
+  // Per-row undo of a pre-triage drop: url -> "busy" while writing, "done" once reopened.
+  const [restored, setRestored] = useState<Record<string, "busy" | "done">>({});
+  const restoreDrop = async (url: string) => {
+    setRestored((prev) => ({ ...prev, [url]: "busy" }));
+    setWriteError("");
+    try {
+      const response = await fetch("/api/pretriage", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ restore: url }) });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error ?? `HTTP ${response.status}`);
+      setRestored((prev) => ({ ...prev, [url]: "done" }));
+      router.refresh();
+    } catch (error) {
+      setRestored((prev) => {
+        const next = { ...prev };
+        delete next[url];
+        return next;
+      });
+      setWriteError(`Restore failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  };
   const runPretriage = async (recheck = false) => {
     setPretriaging(true);
     setWriteError("");
@@ -363,7 +383,21 @@ export function InboxTriage({ inbox }: { inbox: InboxJob[] }) {
           {pretriageResult.dropped.length > 0 && (
             <ul className="mt-1.5 space-y-0.5">
               {pretriageResult.dropped.map((drop, index) => (
-                <li key={index}><span className="text-foreground">{drop.company}</span>, {drop.role}: <span className="text-faint">{drop.reason}</span></li>
+                <li key={index} className="flex items-start justify-between gap-3">
+                  <span><span className="text-foreground">{drop.company}</span>, {drop.role}: <span className="text-faint">{drop.reason}</span></span>
+                  {restored[drop.url] === "done" ? (
+                    <span className="shrink-0 text-brand-text">Restored</span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => restoreDrop(drop.url)}
+                      disabled={restored[drop.url] === "busy"}
+                      className="shrink-0 rounded-md border border-border px-2 py-0.5 font-medium text-muted transition-colors hover:border-brand/40 hover:text-brand disabled:opacity-50 max-sm:min-h-[44px]"
+                    >
+                      {restored[drop.url] === "busy" ? "Restoring…" : "Restore"}
+                    </button>
+                  )}
+                </li>
               ))}
             </ul>
           )}

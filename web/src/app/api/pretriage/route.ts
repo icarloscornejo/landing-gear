@@ -21,7 +21,7 @@ const READ_AT_ONCE = 4;
 // time. `{recheck: true}` re-runs it on every open, untriaged row, pre-triaged or not,
 // so a rule change reaches rows already passed.
 export async function POST(req: Request) {
-  const body = (await readJsonObject<{ recheck?: unknown }>(req)) ?? {};
+  const body = (await readJsonObject<{ recheck?: unknown; restore?: unknown }>(req)) ?? {};
   const recheck = body.recheck === true;
   const root = landingGearRoot();
   const file = path.join(root, "data", "pipeline.md");
@@ -30,9 +30,23 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "pre-triage needs the landing-gear core scripts", code: "core-script-missing" }, { status: 503 });
   }
 
+  // `{restore: url}` undoes one pre-triage drop: the row reopens with a pass label that
+  // records the override, so a later run (or a re-check) skips it instead of closing it again.
+  if (typeof body.restore === "string") {
+    for (const write of [
+      () => setInboxSkip(file, body.restore as string, false, { lockModule }),
+      () => setInboxLabel(file, body.restore as string, "closed", null, { lockModule }),
+      () => setInboxLabel(file, body.restore as string, "pretriage", "pass (restored by the engineer)", { lockModule }),
+    ]) {
+      const result = await write();
+      if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.error === "busy" ? 409 : 400 });
+    }
+    return NextResponse.json({ ok: true });
+  }
+
   const tracker = trackerKeys(readApplications());
   const options = { usAuthorized: usAuthorizedFrom(readProfileAuthorizedIn()), ...readProfilePreTriage() };
-  const targets = readInbox().filter((job) => !job.done && !job.triage && (recheck || !job.pretriaged));
+  const targets = readInbox().filter((job) => !job.done && !job.triage && !job.pretriageKept && (recheck || !job.pretriaged));
   const readJd = createJdReader();
   const jds = new Array(targets.length);
   for (let start = 0; start < targets.length; start += READ_AT_ONCE) {
@@ -41,7 +55,7 @@ export async function POST(req: Request) {
     read.forEach((jd, offset) => (jds[start + offset] = jd));
   }
 
-  const dropped: { company: string; role: string; reason: string }[] = [];
+  const dropped: { url: string; company: string; role: string; reason: string }[] = [];
   let passed = 0;
   let withoutJd = 0;
   const failed: string[] = [];
@@ -73,7 +87,7 @@ export async function POST(req: Request) {
     if (verdict.pass) {
       passed += 1;
       if (!jd) withoutJd += 1;
-    } else dropped.push({ company: job.company, role: job.role, reason: verdict.reason });
+    } else dropped.push({ url: job.url, company: job.company, role: job.role, reason: verdict.reason });
   }
   return NextResponse.json({ ok: failed.length === 0, checked: targets.length, passed, withoutJd, dropped, failed });
 }

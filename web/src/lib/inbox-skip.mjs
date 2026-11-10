@@ -138,15 +138,17 @@ const LABEL_KEY = /^[a-z]+$/;
  * @param {string} text pipeline.md contents
  * @param {string} url row target accepted by rowTarget()
  * @param {string} key lowercase label name, e.g. "triage"
- * @param {string} value label text (pipes, newlines and em-dashes are removed)
+ * @param {string | null} value label text (pipes, newlines and em-dashes are removed);
+ *   null removes the label cell instead
  * @returns {{ ok: true, text: string, matched: number, changed: number } | { ok: false, error: string }}
  */
 export function applyInboxLabel(text, url, key, value) {
   const parsed = rowTarget(url);
   if (!parsed) return { ok: false, error: "invalid-url" };
   if (!LABEL_KEY.test(key)) return { ok: false, error: "invalid-label" };
-  const clean = stripEmDash(value).replace(/[|\r\n]/g, " ").replace(/\s+/g, " ").trim();
-  if (!clean) return { ok: false, error: "invalid-label" };
+  const remove = value === null;
+  const clean = remove ? "" : stripEmDash(value).replace(/[|\r\n]/g, " ").replace(/\s+/g, " ").trim();
+  if (!remove && !clean) return { ok: false, error: "invalid-label" };
 
   const nl = text.includes("\r\n") ? "\r\n" : "\n";
   const endedWithNl = /\r?\n$/.test(text);
@@ -166,7 +168,7 @@ export function applyInboxLabel(text, url, key, value) {
     const cells = m[3].split("|").map((c) => c.trim());
     const kept = cells.filter((c, idx) => idx < 3 || !sameKey.test(c));
     while (kept.length < 3) kept.push("");
-    kept.push(`${key}: ${clean}`);
+    if (!remove) kept.push(`${key}: ${clean}`);
     const next = `${m[1]}[${m[2]}] ${kept.join(" | ")}`;
     if (next !== lines[i]) {
       lines[i] = next;
@@ -182,7 +184,7 @@ export function applyInboxLabel(text, url, key, value) {
  * @param {string} pipelinePath
  * @param {string} url
  * @param {string} key
- * @param {string} value
+ * @param {string | null} value null removes the label
  * @param {{ lockModule?: string, timeoutMs?: number }} [options]
  */
 export async function setInboxLabel(pipelinePath, url, key, value, options = {}) {

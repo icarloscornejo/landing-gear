@@ -2,6 +2,12 @@
 
 landing-gear is based on the upstream project at https://github.com/career-ops-hq/career-ops (MIT).
 
+## 1.1.2 (2026-11-09)
+
+* Pre-triage drops can be undone: each dropped row in the inbox has a Restore button that brings the posting back to Discovered, and a restored row is not dropped again on the next pre-triage run.
+* Pre-triage drops postings whose title names a non-LATAM region (APAC, EMEA, "Europe only", "UK only", "India only") unless the title also says LATAM, Americas, global, worldwide or anywhere.
+* Getro boards that relist remote.com postings now show the real employer, taken from the remote.com URL, instead of "Remote".
+
 ## 1.1.1 (2026-11-06)
 
 * "Applied with CV" now rewrites the approval note from "will apply (not applied yet)" to "APPROVED: applied", so applied rows stop reading as pending.

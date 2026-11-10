@@ -139,6 +139,10 @@ const WORK_MODE = /\b(hybrid (role|position|model|schedule|work(ing)? (model|arr
 // "Remote: Hybrid" is a label, not a remote option.
 const REMOTE_OPTION = /\b(remote|remoto|remota|teletrabajo|work from (home|anywhere))\b(?!\s*:)/;
 const JUNIOR = /\b(junior|jr)\b/;
+// Regions named in a (folded) title. "Pacific" alone is left out: "Pacific time" is a US
+// schedule, not the Asia-Pacific region.
+const REGION_IN_TITLE = /\b(apac|apj|asia[- ]?pacific|asia (&|and) (the )?pacific|emea|europe only|eu only|uk only|india only)\b/;
+const LATAM_IN_TITLE = /\b(latam|latin america|americas|global|worldwide|anywhere)\b/;
 const escapeRe = (word) => word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /**
@@ -198,6 +202,10 @@ export function preTriage(job, tracker, jd = null, options = {}) {
   if (NOT_DEV.test(role) || !DEV.test(role)) return { pass: false, reason: "not a target role" };
   if (/\bjava\b/.test(role) && BACKEND.test(role) && !KEEPS_BACKEND.test(role)) return { pass: false, reason: "backend Java" };
   if (options.skipJunior && JUNIOR.test(role)) return { pass: false, reason: "junior role" };
+  // A region written in the title ("Flutter Engineer (APAC - Remote)") limits the role as
+  // much as the location cell does, and some boards leave that cell empty.
+  const titleRegion = REGION_IN_TITLE.exec(role);
+  if (titleRegion && !LATAM_IN_TITLE.test(role)) return { pass: false, reason: `region in title (${titleRegion[0]})` };
 
   const location = (job.location ?? "").trim();
   const reach = location ? readReach(location, job.url).kind : "unknown";

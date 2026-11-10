@@ -79,6 +79,9 @@ export function parseInbox(md) {
       ...(labels.has("pretriage") ? { pretriaged: true } : {}),
       // passed, but its JD could not be read for free (`pretriage: pass, no JD`)
       ...(/no JD/i.test(labels.get("pretriage") ?? "") ? { pretriageNoJd: true } : {}),
+      // the engineer reopened a pre-triage drop (`pretriage: pass (restored by ...)` or an
+      // override note): a re-check must not close it again
+      ...(/restored|override/i.test(labels.get("pretriage") ?? "") ? { pretriageKept: true } : {}),
     });
   }
   return jobs;

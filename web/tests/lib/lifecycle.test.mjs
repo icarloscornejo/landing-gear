@@ -153,6 +153,20 @@ test("applyInboxLabel writes, replaces on re-triage, pads short rows, never em-d
   assert.equal(applyInboxLabel(PIPE, "https://nope.example/1", "triage", "PASS").error, "unmatched");
 });
 
+test("a restored pre-triage drop loses its closed label and is kept out of re-checks", () => {
+  const url = "local:jds/linkedin-post-1.md";
+  const closed = applyInboxLabel(applyInboxSkip(PIPE, url, true).text, url, "closed", "pre-triage: residency");
+  const reopened = applyInboxSkip(closed.text, url, false).text;
+  const cleared = applyInboxLabel(reopened, url, "closed", null);
+  const restored = applyInboxLabel(cleared.text, url, "pretriage", "pass (restored by the engineer)");
+  const row = restored.text.split("\n").find((l) => l.includes("linkedin-post-1") && l.startsWith("- [ ]"));
+  assert.equal(row, "- [ ] local:jds/linkedin-post-1.md | Acme | Android Dev | Remote | pretriage: pass (restored by the engineer)");
+  const job = parseInbox(restored.text).find((j) => j.url === url);
+  assert.equal(job.pretriaged, true);
+  assert.equal(job.pretriageKept, true);
+  assert.equal(parseInbox(PIPE).find((j) => j.url === url).pretriageKept, undefined);
+});
+
 test("setInboxLabel writes the file", async () => {
   const dir = mkdtempSync(join(tmpdir(), "lifecycle-"));
   try {

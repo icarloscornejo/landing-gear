@@ -174,6 +174,26 @@ function getroSalary(job) {
   return { min: min ?? max, max: max ?? min, currency };
 }
 
+/**
+ * Remote (remote.com) is itself a portfolio company, and its board lists other
+ * employers' jobs under `remote.com/jobs/<employer-slug>-<id>/<job>`, so Getro
+ * reports every one of them as organization "Remote". The real employer is in
+ * the slug: `binance-c1iaam3i` -> "Binance". Null for any other URL.
+ * @param {string} url @returns {string | null}
+ */
+export function remoteBoardEmployer(url) {
+  let parsed;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return null;
+  }
+  if (!/(^|\.)remote\.com$/i.test(parsed.hostname)) return null;
+  const slug = /^\/jobs\/([a-z0-9-]+)-[a-z0-9]{6,}\//i.exec(parsed.pathname)?.[1];
+  if (!slug) return null;
+  return slug.split('-').filter(Boolean).map((word) => word[0].toUpperCase() + word.slice(1)).join(' ');
+}
+
 /** All known locations joined (not just the first), plus a "Remote" tag when work_mode says so. */
 function locationString(job) {
   const fromArray = (arr) => (Array.isArray(arr) ? arr.filter((l) => typeof l === 'string' && l.trim()).map((l) => l.trim()) : []);
@@ -277,7 +297,7 @@ export default {
           url,
           // Portfolio jobs belong to the portfolio company, not the fund —
           // expose the real employer so dedup and the tracker read correctly.
-          company: j.organization?.name || j.organization_name || entry.name,
+          company: remoteBoardEmployer(url) || j.organization?.name || j.organization_name || entry.name,
           location: locationString(j),
           postedAt: createdMs,
         };
