@@ -2,6 +2,13 @@
 
 landing-gear is based on the upstream project at https://github.com/career-ops-hq/career-ops (MIT).
 
+## 1.1.3 (2026-11-11)
+
+* Pre-triage drops titles outside the profile: other fields (data engineering, DevOps, SRE, Salesforce, SAP, COBOL, game development) always, and other stacks (Java, Spring, Angular, .NET, PHP, Ruby, Go) unless the title also names a mobile or AI stack. "DACH" in a title is read as a region.
+* With the profile's authorized places set, a location cell that names only LATAM countries outside them ("Mexico", "Costa Rica (Remote)") drops the row.
+* The residency check reads "Mexico only", "Remote (Brazil only)" and "only in / from <place>" in the JD.
+* "AMER" in a location reads as the Americas.
+
 ## 1.1.2 (2026-11-09)
 
 * Pre-triage drops can be undone: each dropped row in the inbox has a Restore button that brings the posting back to Discovered, and a restored row is not dropped again on the next pre-triage run.

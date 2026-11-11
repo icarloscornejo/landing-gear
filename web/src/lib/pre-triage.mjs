@@ -15,6 +15,11 @@ const AI_GIG = /\b(data label(l)?ing|label(l)?ers?|annotat\w*|raters?|evaluators
 // The engineer (2026-10-27): backend Java with no Android or AI work is out; backend Kotlin stays.
 const BACKEND = /\b(back ?-?end|server|servidor|api)\b/;
 const KEEPS_BACKEND = /\b(android|kotlin|mobile|movil|ai|ia|llm|ml)\b/;
+// Fields that are never a mobile or AI engineering role, whatever else the title says.
+const OFF_FIELD = /\b(data engineer\w*|devops|sre|site reliability|salesforce|agentforce|sap|abap|cobol|game (developer|dev|engineer)|godot|unity|unreal)\b/;
+// A stack outside the profile named in the title, out unless the title also names a profile one.
+const OFF_STACK = /\b(java|spring( boot)?|angular|\.net|dotnet|c#|php|ruby|rails|golang|wordpress|shopify)\b/;
+const KEEPS_STACK = /\b(android|kotlin|mobile|movil|ios|swift|flutter|react native|ai|ia|llm|ml|agentic)\b/;
 
 // Not a job offer. A title written in the first person is a candidate's own post.
 const SELF_TITLE = /^(i am|i'm|im|i have|i've|i build|hire me|soy (un |una )?(desarrollador|programador|ingeniero)|busco (trabajo|empleo))\b/;
@@ -28,7 +33,9 @@ const OPENING = 600;
 // Residency (house rule 10): only an explicit "must live there" phrase, then the places it names.
 // "residents of" alone is too common in company intros ("we serve residents of..."), so it
 // needs "only" in the same sentence.
-const RESIDENCY = /(must (reside|live|be (based|located|resident))|residents? of\b[^.]{0,80}\bonly\b|only (open )?to residents of|only (candidates|applicants|people) (based |located |residing )?in|requisito[^.]{0,15}residir|debes? (residir|vivir|radicar)|residir en|radicar en|estar radicad[oa]|radicad[oa]s? en|(solo|unicamente) (para )?residentes|con residencia en)/;
+const RESIDENCY = /(must (reside|live|be (based|located|resident))|residents? of\b[^.]{0,80}\bonly\b|only (open )?to residents of|only (candidates|applicants|people) (based |located |residing )?in|requisito[^.]{0,15}residir|debes? (residir|vivir|radicar)|residir en|radicar en|estar radicad[oa]|radicad[oa]s? en|(solo|unicamente) (para )?residentes|con residencia en|\b(only|solo|unicamente|exclusivamente) (for |para |en |desde |in |from |within ))/;
+// "Mexico only", "Remote (Brazil only)": a place right before "only".
+const PLACE_ONLY = /([a-z.]+(?: [a-z.]+)?)\s+only\b/g;
 // "Argentina BASED RESOURCES ONLY", "UK, Ireland or Germany based candidates only": the places come
 // before the phrase, back to the clause start. Needs "only" or "required": "US-based candidates are
 // preferred" or "must overlap with PST" set a condition, not residency.
@@ -92,6 +99,17 @@ export function residencyBlock(text) {
       while (start > 0 && !CLAUSE_START.test(before[start - 1])) start--;
       named = before.slice(start);
     }
+    if (named === null) {
+      for (const [, words] of folded.matchAll(PLACE_ONLY)) {
+        // The last word alone first, so "hire in mexico only" reads Mexico and not "in mexico".
+        const last = words.split(" ").pop();
+        const places = [last, words].map((phrase) => placesIn(phrase)).find((found) => found.openScope || found.latam.length || found.others.length);
+        if (places) {
+          named = words;
+          break;
+        }
+      }
+    }
     if (named === null) continue;
     const { openScope, latam, others } = placesIn(named);
     if (openScope || (!latam.length && !others.length)) continue;
@@ -141,7 +159,7 @@ const REMOTE_OPTION = /\b(remote|remoto|remota|teletrabajo|work from (home|anywh
 const JUNIOR = /\b(junior|jr)\b/;
 // Regions named in a (folded) title. "Pacific" alone is left out: "Pacific time" is a US
 // schedule, not the Asia-Pacific region.
-const REGION_IN_TITLE = /\b(apac|apj|asia[- ]?pacific|asia (&|and) (the )?pacific|emea|europe only|eu only|uk only|india only)\b/;
+const REGION_IN_TITLE = /\b(apac|apj|asia[- ]?pacific|asia (&|and) (the )?pacific|emea|dach|europe only|eu only|uk only|india only)\b/;
 const LATAM_IN_TITLE = /\b(latam|latin america|americas|global|worldwide|anywhere)\b/;
 const escapeRe = (word) => word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -201,6 +219,10 @@ export function preTriage(job, tracker, jd = null, options = {}) {
   if (AI_GIG.test(role)) return { pass: false, reason: "not engineering (AI gig)" };
   if (NOT_DEV.test(role) || !DEV.test(role)) return { pass: false, reason: "not a target role" };
   if (/\bjava\b/.test(role) && BACKEND.test(role) && !KEEPS_BACKEND.test(role)) return { pass: false, reason: "backend Java" };
+  const offField = OFF_FIELD.exec(role);
+  if (offField) return { pass: false, reason: `not a target role (${offField[0]})` };
+  const offStack = OFF_STACK.exec(role);
+  if (offStack && !KEEPS_STACK.test(role)) return { pass: false, reason: `stack outside profile (${offStack[0]})` };
   if (options.skipJunior && JUNIOR.test(role)) return { pass: false, reason: "junior role" };
   // A region written in the title ("Flutter Engineer (APAC - Remote)") limits the role as
   // much as the location cell does, and some boards leave that cell empty.
@@ -211,6 +233,15 @@ export function preTriage(job, tracker, jd = null, options = {}) {
   const reach = location ? readReach(location, job.url).kind : "unknown";
   if (reach === "limited" || reach === "onsite") {
     return { pass: false, reason: `location restricted (${location})` };
+  }
+  // A few LATAM countries in the cell ("Mexico", "Costa Rica (Remote)") limit the role to them
+  // as much as any other country does. Only with the profile's authorized places, so a profile
+  // without them keeps the old, conservative pass.
+  if (reach === "latam-list" && options.onsiteOnlyIn?.length) {
+    const authorized = options.onsiteOnlyIn.map(fold);
+    if (!placesIn(location).latam.some((place) => authorized.includes(fold(place)))) {
+      return { pass: false, reason: `location restricted (${location})` };
+    }
   }
 
   if (text) {

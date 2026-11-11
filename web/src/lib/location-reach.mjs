@@ -20,7 +20,7 @@ const US_STATES = new Set("AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA
 // Regions that include El Salvador, and the scope word each one shows as.
 const OPEN_REGIONS = [
   [/\b(worldwide|anywhere|global|everywhere|world wide|todo el mundo|cualquier pais|cualquier parte)\b/, "worldwide"],
-  [/\b(latam|latin america|america latina|latinoamerica|south america|central america|centroamerica|americas)\b/, "LATAM"],
+  [/\b(latam|latin america|america latina|latinoamerica|south america|central america|centroamerica|americas|amer)\b/, "LATAM"],
 ];
 // Regions that don't.
 const OTHER_REGIONS = [

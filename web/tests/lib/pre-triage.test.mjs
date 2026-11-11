@@ -168,16 +168,18 @@ test("profile-gated drops from the LinkedIn script: off by default, on when the 
 
   // Hybrid or on-site as a requirement, unless remote is offered or the place is the user's country.
   const hybrid = `${JD} This is a hybrid role, three days a week in our Bogota office.`;
-  assert.match(check("Android Engineer", "Bogota", hybrid), /^hybrid or on-site: "This is a hybrid role/);
+  // An empty location cell: a LATAM city there already drops the row (location restricted).
+  assert.match(check("Android Engineer", "", hybrid), /^hybrid or on-site: "This is a hybrid role/);
+  assert.equal(check("Android Engineer", "Bogota", JD), "location restricted (Bogota)");
   assert.equal(check("Android Engineer", "San Salvador, El Salvador", hybrid), "pass");
   assert.equal(check("Android Engineer", "Remote", `${JD} We work remote or hybrid, your choice.`), "pass");
   assert.equal(check("Android Engineer", "Remote", `${JD} You will build hybrid apps and onsite interviews happen online.`), "pass");
   // Real false positives from the pipeline (RevenueCat, Miratech, Parser): not the job's arrangement.
   for (const line of ["It also requires contributing to our hybrid SDKs.", "You will evolve hybrid React Native and native applications.", "A flexible and hybrid working environment."]) {
-    assert.equal(check("Android Engineer", "Bogota", `${JD} ${line}`), "pass", line);
+    assert.equal(check("Android Engineer", "", `${JD} ${line}`), "pass", line);
   }
-  assert.match(check("Android Engineer", "Santiago", `${JD}\nModalidad: Híbrido (3 días en la oficina).`), /^hybrid or on-site/);
-  assert.match(check("Android Engineer", "Santiago", `${JD}\nHybrid\n`), /^hybrid or on-site: "Hybrid"$/);
+  assert.match(check("Android Engineer", "", `${JD}\nModalidad: Híbrido (3 días en la oficina).`), /^hybrid or on-site/);
+  assert.match(check("Android Engineer", "", `${JD}\nHybrid\n`), /^hybrid or on-site: "Hybrid"$/);
   assert.equal(check("Android Engineer", "Bogota", hybrid, { ...ON, onsiteOnlyIn: [] }), "pass");
 
   // Blocked places, unless the JD also names LATAM or an open scope.
@@ -192,4 +194,39 @@ test("a region written in the title drops the row even with no location cell", (
   assert.equal(reason("Mobile Engineer - EMEA", undefined), "region in title (emea)");
   assert.equal(reason("Android Engineer (APAC or LATAM)", undefined), "pass");
   assert.equal(reason("Android Engineer, Pacific Time", undefined), "pass");
+});
+
+test("titles: off-target fields and stacks drop unless the title also names a profile stack", () => {
+  assert.equal(reason("Java Fullstack Software Engineer (Spring Boot / Angular)", "Remote"), "stack outside profile (java)");
+  assert.equal(reason("Java Developer / Mid (Remote)", "Remote"), "stack outside profile (java)");
+  assert.equal(reason("Senior Data Engineer, Ads Data (AI Native)", "Remote"), "not a target role (data engineer)");
+  assert.equal(reason("Godot Game Developer, Part-Time AI Game Development", "Worldwide"), "not a target role (godot)");
+  assert.equal(reason("Associate Applied (AI) Value Engineer (DACH)", undefined), "region in title (dach)");
+  assert.equal(reason("Senior Java/Kotlin Android Developer", "Remote"), "pass");
+  assert.equal(reason("Senior AI Engineer (Python/TypeScript)", "Remote"), "pass");
+});
+
+test("with the profile's authorized places, a LATAM country cell that leaves them out drops", () => {
+  const options = { onsiteOnlyIn: ["El Salvador"] };
+  const gated = (location) => preTriage(row("Senior Android Engineer", location), tracker, null, options).reason ?? "pass";
+  assert.equal(gated("Mexico"), "location restricted (Mexico)");
+  assert.equal(gated("Costa Rica (Remote)"), "location restricted (Costa Rica (Remote))");
+  assert.equal(gated("Vicente López, Buenos Aires, Argentina"), "location restricted (Vicente López, Buenos Aires, Argentina)");
+  assert.equal(gated("Latin America"), "pass");
+  assert.equal(gated("Remote (US/CAN/LATAM)"), "pass");
+  assert.equal(gated("San Salvador, El Salvador"), "pass");
+  assert.equal(preTriage(row("Senior Android Engineer", "Mexico"), tracker, null, { onsiteOnlyIn: ["Mexico"] }).reason ?? "pass", "pass");
+});
+
+test("residency in the JD: a place right before only, or only in or from a place", () => {
+  assert.match(residencyBlock("Location: Mexico only.") ?? "", /Mexico only/);
+  assert.match(residencyBlock("Remote (Costa Rica only)") ?? "", /Costa Rica/);
+  assert.match(residencyBlock("We hire only in Brazil.") ?? "", /Brazil/);
+  // A pay band per country is not a residency limit (SecurityScorecard).
+  assert.equal(residencyBlock("For candidates based in Canada, the estimated total compensation range is $400,000-$500,000 CAD."), null);
+  assert.equal(preTriage(row("Senior AI Solutions Engineer", "Remote AMER, EMEA"), tracker, null, { onsiteOnlyIn: ["El Salvador"] }).reason ?? "pass", "pass");
+  assert.match(residencyBlock("Solo para personas que viven en Colombia.") ?? "", /Colombia/);
+  assert.equal(residencyBlock("Remote, LATAM only."), null);
+  assert.equal(residencyBlock("Interviews are held only in English."), null);
+  assert.equal(residencyBlock("We only hire senior engineers. Our office is in Mexico City."), null);
 });
