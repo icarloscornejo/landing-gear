@@ -579,6 +579,17 @@ export function readProfilePreTriage(): { skipJunior?: boolean; blockedPlaces?: 
   }
 }
 
+/** The `title_filter.negative` entries of portals.yml, the titles the scan never accepts. Missing or unreadable: none. */
+export function readPortalsNegativeTitles(): string[] {
+  try {
+    const portals = yaml.load(fs.readFileSync(portalsConfigPath(), "utf8")) as { title_filter?: { negative?: unknown } } | null;
+    return stringList(portals?.title_filter?.negative);
+  } catch {
+    // Missing or unreadable portals.yml: the built-in title checks still apply.
+    return [];
+  }
+}
+
 /**
  * The candidate's IANA time zone (`location.timezone` in config/profile.yml),
  * for interview dates. Falls back to the server's zone when it is missing or

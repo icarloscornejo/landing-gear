@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Bookmark, BookmarkCheck, Check, ClipboardPaste, Loader2, X } from "lucide-react";
 import type { InboxJob } from "@/lib/landing-gear";
 import type { AtsSource } from "@/lib/explore";
@@ -63,6 +64,7 @@ export function TriageRow({
   /** The latest triage/evaluate run on this row that failed; a new run replaces it. */
   failedRun: { id: string; error: string } | null;
 }) {
+  const router = useRouter();
   const ago = agoLabel(age);
   // House rule 10 label: where the engineer can work from, read from the location text.
   const reach = readReach(job.location, job.url);
@@ -110,13 +112,13 @@ export function TriageRow({
             {ago && <span>{ago}</span>}
             {/* Honest "not scored": no fabricated match%. */}
             {!evaluated && !job.triage && <span className="italic text-muted">not scored</span>}
-            {job.pretriaged && !job.triage && (
+            {job.pretriaged && !job.pretriageNoJd && !job.triage && (
               <span title="Passed the free pre-triage: ready for Triage or Evaluate" className="inline-flex items-center gap-1 rounded bg-sky-500/15 px-1.5 py-px font-medium text-sky-700 dark:text-sky-400">
                 <Check className="size-3" /> Pre-triaged
               </span>
             )}
             {job.pretriageNoJd && !job.jdSaved && !job.triage && (
-              <span title="Pre-triage could not read the JD for free; Triage may SKIP it. Paste the JD or open it in Chrome." className="rounded bg-amber-500/15 px-1.5 py-px font-medium text-amber-700 dark:text-amber-400">
+              <span title="Not pre-triaged: only its title and place were checked, because the JD could not be read for free. Paste the JD and run Pre-triage again, or Triage may SKIP it." className="rounded bg-amber-500/15 px-1.5 py-px font-medium text-amber-700 dark:text-amber-400">
                 no JD
               </span>
             )}
@@ -244,6 +246,8 @@ export function TriageRow({
           actionLabel="Save & evaluate"
           onSaved={(rerun) => {
             setPasteOpen(false);
+            // The "JD saved" and "no JD" chips come from the server render, so they need a refresh.
+            router.refresh();
             if (rerun) onEvaluate();
           }}
           onCancel={() => setPasteOpen(false)}

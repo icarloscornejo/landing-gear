@@ -8,7 +8,7 @@ import { fold, placesIn, readReach } from "./location-reach.mjs";
 
 // Plainly not a developer role. Seniority words (semi senior, junior) are not here on
 // purpose except intern/trainee.
-const NOT_DEV = /\b(analista|analyst|product manager|project manager|program manager|product owner|scrum master|designer|disenador|product design|design lead|sales|ventas|recruiter|reclutador|marketing|account (executive|manager)|customer (success|support)|soporte|intern|internship|pasantia|trainee|data scientist|writer|teacher|tutor|tester|qa|qe|quality (assurance|engineer\w*))\b/;
+const NOT_DEV = /\b(analista|analyst|product manager|project manager|program manager|product owner|scrum master|designer|disenador|product design|design lead|founders?|ceo|coo|cmo|cfo|sales|ventas|recruiter|reclutador|marketing|account (executive|manager)|customer (success|support)|soporte|intern|internship|pasantia|trainee|data scientist|writer|teacher|tutor|tester|qa|qe|quality (assurance|engineer\w*))\b/;
 const DEV = /(engineer|developer|desarrollador|programador|ingenier|architect|arquitect|\bdev\b|android|kotlin|java|mobile|movil|\bios\b|flutter|react native|\bai\b|\bia\b|\bml\b|llm|agentic|tech(nical)? lead)/;
 // AI data work sold as "AI" roles: not engineering (brief Hard DQ).
 const AI_GIG = /\b(data label(l)?ing|label(l)?ers?|annotat\w*|raters?|evaluators?|ai trainer|ai tutor|etiquetado de datos|anotador\w*|evaluador\w*|entrenador de ia)\b/;
@@ -164,6 +164,26 @@ const LATAM_IN_TITLE = /\b(latam|latin america|americas|global|worldwide|anywher
 const escapeRe = (word) => word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /**
+ * A portals.yml `title_filter.negative` entry as a title test, with the scanner's rules: a
+ * `word:` prefix matches whole words, `stem:` the start of a word, and `a + b` needs both.
+ * Reads the same list the scan uses, so the two never drift apart.
+ * @param {string} entry
+ * @returns {(foldedTitle: string) => boolean}
+ */
+function negativeTitleTest(entry) {
+  const tests = String(entry)
+    .split("+")
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((part) => {
+      const mode = /^(word|stem):/.exec(part)?.[1];
+      const text = escapeRe(fold(mode ? part.slice(mode.length + 1) : part).trim());
+      return new RegExp(mode === "word" ? `\\b${text}\\b` : mode === "stem" ? `\\b${text}` : text);
+    });
+  return (title) => tests.length > 0 && tests.every((test) => test.test(title));
+}
+
+/**
  * The sentence that asks for hybrid or on-site work with no remote option and names none of
  * `workCountries` (nor does the row's location), or null. "Remote or hybrid" and "hybrid apps" pass.
  * @param {string} text JD text
@@ -196,8 +216,9 @@ function monthlyMaxUsd(salary) {
  * @param {{url: string, company: string, role: string, location?: string}} job
  * @param {{urls: Set<string>, companyRoles: Set<string>}} tracker keys from applications.md
  * @param {{text: string, salary?: {max?: number, currency?: string, period?: string}} | null} [jd] JD read for free, if any
- * @param {{usAuthorized?: boolean}} [options] usAuthorized from usAuthorizedFrom(profile authorized_in);
- *   only false turns on the US eligibility check
+ * @param {{usAuthorized?: boolean, negativeTitles?: string[]}} [options] usAuthorized from
+ *   usAuthorizedFrom(profile authorized_in); only false turns on the US eligibility check.
+ *   negativeTitles are the portals.yml title_filter.negative entries, dropped from the title.
  * @returns {{pass: true} | {pass: false, reason: string}}
  */
 export function preTriage(job, tracker, jd = null, options = {}) {
@@ -218,6 +239,8 @@ export function preTriage(job, tracker, jd = null, options = {}) {
 
   if (AI_GIG.test(role)) return { pass: false, reason: "not engineering (AI gig)" };
   if (NOT_DEV.test(role) || !DEV.test(role)) return { pass: false, reason: "not a target role" };
+  const negativeTitle = (options.negativeTitles ?? []).find((entry) => negativeTitleTest(entry)(role));
+  if (negativeTitle) return { pass: false, reason: `not a target role (${negativeTitle.replace(/^(word|stem):/, "")})` };
   if (/\bjava\b/.test(role) && BACKEND.test(role) && !KEEPS_BACKEND.test(role)) return { pass: false, reason: "backend Java" };
   const offField = OFF_FIELD.exec(role);
   if (offField) return { pass: false, reason: `not a target role (${offField[0]})` };

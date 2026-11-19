@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import fs from "node:fs";
 import path from "node:path";
-import { landingGearRoot, readApplications, readInbox, readProfileAuthorizedIn, readProfilePreTriage } from "@/lib/landing-gear";
+import { landingGearRoot, readApplications, readInbox, readPortalsNegativeTitles, readProfileAuthorizedIn, readProfilePreTriage } from "@/lib/landing-gear";
 import { usAuthorizedFrom } from "@/lib/location-reach.mjs";
 import { lookalikeAts } from "@/lib/core/ats-lookalike.mjs";
 import { setInboxLabel, setInboxSkip } from "@/lib/inbox-skip.mjs";
@@ -45,8 +45,12 @@ export async function POST(req: Request) {
   }
 
   const tracker = trackerKeys(readApplications());
-  const options = { usAuthorized: usAuthorizedFrom(readProfileAuthorizedIn()), ...readProfilePreTriage() };
-  const targets = readInbox().filter((job) => !job.done && !job.triage && !job.pretriageKept && (recheck || !job.pretriaged));
+  const options = { usAuthorized: usAuthorizedFrom(readProfileAuthorizedIn()), negativeTitles: readPortalsNegativeTitles(), ...readProfilePreTriage() };
+  // A row passed without a readable JD only had its title and place checked, so it is not
+  // pre-triaged: it goes through again every time, and the reader picks up a JD saved since.
+  const targets = readInbox().filter(
+    (job) => !job.done && !job.triage && !job.pretriageKept && (recheck || !job.pretriaged || job.pretriageNoJd),
+  );
   const readJd = createJdReader();
   const jds = new Array(targets.length);
   for (let start = 0; start < targets.length; start += READ_AT_ONCE) {

@@ -230,3 +230,25 @@ test("residency in the JD: a place right before only, or only in or from a place
   assert.equal(residencyBlock("Interviews are held only in English."), null);
   assert.equal(residencyBlock("We only hire senior engineers. Our office is in Mexico City."), null);
 });
+
+test("founder and C-level titles are not engineering roles", () => {
+  for (const title of ["Applied AI Co-Founder / CEO (100 % remote)", "Applied AI Co-Founder / COO", "Founder, AI Engineer", "CMO and AI Developer"]) {
+    assert.equal(reason(title, "Remote"), "not a target role", title);
+  }
+  // A founding engineer is an engineering role.
+  assert.equal(reason("Founding AI Engineer", "Remote"), "pass");
+});
+
+test("titles in portals.yml title_filter.negative are dropped, with the scanner's word: and a + b rules", () => {
+  const negativeTitles = ["word:Intern", "Research Scientist", "word:PhD", "Annotat", "word:AI + word:Wizard"];
+  const verdict = (title) => preTriage(row(title, "Remote"), tracker, null, { negativeTitles }).reason ?? "pass";
+  assert.equal(verdict("Research Scientist, AI Engineer"), "not a target role (Research Scientist)");
+  assert.equal(verdict("AI Engineer (PhD preferred)"), "not a target role (PhD)");
+  // An "a + b" entry needs both words in the title.
+  assert.equal(verdict("AI Wizard Engineer"), "not a target role (AI + word:Wizard)");
+  assert.equal(verdict("Wizard Engineer"), "pass");
+  // word: needs a whole word: "Internal Tools" is not an intern.
+  assert.equal(verdict("AI Engineer, Internal Tools"), "pass");
+  // Without the list nothing changes.
+  assert.equal(preTriage(row("Research Scientist, AI Engineer", "Remote"), tracker).reason ?? "pass", "pass");
+});

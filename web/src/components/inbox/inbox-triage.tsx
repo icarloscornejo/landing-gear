@@ -248,7 +248,7 @@ export function InboxTriage({ inbox }: { inbox: InboxJob[] }) {
   const bulkTargets = (kind: "triage" | "evaluate") =>
     visible.filter((e) => (kind === "evaluate" || !e.job.triage) && !runningFor(kind, e.job.url) && !scoreByUrl.get(e.job.url)?.running);
   // Zero-token pre-triage: closes plainly-out rows, marks the rest so it never reruns on them.
-  const pretriageCount = inbox.filter((job) => !job.done && !job.pretriaged && !job.triage).length;
+  const pretriageCount = inbox.filter((job) => !job.done && !job.triage && (!job.pretriaged || (job.pretriageNoJd && job.jdSaved))).length;
   // Re-check runs the current rules again on rows already pre-triaged (but not triaged).
   const recheckCount = inbox.filter((job) => !job.done && job.pretriaged && !job.triage).length;
   const [pretriaging, setPretriaging] = useState(false);
@@ -375,7 +375,7 @@ export function InboxTriage({ inbox }: { inbox: InboxJob[] }) {
         <div className="mt-2 rounded-lg border border-border bg-surface/40 px-4 py-3 text-xs text-muted">
           <div className="flex items-start justify-between gap-3">
             <p>
-              <span className="font-medium text-foreground">Pre-triage:</span> {pretriageResult.passed} kept{pretriageResult.withoutJd ? ` (${pretriageResult.withoutJd} without a readable JD)` : ""}, {pretriageResult.dropped.length} closed
+              <span className="font-medium text-foreground">Pre-triage:</span> {pretriageResult.passed} kept{pretriageResult.withoutJd ? ` (${pretriageResult.withoutJd} of them without a readable JD, so not pre-triaged: paste the JD and run it again)` : ""},{pretriageResult.dropped.length} closed
               {pretriageResult.failed.length > 0 && <span className="text-red-600 dark:text-red-400">, {pretriageResult.failed.length} not written ({pretriageResult.failed.join("; ")})</span>}
             </p>
             <button type="button" onClick={() => setPretriageResult(null)} className="shrink-0 text-faint hover:text-foreground">Dismiss</button>
